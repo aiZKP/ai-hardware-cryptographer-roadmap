@@ -163,13 +163,11 @@
 
 **Phase 5:  Advanced Topics and Specialization (Ongoing)**
 
-* **SystemVerilog and UVM:**  Learn advanced verification techniques using SystemVerilog and the Universal Verification Methodology (UVM).
-* **SystemC:**  Explore SystemC for high-level modeling and simulation of systems.
-* **High-Performance Computing (HPC):**  Deep dive into HPC techniques for parallelizing and optimizing computationally intensive tasks.
-* **Software-Defined Radio (SDR):**  Learn about SDR principles and tools like GNU Radio for building software-defined radio systems.
-* **Security in Embedded Systems:**  Explore techniques for securing embedded systems, including cryptography, secure boot, and secure communication.
-* **Real-time Operating Systems (RTOS):**  Gain deeper knowledge of RTOS concepts and implement real-time applications on embedded platforms.
-* **Specialized Applications:**  Focus on a specific application area that interests you, such as robotics, autonomous systems, industrial automation, or medical devices.
+* **HPC with Nvidia GPU:**  Master professional HPC infrastructure with Nvidia GPUs—vGPU (virtual GPU), KVM virtualization, NCCL (multi-GPU communication), NVLink/NVSwitch, InfiniBand, RDMA, CUDA Multi-Process Service (MPS), and GPU cluster orchestration.
+* **Robotics Application:**  Apply robotics in practice with ROS/ROS 2, sensor fusion, motion planning, industrial automation, and deployment on embedded platforms.
+* **Security in Embedded Systems (with FPGA):**  Combine FPGA technical background with embedded security—cryptography, secure boot, side-channel resistance, and hardware security for FPGA-based systems.
+* **Autonomous Driving:**  Study autonomous driving systems with reference to Openpilot—perception, planning, control, and open-source ADAS development.
+* **AI Chip Design:**  Master AI chip design by first building deep AI/software stack expertise. Reference tinygrad and minimal ML frameworks to understand hardware-software co-design for AI accelerators.
 
 **Remember:**
 

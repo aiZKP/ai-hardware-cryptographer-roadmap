@@ -1,4 +1,8 @@
-﻿**1. Foundational Security Concepts**
+**3. Security in Embedded Systems (with FPGA Technical Background) (12-18 months)**
+
+**Prerequisite: FPGA technical background from Phases 1–3** (digital design, HDL, Xilinx/Vivado, HLS). Security in FPGA-based systems requires understanding of bitstream structure, configuration interfaces, and hardware trust boundaries.
+
+**1. Foundational Security Concepts**
 
 * **Security Threats and Vulnerabilities:**
     * **Common Attack Vectors:**  Understand common attack vectors in embedded systems, such as software vulnerabilities, network attacks, physical tampering, and side-channel attacks.
@@ -103,7 +107,7 @@
 **Resources:**
 
 * **"Network Security Essentials" by William Stallings:**  A textbook that covers network security concepts, protocols, and best practices.
-* **"Bulletproof SSL and TLS" by Ivan Risti─ç:**  A comprehensive guide to TLS/SSL, covering its implementation, configuration, and security considerations.
+* **"Bulletproof SSL and TLS" by Ivan Ristić:**  A comprehensive guide to TLS/SSL, covering its implementation, configuration, and security considerations.
 * **Online Network Security Tutorials:**  Explore online tutorials and resources on network security topics, such as firewall configuration and VPN setup.
 
 **Projects:**
@@ -111,3 +115,37 @@
 * **Implement Secure Communication with TLS/SSL:**  Develop an embedded application that uses TLS/SSL to secure communication with a remote server.
 * **Set up a Secure Remote Access System with SSH:**  Configure an embedded device to allow secure remote access using SSH.
 * **Explore Secure Communication in an IoT Application:**  Implement a secure communication protocol (e.g., MQTT) in an IoT application.
+
+
+**5. Security in FPGA-Based Systems (Combining FPGA and Embedded Security)**
+
+* **FPGA Bitstream Security:**
+    * **Bitstream Encryption:** Understand how Xilinx and Intel FPGAs support bitstream encryption (AES) to prevent cloning and reverse engineering. Learn key storage (e.g., eFUSE, battery-backed RAM) and key management.
+    * **Bitstream Authentication:** Study bitstream authentication (HMAC, RSA signatures) to ensure only authorized configurations are loaded. Understand the chain of trust from boot to runtime.
+    * **Partial Reconfiguration Security:** If using partial reconfiguration, secure the reconfiguration interface and verify partial bitstreams before loading.
+
+* **Side-Channel Resistance in FPGA:**
+    * **Power Analysis (DPA/CPA):** Understand differential power analysis and correlation power analysis attacks on cryptographic implementations in FPGA. Learn masking, hiding, and other countermeasures.
+    * **Timing Side-Channels:** Identify timing side-channels in FPGA designs (e.g., crypto modules). Apply constant-time implementations.
+    * **Electromagnetic (EM) Emanation:** Explore EM-based side-channel attacks and FPGA-level countermeasures (e.g., dual-rail logic, randomization).
+
+* **Hardware Security in FPGA Designs:**
+    * **Secure Boot on FPGA SoCs:** For Zynq, MPSoC, or similar: implement secure boot combining PS (ARM) and PL (FPGA). Use Trusted Firmware-A (TF-A) and secure partition manager.
+    * **Physical Unclonable Functions (PUFs):** Use FPGA PUFs (e.g., SRAM PUF, ring oscillator PUF) for device-unique key generation and anti-cloning.
+    * **Secure Debug and JTAG:** Disable or restrict JTAG and debug interfaces in production. Understand TAP controller security.
+
+* **Cryptographic Accelerators on FPGA:**
+    * **AES and Post-Quantum Crypto:** Implement AES or post-quantum algorithms (e.g., lattice-based) in FPGA with side-channel resistance. Use HLS or RTL.
+    * **Secure Key Storage:** Integrate with Hardware Security Modules (HSMs) or secure enclaves. Understand key provisioning for FPGA-based systems.
+
+**Resources:**
+
+* **Xilinx Security User Guide (UG1283):** Bitstream encryption, authentication, and secure boot for Xilinx FPGAs.
+* **"FPGA Security: From Features to Applications" (research papers):** Survey of FPGA security techniques.
+* **"Side-Channel Attacks on FPGAs" (academic resources):** DPA, CPA, and countermeasures.
+
+**Projects:**
+
+* **Implement Bitstream Encryption on a Xilinx FPGA:** Configure a design with bitstream encryption and verify secure loading.
+* **Analyze Side-Channel Vulnerability:** Use a power analysis tool (e.g., ChipWhisperer) to assess a simple crypto implementation on FPGA.
+* **Secure Boot on Zynq:** Implement a secure boot chain on Zynq (U-Boot, TF-A, Linux) with FPGA bitstream verification.
