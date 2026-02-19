@@ -1,4 +1,4 @@
-﻿**Phase 1: Computer Vision (12-24 months)**
+**Phase 1: Computer Vision (12-24 months)**
 
 **1. Image Processing Fundamentals (Beyond the Basics)**
 
@@ -127,7 +127,7 @@
 
 **Projects:**
 
-* **Develop a Real-Time Object Detection System for Embedded Devices:**  Implement a high-performance object detection system on an embedded platform (e.g., Raspberry Pi, Jetson Nano) using OpenCV and optimized deep learning models.
+* **Develop a Real-Time Object Detection System for Embedded Devices:**  Implement a high-performance object detection system on an embedded platform (e.g., Raspberry Pi, Jetson Orin Nano) using OpenCV and optimized deep learning models.
 * **Create a 3D Scene Understanding Application:**  Build an application that can analyze 3D point cloud data from a LiDAR sensor to identify objects, their positions, and their relationships within a scene.
 * **Implement a Custom Computer Vision Algorithm:**  Develop your own computer vision algorithm for a specific task, such as image stitching, object tracking, or image enhancement.
 * **Contribute to Open-Source Computer Vision Projects:**  Contribute to open-source projects like OpenCV or other computer vision libraries to gain experience and collaborate with the community.

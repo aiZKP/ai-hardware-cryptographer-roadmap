@@ -1,5 +1,7 @@
 **Phase 1: Nvidia Jetson Platform (12-24 months)**
 
+*Primary platform: Jetson Orin Nano*
+
 **1. Jetson Hardware and Software (Deep Dive)**
 
 * **Beyond the Basics:**
@@ -51,8 +53,8 @@
 
 **Projects:**
 
-* **Implement Image Classification with TensorFlow Lite:**  Build an image classification application on Jetson Nano using TensorFlow Lite and a pre-trained model.
-* **Train a Custom Object Detection Model with PyTorch:**  Train a custom object detection model using PyTorch and deploy it on a Jetson device for real-time object detection.
+* **Implement Image Classification with TensorFlow Lite:**  Build an image classification application on Jetson Orin Nano using TensorFlow Lite and a pre-trained model.
+* **Train a Custom Object Detection Model with PyTorch:**  Train a custom object detection model using PyTorch and deploy it on Jetson Orin Nano for real-time object detection.
 * **Compare Performance of Different Frameworks:**  Compare the performance of different deep learning frameworks (TensorFlow, PyTorch, Caffe) on a specific task on Jetson.
 
 
@@ -166,7 +168,7 @@ You're right, let's push the boundaries of your Jetson knowledge even further!  
     * **Asynchronous Operations and Concurrency:**  Master advanced techniques for asynchronous execution in CUDA, including using streams, events, and synchronization primitives to manage concurrent operations.
 
 * **CUDA for Multi-GPU Systems:**
-    * **Multi-GPU Programming:**  Explore techniques for programming and utilizing multiple GPUs on Jetson platforms (e.g., Jetson AGX Xavier, Jetson Orin) to accelerate computationally intensive tasks.
+    * **Multi-GPU Programming:**  Explore techniques for programming and utilizing multiple GPUs on Jetson platforms (e.g., Jetson Orin Nano, Jetson AGX Orin) to accelerate computationally intensive tasks.
     * **GPU-Direct and Peer-to-Peer Communication:**  Learn about GPU-Direct and peer-to-peer communication techniques to efficiently transfer data between GPUs and other devices (e.g., network interfaces, storage devices).
 
 * **CUDA for Embedded and Robotics Applications:**
