@@ -19,7 +19,7 @@ pip install tinygrad numpy
 python hands-on-example.py
 ```
 
-Uses `../tinygrad-source/` if present (avoids openpilot fork conflicts).
+Uses `../tinygrad-source/` (git submodule). Clone with `git clone --recurse-submodules` or run `git submodule update --init` after clone.
 
 ## What Makes It Hackable
 
