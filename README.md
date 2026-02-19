@@ -1,4 +1,4 @@
-**Phase 1: Foundational Knowledge (6-12 months)**
+﻿**Phase 1: Foundational Knowledge (6-12 months)**
 
 * **Digital Design Fundamentals:**
     * **Dive into Number Systems:**  Master binary, hexadecimal, and their conversions. Explore how data is represented digitally.
