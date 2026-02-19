@@ -1,4 +1,4 @@
-﻿**Phase 1: Edge AI Optimization (18-36 months)**
+**Phase 1: Edge AI Optimization (18-36 months)**
 
 **1. Model Quantization and Pruning (Beyond the Basics)**
 
@@ -60,7 +60,7 @@
 
 **Projects:**
 
-* **Optimize a Complex Deep Learning Model for Jetson Nano:**  Take a complex deep learning model (e.g., a large language model, a high-resolution image segmentation model) and optimize it for deployment on a Jetson Nano using advanced quantization, pruning, and TensorRT techniques.
+* **Optimize a Complex Deep Learning Model for Jetson Orin Nano:**  Take a complex deep learning model (e.g., a large language model, a high-resolution image segmentation model) and optimize it for deployment on Jetson Orin Nano using advanced quantization, pruning, and TensorRT techniques.
 * **Build a Multi-Camera Video Analytics System with DeepStream:**  Create a video analytics system that processes multiple camera streams concurrently using DeepStream, performing tasks like object detection, tracking, and classification.
 * **Develop a Low-Power AI Application for a Drone:**  Implement a low-power AI application for a drone that performs tasks like object recognition or autonomous navigation using optimized deep learning models and efficient inference techniques.
 

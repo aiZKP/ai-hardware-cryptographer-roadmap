@@ -1,11 +1,11 @@
 <div align="center">
 
-# AI Hardware Engineer Path
+# AI Hardware Engineer Roadmap
 
 **A structured, hands-on learning roadmap from digital design fundamentals to AI chip design**
 
-[![GitHub stars](https://img.shields.io/github/stars/ai-hpc/ai-hardware-engineer-path?style=flat-square)](https://github.com/ai-hpc/ai-hardware-engineer-path/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/ai-hpc/ai-hardware-engineer-path?style=flat-square)](https://github.com/ai-hpc/ai-hardware-engineer-path/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/ai-hpc/ai-hardware-engineer-roadmap?style=flat-square)](https://github.com/ai-hpc/ai-hardware-engineer-roadmap/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/ai-hpc/ai-hardware-engineer-roadmap?style=flat-square)](https://github.com/ai-hpc/ai-hardware-engineer-roadmap/network/members)
 
 *Digital Design → Verilog → Xilinx FPGA & Zynq → HLS/OpenCL → Jetson Edge AI → HPC, Robotics, Autonomous Driving, AI Chip Design*
 
@@ -87,7 +87,7 @@ A **5-phase self-study curriculum** for engineers who want to build expertise in
 | Topic | Key Skills | Projects |
 |-------|------------|----------|
 | **Nvidia Jetson Platform** | Jetson Orin Nano, JetPack, L4T, TensorFlow/PyTorch, CUDA, Nsight | Real-time object detection, custom model deployment, autonomous robot |
-| **Edge AI Optimization** | Quantization, pruning, TensorRT, CUDA | Optimized model on Nano, video analytics, low-power AI app |
+| **Edge AI Optimization** | Quantization, pruning, TensorRT, CUDA | Optimized model on Orin Nano, video analytics, low-power AI app |
 | **Sensor Fusion** | Camera + LiDAR + IMU, Kalman filtering, ROS | Navigation robot, drone flight control, 3D mapping |
 | **ROS2** | ROS 2, DDS, nodes, topics | Robot navigation, multi-robot systems, edge deployment |
 
@@ -109,6 +109,6 @@ A **5-phase self-study curriculum** for engineers who want to build expertise in
 
 <div align="center">
 
-**Built for the AI hardware community** · [Star ⭐](https://github.com/ai-hpc/ai-hardware-engineer-path) if you find this useful
+**Built for the AI hardware community** · [Star ⭐](https://github.com/ai-hpc/ai-hardware-engineer-roadmap) if you find this useful
 
 </div>
