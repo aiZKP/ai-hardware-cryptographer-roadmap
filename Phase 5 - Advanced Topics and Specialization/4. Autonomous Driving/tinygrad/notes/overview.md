@@ -20,8 +20,6 @@ UnaryOps, BinaryOps, and TernaryOps that operate on 1-3 tensors elementwise
 - **BinaryOps** (2 inputs): ADD, MUL, SUB, DIV, MAX, MOD, CMPLT
 - **TernaryOps** (3 inputs): WHERE, MULACC
 
-📖 See detailed guide: `ops/elementwise/`
-
 ### 2. ReduceOps
 Operate on one tensor and return a smaller tensor
 - Examples: SUM, MAX
@@ -30,16 +28,16 @@ Operate on one tensor and return a smaller tensor
 Virtual ops that move data around, copy-free with ShapeTracker
 - Examples: RESHAPE, PERMUTE, EXPAND, etc.
 
-**Note:** No primitive operators for CONV or MATMUL - these are built from basic operations!
+**Note:** No primitive operators for CONV or MATMUL — these are built from basic operations!
 
 ## Key Features
 
-- **Extreme simplicity** - Easiest framework to add new accelerators to
-- **Lazy evaluation** - All tensors are lazy, enabling aggressive operation fusion
-- **Custom kernel compilation** - Compiles a custom kernel for every operation
-- **Full training support** - Forward and backward passes with autodiff
-- **Hackable** - Entire compiler and IR are visible and modifiable
-- **Multi-backend** - Supports NVIDIA, AMD, and other accelerators
+- **Extreme simplicity** — Easiest framework to add new accelerators to
+- **Lazy evaluation** — All tensors are lazy, enabling aggressive operation fusion
+- **Custom kernel compilation** — Compiles a custom kernel for every operation
+- **Full training support** — Forward and backward passes with autodiff
+- **Hackable** — Entire compiler and IR are visible and modifiable
+- **Multi-backend** — Supports NVIDIA, AMD, and other accelerators
 
 ## Performance
 
@@ -69,7 +67,7 @@ t2 = Tensor([2, 3, 4, 5, 6])
 result = t1 + t2
 result = t1 * t2
 
-# Lazy evaluation - computation happens when .realize() is called
+# Lazy evaluation — computation happens when .realize() is called
 result.realize()
 ```
 
@@ -92,14 +90,23 @@ Tinygrad supports multiple backends:
 - **CPU**: Fallback using clang/LLVM
 - **WEBGPU**: Browser-based via Dawn
 
-## Learning Resources
+## How Tinygrad Compares to PyTorch
 
-- [Quickstart Guide](https://tinygrad.github.io/tinygrad/quickstart/)
-- [MNIST Tutorial](https://docs.tinygrad.org/mnist/)
-- [GitHub Examples](https://github.com/tinygrad/tinygrad/tree/main/examples)
-- [Runtime Documentation](https://docs.tinygrad.org/runtime/)
+### Similar
+- Eager Tensor API
+- Autograd (automatic differentiation)
+- Optimizers (SGD, Adam, etc.)
+- Basic datasets and layers
+- You can write familiar training loops
 
-### Community Tutorials (tinygrad-notes)
+### Unlike PyTorch
+- **The entire compiler and IR are visible and hackable**
+- Everything is in Python (no hidden C++/CUDA)
+- Lazy evaluation by default
+- Simpler, more transparent architecture
+- Easier to add custom backends
+
+## Community Tutorials (tinygrad-notes)
 
 Prerequisite knowledge before contributing. [GitHub](https://github.com/mesozoic-egg/tinygrad-notes) · [Website](https://mesozoic-egg.github.io/tinygrad-notes/)
 
@@ -125,43 +132,14 @@ Tiny corp sells high-performance AI workstations:
 - **Green v2**: 4x RTX PRO 6000, $60,000
 - **Pro v2**: 8x RTX 5090, $60,000
 
-Excellent performance per dollar for deep learning workloads.
-
-## How Tinygrad Compares to PyTorch
-
-### ✅ Similar
-- Eager Tensor API
-- Autograd (automatic differentiation)
-- Optimizers (SGD, Adam, etc.)
-- Basic datasets and layers
-- You can write familiar training loops
-
-### 🔁 Unlike PyTorch
-- **The entire compiler and IR are visible and hackable**
-- Everything is in Python (no hidden C++/CUDA)
-- Lazy evaluation by default
-- Simpler, more transparent architecture
-- Easier to add custom backends
-
 ## Status
 
 Currently in alpha. Will leave alpha when it can reproduce common papers 2x faster than PyTorch on 1 NVIDIA GPU.
 
-## Hacking Tinygrad
+## Learning Resources
 
-See `hacking-tinygrad.md` for detailed examples of:
-- Inspecting the computation graph (`tensor.uop`, `tensor.shape`)
-- Viewing the IR and optimization stages (`DEBUG=4`)
-- Creating custom operations (compose primitives)
-- Exploring the scheduler (`tensor.schedule()`)
-- Adding custom backends
-
-Run `hands-on-example.py` to see tinygrad's internals in action!
-
-## Notes
-
-- API similar to PyTorch but simpler and more refined
-- Less stable during alpha phase
-- Great for learning how deep learning frameworks work
-- Ideal for adding custom accelerator support
-- Perfect for understanding what happens "under the hood"
+- [Quickstart Guide](https://tinygrad.github.io/tinygrad/quickstart/)
+- [MNIST Tutorial](https://docs.tinygrad.org/mnist/)
+- [GitHub Examples](https://github.com/tinygrad/tinygrad/tree/main/examples)
+- [Runtime Documentation](https://docs.tinygrad.org/runtime/)
+- See [internals.md](internals.md) for hacking the compiler, IR, and scheduler
