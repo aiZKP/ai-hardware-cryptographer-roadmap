@@ -131,10 +131,10 @@ Currently in alpha. Will leave alpha when it can reproduce common papers 2x fast
 ## Hacking Tinygrad
 
 See `hacking-tinygrad.md` for detailed examples of:
-- Inspecting the computation graph
-- Viewing the IR and optimization stages
-- Creating custom operations
-- Exploring the scheduler
+- Inspecting the computation graph (`tensor.uop`, `tensor.shape`)
+- Viewing the IR and optimization stages (`DEBUG=4`)
+- Creating custom operations (compose primitives)
+- Exploring the scheduler (`tensor.schedule()`)
 - Adding custom backends
 
 Run `hands-on-example.py` to see tinygrad's internals in action!
