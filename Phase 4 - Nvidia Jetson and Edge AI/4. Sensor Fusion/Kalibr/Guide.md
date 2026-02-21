@@ -1270,6 +1270,6 @@ Write a Python script that:
 
 ---
 
-*Up: [Autonomous Driving Guide](../Guide.md)*
-*See also: [BEVFusion](../../Phase 4 - Nvidia Jetson and Edge AI/4. Sensor Fusion/BEVFusion/Guide.md) — uses Kalibr camera intrinsics and extrinsics*
-*See also: [Multi-Object Tracking](../../Phase 4 - Nvidia Jetson and Edge AI/4. Sensor Fusion/multi-object-tracking/Guide.md)*
+*Up: [Sensor Fusion Guide](../Guide.md)*
+*See also: [BEVFusion](BEVFusion/Guide.md) — uses Kalibr camera intrinsics and extrinsics*
+*See also: [Multi-Object Tracking](multi-object-tracking/Guide.md)*
