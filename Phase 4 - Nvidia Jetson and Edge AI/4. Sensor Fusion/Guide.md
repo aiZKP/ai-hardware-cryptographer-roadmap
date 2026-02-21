@@ -52,6 +52,8 @@
 
 **Resources:**
 
+* **[Kalibr — Multi-Sensor Calibration](Kalibr/Guide.md):**  Complete practical guide to Kalibr (ETH Zurich). Covers camera intrinsic calibration, multi-camera extrinsic calibration, camera-IMU spatial+temporal calibration, Allan variance for IMU noise modelling, output interpretation, and integration with BEVFusion, ORB-SLAM3, and OpenVINS. Essential before any sensor fusion work.
+
 * **[BEVFusion — Camera + LiDAR Fusion in Bird's Eye View](BEVFusion/Guide.md):**  Full guide on multi-modal 3D object detection using BEV feature fusion. Covers architecture (Lift-Splat-Shoot, PointPillars, CenterPoint), training on nuScenes, TensorRT export, ROS2 integration, and Jetson Orin Nano optimization. Start here for state-of-the-art sensor fusion.
 
 * **[Multi-Object Tracking: Hungarian Algorithm + Kalman Filter](multi-object-tracking/Guide.md):**  Complete MOT guide — Kalman filter for motion prediction, Hungarian algorithm for optimal assignment, track lifecycle management. Full Python 3 implementation, YOLO + TensorRT integration for Jetson, 3D tracker for BEVFusion output, ROS2 node with RViz2 markers. Reference: [srianant/kalman_filter_multi_object_tracking](https://github.com/srianant/kalman_filter_multi_object_tracking).

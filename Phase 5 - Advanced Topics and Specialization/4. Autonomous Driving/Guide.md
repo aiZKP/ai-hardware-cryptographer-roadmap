@@ -84,7 +84,7 @@ This phase uses **Openpilot** (comma.ai) as a reference implementation for ADAS�
 **Resources:**
 
 * **"3D Object Detection for Autonomous Driving: A Review" (survey paper):**  Comprehensive review of LiDAR, camera, and fusion-based 3D detection methods.
-* **[Kalibr — Multi-Sensor Calibration](Kalibr/Guide.md):**  Complete practical guide to Kalibr (ETH Zurich). Covers camera intrinsic calibration, multi-camera extrinsic calibration, camera-IMU spatial+temporal calibration, Allan variance for IMU noise modelling, output interpretation, and integration with BEVFusion, ORB-SLAM3, and OpenVINS. Essential before any sensor fusion work.
+* **[Kalibr — Multi-Sensor Calibration](../../Phase 4 - Nvidia Jetson and Edge AI/4. Sensor Fusion/Kalibr/Guide.md):**  Complete practical guide to Kalibr (ETH Zurich). Covers camera intrinsic calibration, multi-camera extrinsic calibration, camera-IMU spatial+temporal calibration, Allan variance for IMU noise modelling, output interpretation, and integration with BEVFusion, ORB-SLAM3, and OpenVINS. Essential before any sensor fusion work.
 * **CARLA Simulator:**  Open-source autonomous driving simulator with sensor models, traffic scenarios, and Python API.
 
 **Projects:**
