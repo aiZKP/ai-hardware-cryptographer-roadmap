@@ -9,7 +9,7 @@
 1. [What is Computer Vision?](#1-what-is-computer-vision)
 2. [Image Processing Fundamentals](#2-image-processing-fundamentals)
 3. [Feature Extraction](#3-feature-extraction)
-4. [Image Segmentation](#4-image-segmentation)
+4. [Image Segmentation](#4-image-segmentation) — threshold, watershed, semantic segmentation, instance segmentation
 5. [Object Detection](#5-object-detection)
 6. [Object Tracking](#6-object-tracking)
 7. [3D Vision](#7-3d-vision)
@@ -323,21 +323,346 @@ def watershed_segment(img_bgr: np.ndarray) -> np.ndarray:
     return markers
 ```
 
-### 4.3 Deep Learning Segmentation
+### 4.3 Semantic Segmentation
+
+Semantic segmentation assigns a class label to every pixel in the image. Unlike object detection (bounding boxes) or instance segmentation (per-object masks), semantic segmentation treats all instances of a class as one region.
+
+```
+Input:  RGB image (H, W, 3)
+Output: label map  (H, W)    — each pixel = class index (0=background, 1=road, 2=car …)
+```
+
+#### Architectures Overview
+
+```
+FCN (2015)           — first fully-convolutional net; bilinear upsampling
+SegNet (2016)        — encoder-decoder with pooling indices for upsampling
+U-Net (2015)         — encoder-decoder with skip connections; standard for medical/satellite
+PSPNet (2017)        — pyramid pooling module captures multi-scale context
+DeepLab v3+ (2018)   — atrous (dilated) convolutions + ASPP + decoder; PASCAL/Cityscapes SOTA
+SegFormer (2021)     — transformer encoder + lightweight MLP decoder; strong on ADE20K
+Mask2Former (2022)   — unified architecture for semantic/instance/panoptic
+```
+
+#### Architecture Detail: DeepLab v3+
+
+```
+Input image
+    ↓
+Encoder (ResNet/MobileNet backbone with dilated conv)
+    ↓
+ASPP — Atrous Spatial Pyramid Pooling
+  ├── 1×1 conv
+  ├── dilated conv rate=6
+  ├── dilated conv rate=12
+  ├── dilated conv rate=18
+  └── global average pooling
+  → concatenate → 1×1 conv → features (H/16, W/16, 256)
+    ↓
+Decoder
+  ├── bilinear upsample ×4
+  ├── concat with low-level encoder features (H/4 resolution)
+  └── 3×3 conv → 1×1 conv → (H/4, W/4, num_classes)
+    ↓
+Bilinear upsample ×4 → logits (H, W, num_classes)
+    ↓
+argmax → per-pixel class label
+```
+
+#### segmentation_models_pytorch — The Standard Library
+
+```bash
+pip install segmentation-models-pytorch
+```
 
 ```python
-# Semantic segmentation with OpenCV DNN (DeepLab v3+)
-net = cv2.dnn.readNetFromTensorflow(
-    'deeplabv3_mnv2_pascal_train_aug.pb'
+import segmentation_models_pytorch as smp
+import torch
+import torch.nn as nn
+
+# ── Build model ──────────────────────────────────────────────────────────────
+model = smp.DeepLabV3Plus(
+    encoder_name='resnet50',        # backbone: resnet18/34/50, efficientnet-b*, mit_b*
+    encoder_weights='imagenet',     # pretrained weights
+    in_channels=3,
+    classes=19,                     # Cityscapes has 19 evaluation classes
 )
 
-blob = cv2.dnn.blobFromImage(
-    img_bgr, scalefactor=1/127.5, size=(513, 513),
-    mean=(127.5, 127.5, 127.5), swapRB=True
+# Other architectures (same API):
+# smp.Unet(...)         — classic U-Net (best for small datasets)
+# smp.FPN(...)          — Feature Pyramid Network decoder
+# smp.PSPNet(...)       — Pyramid Scene Parsing
+# smp.SegFormer(...)    — transformer encoder + MLP decoder
+
+# ── Loss functions ────────────────────────────────────────────────────────────
+# smp provides standard losses that work with logits (no sigmoid/softmax needed)
+dice_loss = smp.losses.DiceLoss(mode='multiclass')
+ce_loss   = nn.CrossEntropyLoss(ignore_index=255)   # 255 = void/ignore label
+
+def combined_loss(logits, targets):
+    return 0.5 * ce_loss(logits, targets) + 0.5 * dice_loss(logits, targets)
+
+# ── Training step ─────────────────────────────────────────────────────────────
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-4)
+scheduler = torch.optim.lr_scheduler.PolynomialLR(optimizer, total_iters=100, power=0.9)
+
+model.train()
+for images, masks in train_loader:
+    images = images.cuda()   # (B, 3, H, W) float32
+    masks  = masks.cuda()    # (B, H, W) long  — class indices
+
+    logits = model(images)   # (B, num_classes, H, W)
+    loss   = combined_loss(logits, masks)
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+scheduler.step()
+
+# ── Inference ─────────────────────────────────────────────────────────────────
+model.eval()
+with torch.no_grad():
+    logits = model(images)                  # (B, C, H, W)
+    probs  = torch.softmax(logits, dim=1)   # (B, C, H, W)
+    preds  = probs.argmax(dim=1)            # (B, H, W)
+```
+
+#### Metrics: mIoU and Pixel Accuracy
+
+mIoU (mean Intersection-over-Union) is the standard metric. It is computed per-class then averaged.
+
+```python
+import torch
+
+def compute_miou(preds: torch.Tensor, targets: torch.Tensor,
+                 num_classes: int, ignore_index: int = 255) -> dict:
+    """
+    Compute per-class IoU and mIoU.
+
+    Args:
+        preds:   (B, H, W) long — predicted class per pixel
+        targets: (B, H, W) long — ground truth class per pixel
+    Returns:
+        dict with 'miou', 'per_class_iou', 'pixel_acc'
+    """
+    mask = targets != ignore_index
+    preds   = preds[mask]
+    targets = targets[mask]
+
+    per_class_iou = []
+    for cls in range(num_classes):
+        pred_cls   = preds == cls
+        target_cls = targets == cls
+
+        intersection = (pred_cls & target_cls).sum().float()
+        union        = (pred_cls | target_cls).sum().float()
+
+        if union == 0:
+            per_class_iou.append(float('nan'))   # class not present
+        else:
+            per_class_iou.append((intersection / union).item())
+
+    valid_iou = [v for v in per_class_iou if not torch.isnan(torch.tensor(v))]
+    miou = sum(valid_iou) / len(valid_iou) if valid_iou else 0.0
+    pixel_acc = (preds == targets).float().mean().item()
+
+    return {
+        'miou': miou,
+        'per_class_iou': per_class_iou,
+        'pixel_acc': pixel_acc,
+    }
+
+# Usage
+metrics = compute_miou(preds, targets, num_classes=19)
+print(f"mIoU: {metrics['miou']:.4f}  |  Pixel Acc: {metrics['pixel_acc']:.4f}")
+```
+
+```
+Common mIoU benchmarks:
+  Cityscapes val:  DeepLabV3+(R101) = 81.3%
+                   SegFormer(B5)    = 84.0%
+  ADE20K val:      SegFormer(B5)    = 51.8%
+  PASCAL VOC:      DeepLabV3+       = 89.0%
+```
+
+#### YOLOv8-seg — Semantic + Instance in One Model
+
+```python
+from ultralytics import YOLO
+import numpy as np
+import cv2
+
+# YOLOv8-seg does instance segmentation — masks per detected object
+# For ADAS road segmentation, use a class-specific semantic projection
+model = YOLO('yolov8n-seg.pt')   # n/s/m/l/x variants
+
+results = model('frame.jpg', conf=0.4)
+
+for r in results:
+    if r.masks is not None:
+        # masks.data: (N_instances, H, W) float32, values 0–1
+        masks = r.masks.data.cpu().numpy()
+        classes = r.boxes.cls.cpu().numpy().astype(int)
+
+        # Build semantic map by projecting instance masks
+        H, W = r.orig_shape
+        semantic_map = np.zeros((H, W), dtype=np.uint8)
+        for mask, cls_id in zip(masks, classes):
+            binary = (cv2.resize(mask, (W, H)) > 0.5)
+            semantic_map[binary] = cls_id + 1   # 0 = background
+
+# Fine-tune on custom segmentation dataset
+model = YOLO('yolov8n-seg.pt')
+model.train(
+    data='seg_dataset.yaml',   # same format as detection, but images have masks
+    epochs=100,
+    imgsz=640,
+    batch=8,
+    device='cuda',
 )
-net.setInput(blob)
-output = net.forward()   # (1, num_classes, H, W)
-seg_map = np.argmax(output[0], axis=0)  # per-pixel class index
+```
+
+#### Dataset Format for Segmentation Training (YOLO)
+
+```yaml
+# seg_dataset.yaml
+path: /data/road_seg
+train: images/train
+val:   images/val
+
+nc: 5
+names:
+  0: road
+  1: sidewalk
+  2: car
+  3: person
+  4: vegetation
+```
+
+```
+# Polygon mask label (YOLO seg format)
+# labels/frame001.txt
+# class_id  x1 y1  x2 y2  x3 y3  ...  (normalized polygon vertices)
+0  0.10 0.95  0.45 0.55  0.90 0.55  0.95 0.95   ← road polygon
+2  0.30 0.40  0.45 0.40  0.45 0.70  0.30 0.70   ← car bounding polygon
+```
+
+#### ADAS Road Segmentation with Cityscapes Classes
+
+```python
+import torch
+import cv2
+import numpy as np
+import segmentation_models_pytorch as smp
+
+# Cityscapes 19-class palette (RGB)
+CITYSCAPES_PALETTE = np.array([
+    [128, 64, 128],   # 0  road
+    [244, 35, 232],   # 1  sidewalk
+    [ 70, 70, 70],   # 2  building
+    [102, 102, 156],  # 3  wall
+    [190, 153, 153],  # 4  fence
+    [153, 153, 153],  # 5  pole
+    [250, 170,  30],  # 6  traffic light
+    [220, 220,   0],  # 7  traffic sign
+    [107, 142,  35],  # 8  vegetation
+    [152, 251, 152],  # 9  terrain
+    [ 70, 130, 180],  # 10 sky
+    [220,  20,  60],  # 11 person
+    [255,   0,   0],  # 12 rider
+    [  0,   0, 142],  # 13 car
+    [  0,   0,  70],  # 14 truck
+    [  0,  60, 100],  # 15 bus
+    [  0,  80, 100],  # 16 train
+    [  0,   0, 230],  # 17 motorcycle
+    [119,  11,  32],  # 18 bicycle
+], dtype=np.uint8)
+
+CITYSCAPES_MEAN = np.array([0.485, 0.456, 0.406])
+CITYSCAPES_STD  = np.array([0.229, 0.224, 0.225])
+
+
+def preprocess_frame(frame_bgr: np.ndarray, size=(1024, 512)) -> torch.Tensor:
+    """Resize and normalize a BGR frame for Cityscapes-trained model."""
+    img = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+    img = cv2.resize(img, size)
+    img = img.astype(np.float32) / 255.0
+    img = (img - CITYSCAPES_MEAN) / CITYSCAPES_STD
+    return torch.from_numpy(img.transpose(2, 0, 1)).unsqueeze(0).float()
+
+
+def colorize(label_map: np.ndarray) -> np.ndarray:
+    """Map (H, W) class indices → (H, W, 3) RGB color image."""
+    color = np.zeros((*label_map.shape, 3), dtype=np.uint8)
+    for cls_id, rgb in enumerate(CITYSCAPES_PALETTE):
+        color[label_map == cls_id] = rgb
+    return color
+
+
+def segment_frame(model, frame_bgr: np.ndarray, device='cuda') -> np.ndarray:
+    """Run full segmentation pipeline on one frame. Returns color overlay."""
+    H, W = frame_bgr.shape[:2]
+    inp = preprocess_frame(frame_bgr).to(device)
+
+    with torch.no_grad():
+        logits = model(inp)                        # (1, 19, h, w)
+        pred   = logits.argmax(1).squeeze().cpu().numpy()  # (h, w)
+
+    # Upsample prediction to original resolution
+    pred_full = cv2.resize(pred.astype(np.uint8), (W, H),
+                           interpolation=cv2.INTER_NEAREST)
+    color_mask = colorize(pred_full)
+
+    # Blend with original frame
+    overlay = cv2.addWeighted(frame_bgr, 0.5,
+                              cv2.cvtColor(color_mask, cv2.COLOR_RGB2BGR), 0.5, 0)
+    return overlay, pred_full
+
+
+# Load Cityscapes pretrained model
+model = smp.DeepLabV3Plus(
+    encoder_name='resnet50',
+    encoder_weights='imagenet',
+    classes=19,
+).cuda().eval()
+
+# Run on video
+cap = cv2.VideoCapture('dashcam.mp4')
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+    overlay, pred = segment_frame(model, frame)
+    road_pixels = (pred == 0).sum()
+    total_pixels = pred.size
+    print(f"Road coverage: {100 * road_pixels / total_pixels:.1f}%")
+    cv2.imshow('Semantic Segmentation', overlay)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+```
+
+#### Quick Comparison: Semantic vs Instance vs Panoptic
+
+```
+Semantic segmentation:
+  Output: (H, W) label map — every pixel has one class
+  All cars = same "car" region
+  Models: DeepLab, SegFormer, FCN
+
+Instance segmentation:
+  Output: N masks, one per object — same class objects get separate masks
+  Car A mask, Car B mask, Car C mask
+  Models: Mask R-CNN, YOLOv8-seg, SOLO, SOLOv2
+
+Panoptic segmentation:
+  Output: combines both — stuff (road, sky) as semantic, things (car, person) as instances
+  Complete scene understanding
+  Models: Panoptic FPN, Mask2Former, DETR (panoptic head)
+
+ADAS typically needs:
+  Drivable area      → semantic (road class)
+  Obstacle avoidance → instance (each car/pedestrian separately)
+  Full understanding → panoptic
 ```
 
 ### 4.4 Instance Segmentation with Mask R-CNN (PyTorch)
@@ -1727,6 +2052,9 @@ class PointNet(nn.Module):
 | ViT | Dosovitskiy et al., "An Image is Worth 16×16 Words" (ICLR 2021) |
 | DETR | Carion et al., "End-to-End Object Detection with Transformers" (ECCV 2020) |
 | SAM | Kirillov et al., "Segment Anything" (ICCV 2023) |
+| DeepLab v3+ | Chen et al., "Encoder-Decoder with Atrous Separable Convolution" (ECCV 2018) |
+| SegFormer | Xie et al., "SegFormer: Simple and Efficient Design for Semantic Segmentation" (NeurIPS 2021) |
+| Mask2Former | Cheng et al., "Masked-attention Mask Transformer" (CVPR 2022) |
 | BEVFusion | Liu et al., "BEVFusion" (ICRA 2023) |
 | ByteTrack | Zhang et al., "ByteTrack" (ECCV 2022) |
 
