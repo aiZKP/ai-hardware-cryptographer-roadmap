@@ -5,6 +5,7 @@ A comprehensive reference of CMU's School of Computer Science (SCS) undergraduat
 **Sources:**
 - [07-280 AI & ML I](https://www.cs.cmu.edu/~07280/#schedule)
 - [15-463 Computational Photography](https://graphics.cs.cmu.edu/courses/15-463/2018_fall/)
+- [16-385 Computer Vision Spring 2026 — Lectures](https://16385.courses.cs.cmu.edu/spring2026/lectures)
 - [Bachelor of Science in Robotics](https://www.ri.cmu.edu/education/academic-programs/bachelor-of-science-in-robotics/)
 - [Robotics Program Catalog](http://coursecatalog.web.cmu.edu/schools-colleges/schoolofcomputerscience/robotics/#roboticscurriculumtextcontainer)
 
@@ -397,6 +398,7 @@ Additional good sources for computer vision and computational photography, sorte
 | [CS5670 Introduction to Computer Vision](https://www.cs.cornell.edu/courses/cs5670/2025sp/) | Cornell Tech | Noah Snavely | Spring 2025 |
 | [6.8300/6.8301 Advances in Computer Vision](https://szeliski.org/Book/) | MIT | Bill Freeman, Antonio Torralba, Phillip Isola | Spring 2023 |
 | [16-385 Computer Vision](http://www.cs.cmu.edu/~16385/) | CMU | Matthew O'Toole | Fall 2024 |
+| [16-385 Computer Vision — Lectures](https://16385.courses.cs.cmu.edu/spring2026/lectures) | CMU | — | Spring 2026 |
 | [CS194-26/294-26 Intro to Computer Vision and Computational Photography](https://szeliski.org/Book/) | Berkeley | Alyosha Efros | Fall 2024 |
 | [15-463, 15-663, 15-862 Computational Photography](https://graphics.cs.cmu.edu/courses/15-463/) | CMU | Ioannis Gkioulekas | Fall 2024 |
 | [CSCI 1430 Computer Vision](https://szeliski.org/Book/) | Brown | James Tompkin | Spring 2025 |
@@ -418,6 +420,7 @@ Additional good sources for computer vision and computational photography, sorte
 | Resource | URL |
 |----------|-----|
 | 07-280 AI & ML I | https://www.cs.cmu.edu/~07280/#schedule |
+| 16-385 Computer Vision Spring 2026 Lectures | https://16385.courses.cs.cmu.edu/spring2026/lectures |
 | 15-463 Computational Photography | https://graphics.cs.cmu.edu/courses/15-463/2018_fall/ |
 | B.S. Robotics | https://www.ri.cmu.edu/education/academic-programs/bachelor-of-science-in-robotics/ |
 | Robotics Catalog | http://coursecatalog.web.cmu.edu/schools-colleges/schoolofcomputerscience/robotics/ |
