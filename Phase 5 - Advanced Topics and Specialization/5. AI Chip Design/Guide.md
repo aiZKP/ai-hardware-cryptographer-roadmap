@@ -104,6 +104,7 @@
 * **"Eyeriss: A Spatial Architecture for Energy-Efficient Dataflow for CNN" (Chen et al., ISCA 2016):**  Foundational paper on CNN accelerator dataflow and energy analysis.
 * **"Efficient Processing of Deep Neural Networks" by Sze, Chen, Yang, and Emer:**  Comprehensive book and MIT OCW course on DNN hardware acceleration.
 * **Timeloop and Accelergy:**  Architecture-level modeling and evaluation framework for DNN accelerators—maps workloads to architectures and estimates performance, energy, and area.
+* **Halide** — [github.com/halide/Halide](https://github.com/halide/Halide): Language for fast, portable data-parallel computation (image processing, GPU). Study the schedule/algorithm separation and how it maps to spatial architectures.
 
 **Projects:**
 
