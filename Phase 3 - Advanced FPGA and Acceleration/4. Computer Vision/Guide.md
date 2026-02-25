@@ -2456,6 +2456,7 @@ class PointNet(nn.Module):
 ### Tools and Libraries
 
 - **OpenCV** — docs.opencv.org — core library
+- **Halide** — [github.com/halide/Halide](https://github.com/halide/Halide) — language for fast, portable data-parallel image processing (CPU, GPU, FPGA)
 - **Ultralytics YOLOv8** — docs.ultralytics.com — modern detection/segmentation/pose
 - **Albumentations** — albumentations.ai — augmentation
 - **Supervision** — supervision.roboflow.com — detection utilities, visualization
