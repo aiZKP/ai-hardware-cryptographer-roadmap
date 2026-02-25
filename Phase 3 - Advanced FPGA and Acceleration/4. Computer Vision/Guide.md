@@ -7,7 +7,7 @@
 ## Table of Contents
 
 1. [What is Computer Vision?](#1-what-is-computer-vision)
-2. [Image Processing Fundamentals](#2-image-processing-fundamentals)
+2. [Image Processing Fundamentals](#2-image-processing-fundamentals) — ISP pipeline, color spaces, filtering, edge detection
 3. [Feature Extraction](#3-feature-extraction)
 4. [Image Segmentation](#4-image-segmentation) — threshold, watershed, semantic segmentation, instance segmentation
 5. [Object Detection](#5-object-detection)
@@ -68,6 +68,492 @@ Challenges:
 ---
 
 ## 2. Image Processing Fundamentals
+
+### 2.0 ISP Pipeline — From Photons to Pixels
+
+Beginners think: "the camera gives an image." Reality: the camera gives raw physics — the ISP builds the image.
+
+Every image a neural network processes was manufactured by an Image Signal Processor. The sensor does not output RGB. It outputs a Bayer mosaic of single-channel photon counts at 10/12/14-bit depth. The ISP pipeline transforms this raw physics into a stable, color-correct image. Every stage exists for a physical reason, and every stage can break your model if done wrong.
+
+This is core knowledge for ADAS, embedded vision, Jetson, and camera systems.
+
+#### Full RAW-to-NV12 Pipeline
+
+```
+Photons → Lens → Sensor (CCD/CMOS with Bayer CFA)
+                        │
+                        │  raw Bayer mosaic (10/12/14 bit)
+                        ▼
+              ┌───────────────────────────┐
+              │  1. RAW Bayer             │  sensor output — NOT an image yet
+              │  2. Linearization         │  fix sensor non-linearity
+              │  3. White Balance         │  correct for lighting color
+              │  4. Demosaic              │  Bayer → full RGB
+              │  5. Color Correction (CCM)│  sensor RGB → standard sRGB
+              │  6. Brightness / Contrast │  tone mapping, gamma
+              │  7. Lens Shading          │  fix vignetting (dark edges)
+              │  8. NV12 output           │  YUV for GPU / neural net
+              └───────────────────────────┘
+```
+
+---
+
+#### Stage 1: RAW Bayer (Sensor Output)
+
+The sensor does NOT capture RGB.
+
+It captures a **Bayer mosaic pattern** — each physical pixel has a color filter in front of it that passes only one color.
+
+```
+Bayer RGGB pattern (most common):
+
+  col 0   col 1   col 2   col 3
+  ┌───────┬───────┬───────┬───────┐
+  │   R   │   G   │   R   │   G   │  row 0
+  ├───────┼───────┼───────┼───────┤
+  │   G   │   B   │   G   │   B   │  row 1
+  ├───────┼───────┼───────┼───────┤
+  │   R   │   G   │   R   │   G   │  row 2
+  ├───────┼───────┼───────┼───────┤
+  │   G   │   B   │   G   │   B   │  row 3
+  └───────┴───────┴───────┴───────┘
+
+Each pixel records ONLY ONE color channel.
+50% green — human vision is most sensitive to green, so more green pixels
+            maximizes signal-to-noise ratio.
+25% red, 25% blue.
+```
+
+Why this design?
+
+- Hardware simplicity — one filter per photodiode, no beam splitters
+- Smaller bandwidth — 1 channel per pixel instead of 3
+- Standard across the industry — Bayer pattern invented 1976, still universal
+
+The problem:
+
+- This is NOT a usable image
+- A neural network cannot ingest raw Bayer directly (wrong structure, single-channel)
+- Every downstream stage exists to turn this into something usable
+
+```
+CCD vs CMOS:
+
+  CCD  — Charge Coupled Device
+         Shifts charge row-by-row to a single ADC at the edge
+         Global shutter (all pixels exposed simultaneously — no rolling artifacts)
+         Higher power, mostly legacy (replaced by CMOS)
+
+  CMOS — Complementary Metal-Oxide-Semiconductor
+         Each pixel has its own amplifier + ADC (column-parallel readout)
+         Rolling shutter (rows read sequentially — fast motion causes skew)
+         Lower power, faster, dominant in ALL modern cameras
+
+ADAS reference sensors:
+  AR0233AT (ON Semi)    — 2.1 MP, HDR, automotive qualified, RGGB
+  OV8856  (OmniVision)  — 8 MP, openpilot comma 3 sensor, RGGB
+  IMX390  (Sony)        — 2.3 MP, HDR, LED flicker mitigation, ADAS standard
+  IMX728  (Sony)        — 8.3 MP, latest generation ADAS, stacked BSI
+```
+
+---
+
+#### Stage 2: Linearization
+
+Sensors are non-linear devices. The raw pixel value coming out of the ADC is NOT proportional to the number of photons that hit the pixel.
+
+```
+Why non-linear?
+
+  Photodiode response      — charge accumulates non-linearly near saturation
+  ADC transfer function    — analog-to-digital converter has its own curve
+  Sensor gain stages       — programmable gain amplifiers introduce distortion
+
+What linearization does:
+
+  Apply a correction curve (measured during factory calibration)
+  so that:  output_value = k × (number of photons)
+
+  After linearization: double the light → double the pixel value
+```
+
+Why this matters:
+
+- ALL subsequent math (white balance, color correction, noise reduction) assumes linear light
+- Without linearization: colors are wrong, brightness is wrong, exposure control breaks
+- The correction curve is specific to each sensor model (stored in sensor firmware or ISP config)
+
+```
+Before linearization:
+  200 photons → ADC reads 1000
+  400 photons → ADC reads 1700    ← should be 2000 if linear
+
+After linearization:
+  200 photons → corrected to 1000
+  400 photons → corrected to 2000  ← now proportional
+```
+
+---
+
+#### Stage 3: White Balance (Critical for ADAS)
+
+Real-world lighting is not neutral. Different light sources emit different color temperatures, which shifts the color of everything in the scene.
+
+```
+Color temperature of common illuminants:
+
+  1800 K    candle flame            very warm / orange
+  2700 K    tungsten bulb           warm yellow
+  4000 K    fluorescent tube        neutral / slightly green
+  5500 K    direct sunlight (D55)   daylight standard
+  6500 K    overcast sky (D65)      cool / slightly blue — sRGB reference
+ 10000 K    blue sky / deep shade   very cool / blue
+```
+
+The sensor's R, G, B channels respond differently to each illuminant. Under tungsten light, red channel is too strong; under shade, blue is too strong.
+
+White balance corrects this by scaling each channel with a gain factor:
+
+```
+How it works:
+
+  Measure the scene illuminant (auto white balance algorithms):
+    - Gray World:    assume average scene color should be neutral gray
+    - White Patch:   assume brightest region is white
+    - Illuminant estimation: statistical model of light source
+
+  Apply per-channel gain:
+    R_corrected = R_raw × gain_R
+    G_corrected = G_raw × gain_G     (usually gain_G = 1.0, reference channel)
+    B_corrected = B_raw × gain_B
+
+  Goal: a white object appears as (R=G=B) regardless of lighting
+```
+
+Why this is critical for ADAS:
+
+- A dashcam sees constantly changing illuminants: sun, shadows, tunnels, LED taillights, streetlights
+- Bad AWB causes color shifts between frames
+- A neural net trained on D65 (overcast daylight) images will misclassify objects when the ISP outputs orange-tinted tunnel frames
+- Color shift → class confusion → missed detections
+
+```
+ADAS scenario:
+
+  Highway → tunnel → exit:
+    Frame 1: outdoor sunlight (5500K) → correct colors
+    Frame 2: tunnel sodium lamps (2000K) → everything orange
+    Frame 3: tunnel exit (mixed) → half orange, half blue
+
+  Without good AWB: the neural net sees three different "worlds"
+  With good AWB:    all three frames have consistent color → stable predictions
+```
+
+---
+
+#### Stage 4: Demosaic (Most Important ISP Stage)
+
+The raw Bayer image has incomplete color information. Each pixel recorded only ONE channel (R, G, or B). Demosaicing reconstructs the missing two channels for every pixel.
+
+```
+Before demosaic:                  After demosaic:
+
+  pixel (2,3) has only G value    pixel (2,3) has (R_interpolated,
+                                                    G_actual,
+                                                    B_interpolated)
+
+How interpolation works (simplified — bilinear):
+
+  To estimate the missing Red value at a Green pixel:
+    R_estimated = average of neighboring R pixels (above, below, left, right)
+
+  To estimate the missing Blue value at a Green pixel:
+    B_estimated = average of neighboring B pixels (diagonal neighbors)
+```
+
+Demosaicing algorithms range in quality:
+
+```
+Method           Speed      Quality    Artifacts
+──────────────────────────────────────────────────────────
+Bilinear         fastest    poor       zipper edges, moiré, false color
+VNG              medium     good       mild color fringing at sharp edges
+AHD / EA         slower     very good  edge-aware — interpolates ALONG edges,
+                                       not across them
+Neural network   GPU        excellent  learned from ground-truth RGB pairs
+```
+
+Why quality matters enormously:
+
+- Bad demosaicing creates **zipper artifacts** at sharp edges (alternating color fringes)
+- These artifacts look like real features to a CNN
+- Moiré patterns (false periodic patterns) trigger false detections
+- Every downstream CV task inherits demosaic errors — they propagate forever
+
+```
+ADAS tradeoff:
+
+  Accuracy:  want AHD or neural-net demosaic (best edges)
+  Speed:     need real-time (30 fps minimum)
+  Solution:  hardware ISP does demosaic in dedicated silicon at pixel rate
+             — no CPU/GPU cycles consumed, runs at sensor speed
+
+Hardware ISP demosaicers:
+  NVIDIA Jetson:    built into VI/ISP unit (not user-configurable)
+  Qualcomm Spectra: multi-pass with chroma correction
+  ARM Mali-C71:     proprietary edge-directed algorithm
+```
+
+---
+
+#### Stage 5: Color Space Correction (CCM)
+
+Sensor color filters are NOT ideal R, G, B. Each sensor model has a unique spectral response — the red filter passes some green, the blue filter leaks some red, etc.
+
+The **Color Correction Matrix (CCM)** transforms sensor-native RGB into a standard color space (sRGB).
+
+```
+What the CCM does:
+
+  [R_sRGB]     [  1.86  -0.64  -0.21 ]   [R_sensor]
+  [G_sRGB]  =  [ -0.25   1.52  -0.26 ] × [G_sensor]
+  [B_sRGB]     [  0.04  -0.57   1.53 ]   [B_sensor]
+
+  This 3×3 matrix corrects:
+    - Spectral cross-talk between filter channels
+    - Sensitivity differences between R/G/B photodiodes
+    - Maps sensor-specific colors to device-independent standard
+
+The full color chain:
+  Sensor RGB → CCM → CIE XYZ → matrix → linear sRGB → gamma curve → sRGB
+  (device-      (device-          (physical     (perceptual /
+   dependent)    independent)      light values)  display-ready)
+```
+
+Why this matters for neural networks:
+
+- NNs trained on sRGB images learn specific color statistics
+- If your camera's CCM differs from training data, color distribution shifts
+- Shifted colors → degraded accuracy on color-sensitive tasks (traffic light, lane color, brake lights)
+- Solution: either calibrate CCM to match training distribution, or augment training with diverse ISP outputs
+
+---
+
+#### Stage 6: Brightness and Contrast Control
+
+After color correction, the image is in linear light — but linear light looks wrong to human eyes and to models trained on gamma-corrected images.
+
+```
+Why we need this stage:
+
+  Linear light reality:
+    - Most of the useful scene detail is compressed into a tiny range
+    - Dark areas look too dark, bright areas look too bright
+    - Real scenes have 120+ dB dynamic range (HDR sensors)
+    - Display/JPEG supports only ~48 dB (8 bits)
+
+What this stage does:
+
+  1. Tone mapping (HDR → SDR)
+     Compress the enormous dynamic range into 8 bits
+     Preserve detail in both shadows and highlights
+     Critical for dashcams: headlights + dark road in same frame
+
+  2. Gamma correction
+     Apply power curve: output = input^(1/2.2)
+     Redistributes bit depth to match human perception
+     Without gamma: dark regions have too few distinct values
+
+  3. Contrast adjustment
+     Local or global contrast enhancement
+     Prevents losing lane markings in shadows
+     Prevents saturating sky / headlight regions
+```
+
+ADAS-specific concerns:
+
+```
+  Problem: driving toward sunset
+    - Sky: massively overexposed (saturated white)
+    - Road: deeply underexposed (near black)
+    - Lane markings: invisible in both regions
+
+  ISP tone mapper must:
+    - Compress sky brightness so headlights don't bloom
+    - Lift road shadows so lane markings remain visible
+    - Do this consistently frame-to-frame (no flickering)
+
+  Bad tone mapping → lost lane markings → lateral control fails
+  Good tone mapping → neural net sees lanes in all conditions
+```
+
+---
+
+#### Stage 7: Lens Shading / Vignetting Correction
+
+Every lens is optically imperfect. Light falls off toward the edges of the image — the center is brighter than the corners. This is called **vignetting**.
+
+```
+Why it happens:
+
+  - Cos⁴ law: light intensity drops as cos⁴(angle) from optical axis
+  - At 30° off-axis: brightness drops to ~56% of center
+  - At 45° off-axis: brightness drops to ~25% of center
+  - Worse with wide-angle lenses (ADAS cameras are typically 60–120° FOV)
+
+What the correction does:
+
+  Apply a per-pixel gain map (measured during lens calibration):
+    pixel_corrected = pixel_raw × gain_map(x, y)
+
+  The gain map is:
+    - ~1.0 at center (no correction needed)
+    - ~1.5–2.5 at edges (amplify to compensate for falloff)
+    - Unique per lens + sensor combination
+    - Stored in ISP firmware
+```
+
+Why it matters for ADAS:
+
+```
+  Without lens shading correction:
+    - Objects at image edges appear darker than center
+    - A pedestrian in the left corner looks different from same pedestrian at center
+    - Segmentation models produce inconsistent masks at image borders
+    - Lane detection fails at peripheral lanes (they appear too dim)
+
+  Especially critical for:
+    - Wide-angle cameras (openpilot wide cam: ~120° FOV → severe vignetting)
+    - Multi-camera stitching (brightness mismatch at overlap zones)
+    - Surround-view systems (4+ cameras with edge overlap)
+```
+
+---
+
+#### Stage 8: NV12 Output (Final Format)
+
+The ISP's final step converts the processed RGB image into **NV12** (a YUV 4:2:0 format) for downstream consumption by GPU, neural network, and video encoder.
+
+```
+What is NV12?
+
+  Y plane:   full resolution luminance
+             every pixel has its own brightness value
+             size: H × W bytes
+
+  UV plane:  half-resolution chrominance (interleaved U, V)
+             shared between 2×2 pixel blocks
+             size: H/2 × W bytes
+
+  Total size: H × W × 1.5 bytes (vs H × W × 3 for RGB)
+             → 50% smaller than RGB
+
+NV12 memory layout for a 4×4 image:
+
+  Y plane (4×4):        UV plane (2×4, interleaved):
+  ┌───┬───┬───┬───┐     ┌───┬───┬───┬───┐
+  │Y00│Y01│Y02│Y03│     │U00│V00│U01│V01│  ← shared by top 2 rows
+  ├───┼───┼───┼───┤     ├───┼───┼───┼───┤
+  │Y10│Y11│Y12│Y13│     │U10│V10│U11│V11│  ← shared by bottom 2 rows
+  ├───┼───┼───┼───┤     └───┴───┴───┴───┘
+  │Y20│Y21│Y22│Y23│
+  ├───┼───┼───┼───┤
+  │Y30│Y31│Y32│Y33│
+  └───┴───┴───┴───┘
+```
+
+Why NV12 and not RGB?
+
+```
+  Bandwidth:      NV12 is 50% smaller → saves memory bus bandwidth
+  GPU friendly:   NVIDIA hardware texture units read NV12 natively
+  ISP native:     hardware ISPs output NV12 directly (no conversion needed)
+  Neural net:     openpilot supercombo takes YUV input directly
+  Video encode:   H.264/H.265 encoders expect YUV420 input
+  Cache friendly:  Y plane accessed sequentially → good cache behavior
+
+  RGB is expensive:
+    3 bytes per pixel, 3× the bandwidth
+    Conversion from NV12→RGB costs CPU/GPU cycles
+    Most inference pipelines avoid RGB entirely
+```
+
+```
+Typical ADAS SoC data path:
+
+  Sensor → MIPI CSI-2 → Hardware ISP → NV12 in DRAM
+                                         │
+                                         ├──→ GPU/DLA (inference)
+                                         ├──→ H.265 encoder (recording)
+                                         └──→ Display (preview)
+
+  The ISP output goes everywhere. No CPU touches it.
+  This is why ISP quality directly determines system quality.
+```
+
+---
+
+#### Why Each Stage Exists (Summary)
+
+Every stage corrects a specific physical reality. Skip any one and the image degrades in a specific, predictable way:
+
+```
+  Stage                Fixes                        If wrong, neural net sees...
+  ──────────────────────────────────────────────────────────────────────────────
+  Linearization        sensor physics               wrong brightness relationships
+  White Balance        lighting color variation      color-shifted objects (blue cars, yellow roads)
+  Demosaic             Bayer sampling limitation     zipper edges, moiré false patterns
+  CCM                  sensor spectral mismatch      wrong colors (red looks orange)
+  Brightness/Contrast  scene dynamic range           crushed shadows, blown highlights
+  Lens Shading         optical brightness falloff    dark edges, inconsistent features
+  NV12 conversion      compute efficiency            (correct by construction)
+```
+
+#### ADAS / Embedded AI Perspective
+
+Neural networks require:
+
+- Stable brightness frame-to-frame
+- Stable colors across lighting conditions
+- Stable contrast (no flickering exposure)
+- Minimal noise in dark regions
+
+The ISP guarantees these properties. It is the **input contract** for perception.
+
+```
+  Bad ISP + good neural net  →  unreliable perception  ✗
+  Good ISP + good neural net →  robust perception      ✓
+
+  The ISP is not optional. It is the foundation.
+```
+
+#### Jetson / Embedded Connection
+
+On every ADAS SoC, the ISP is a dedicated hardware block — not software.
+
+```
+  Platform              ISP Block            Notes
+  ─────────────────────────────────────────────────────────────
+  NVIDIA Jetson Orin    VI/ISP unit          12-bit, HDR, up to 16 cameras,
+                                             Bayer → NV12, accessed via libargus
+  Qualcomm Snapdragon   Spectra ISP          14-bit, triple ISP (3 cameras),
+                                             HDR, multi-frame noise reduction
+  Texas Instruments     VPAC                 12-bit, lens distortion correction,
+    TDA4                                     DMA to C7x DSP
+  Xilinx Zynq (KV260)  Soft ISP on PL       implement in HLS — full control
+  Mobileye EyeQ        Integrated ISP       proprietary, not configurable
+
+  Jetson data path:
+    Sensor → MIPI CSI-2 → VI → ISP → NV12 → NVMM buffer
+                                              │
+                                              ├──→ CUDA / TensorRT (inference)
+                                              ├──→ NVENC (H.265 recording)
+                                              └──→ nvvidconv (display)
+
+  Same physics, dedicated silicon. Zero CPU involvement.
+```
+
+---
 
 ### 2.1 Color Spaces
 
@@ -1278,6 +1764,204 @@ print(f"Road cam bottom-center → ({x:.2f}m lateral, {z:.2f}m ahead)")
 x_w, z_w = pixel_to_ground(964, 1100, H_wide)
 print(f"Wide cam bottom-center → ({x_w:.2f}m lateral, {z_w:.2f}m ahead)")
 ```
+
+#### Auto Exposure (AE) in openpilot — How the Camera Decides Brightness
+
+Auto Exposure is the control loop that decides how bright each frame should be. It sits above the ISP — it tells the sensor how long to expose and how much gain to apply, then the ISP processes whatever the sensor captures.
+
+In openpilot, AE is not left to the sensor's built-in logic. openpilot runs its own AE algorithm in software because the default camera AE optimizes for "nice-looking photos" — but ADAS needs a fundamentally different exposure strategy.
+
+```
+Why default AE fails for ADAS:
+
+  Phone / consumer camera AE:
+    Goal: make the image look pleasing to a human
+    Strategy: expose for the center-weighted average brightness
+    Result: faces look good, sky is white, shadows are crushed
+
+  ADAS AE:
+    Goal: maximize information for the neural network
+    Strategy: preserve detail in BOTH road AND sky simultaneously
+    Result: may look "ugly" to humans but neural net sees everything
+
+  Specific failure cases with consumer AE:
+    - Driving toward sunset: AE exposes for bright sky → road is black → lane lines invisible
+    - Tunnel entry: AE averages bright exterior + dark tunnel → both look bad
+    - Night with headlights: AE exposes for headlight → everything else is black
+    - Snow: AE underexposes (thinks scene is too bright) → gray snow, dark objects
+```
+
+```
+The exposure triangle — three variables the AE controller adjusts:
+
+  1. Exposure time (shutter speed)
+     How long the sensor collects photons per frame
+     Longer = brighter but motion blur increases
+     ADAS constraint: must stay below 1/framerate (33 ms at 30 fps)
+     Typical ADAS: 1–20 ms
+
+  2. Analog gain (ISO)
+     Amplify the sensor signal before ADC
+     Higher gain = brighter but noise increases proportionally
+     ADAS constraint: keep gain low when possible (noise hurts NN accuracy)
+     Typical range: ×1 (ISO 100) to ×16 (ISO 1600)
+
+  3. Digital gain (applied after ADC)
+     Software multiplication of pixel values
+     Same as analog gain but applied digitally — amplifies both signal AND quantization noise
+     Used only when analog gain is maxed out (nighttime)
+     Last resort — worst quality
+
+  Priority order (openpilot strategy):
+    First:  increase exposure time (up to motion-blur limit)
+    Second: increase analog gain (up to noise limit)
+    Last:   increase digital gain (emergency only)
+```
+
+How openpilot's AE works:
+
+```
+The AE control loop runs every frame:
+
+  1. Capture frame with current exposure settings
+                ↓
+  2. Compute frame statistics
+     - Mean luminance of the frame (Y channel average)
+     - Luminance histogram (distribution of brightness values)
+     - Region-of-interest weighting (road region matters more than sky)
+                ↓
+  3. Compare to target brightness
+     - Target is NOT "middle gray" (unlike phone cameras)
+     - Target is tuned per camera:
+         Road cam:  optimize for road surface visibility
+         Wide cam:  optimize for near-field obstacle visibility
+                ↓
+  4. Compute exposure adjustment
+     - If frame is too dark:  increase exposure time, then gain
+     - If frame is too bright: decrease exposure time first
+     - Use a PID-like controller (not bang-bang) to avoid oscillation
+     - Rate-limit changes to prevent flickering between frames
+                ↓
+  5. Send new exposure settings to sensor via I2C/MIPI
+     - Takes effect 2–3 frames later (sensor pipeline delay)
+     - AE must predict where brightness is going, not just react
+                ↓
+  6. Next frame arrives → repeat from step 1
+```
+
+```
+Key AE concepts:
+
+  Metering regions:
+    Consumer camera: center-weighted or face-priority
+    ADAS camera:     lower-half-weighted (road is more important than sky)
+
+    openpilot uses the bottom 60% of the frame for metering:
+    ┌──────────────────────────────┐
+    │          sky / trees         │  ← low weight (don't expose for this)
+    │                              │
+    ├──────────────────────────────┤
+    │      road / lanes / cars     │  ← HIGH weight (expose for this)
+    │      obstacles / signs       │
+    └──────────────────────────────┘
+
+    This means: even if the sky is overexposed (white), the road surface
+    has correct brightness → lane lines are visible → NN succeeds
+
+  Target luminance:
+    Not a fixed value — adapts to scene conditions
+    Bright daylight: target = high (use full dynamic range)
+    Night:           target = lower (accept darker image to keep noise down)
+    Tunnel:          ramp quickly (don't wait for slow exponential adaptation)
+
+  Temporal smoothing:
+    AE changes must be gradual — sudden brightness jumps confuse the NN
+    openpilot applies exponential moving average to exposure settings
+    Typical time constant: ~0.5 seconds (15 frames at 30 fps)
+    Exception: tunnel entry/exit → faster adaptation allowed
+```
+
+```
+HDR and AE — solving the dynamic range problem:
+
+  Real driving scenes often have extreme contrast:
+    - Sunlit road: 100,000 lux
+    - Shadow under bridge: 500 lux
+    - Headlight beam: 1,000,000+ lux
+    - Dark lane markings in shadow: 200 lux
+
+  Single exposure cannot capture all of this.
+
+  HDR sensors (IMX390, AR0233AT) solve this with DOL-HDR:
+    DOL = Digital Overlap
+
+    How DOL-HDR works:
+      Sensor captures TWO exposures per frame:
+        Long exposure  (20 ms) → good for dark regions
+        Short exposure (1 ms)  → good for bright regions
+
+      ISP merges them:
+        For each pixel:
+          if short_exposure pixel is not saturated → use it (bright region)
+          else → use long_exposure pixel (dark region)
+
+      Result: single frame with much wider dynamic range
+      Neural net sees both road surface AND headlights in same image
+
+  openpilot on comma 3:
+    OV8856 does NOT have DOL-HDR
+    Relies entirely on software AE to choose the best single exposure
+    This is why AE quality matters even more on non-HDR sensors
+```
+
+```
+AE failure modes in ADAS and how openpilot handles them:
+
+  Failure                    Cause                     Solution
+  ──────────────────────────────────────────────────────────────────────
+  Flickering exposure        AE oscillates between     PID controller with
+                             two brightness targets    damping + rate limiting
+
+  Tunnel blindness           sudden dark→bright or     fast-ramp mode when
+                             bright→dark transition    luminance delta > threshold
+
+  Headlight bloom            oncoming headlights       lower-half metering ignores
+                             saturate AE               top-of-frame bright sources
+
+  Snow blindness             high reflectance scene    histogram-based target
+                             causes underexposure      (don't target mean, target
+                                                       percentile)
+
+  LED flicker                traffic lights / signs    exposure time must NOT be
+                             modulated at 50/60 Hz     a multiple of 1/100 or 1/120 s
+                             → can appear OFF in       (sensor anti-flicker mode)
+                             some frames
+
+  Sunrise/sunset glare       direct sun in camera      nothing AE can fully fix —
+                             saturates entire region   need physical sun visor or
+                                                       polarizing filter
+```
+
+```
+AE and the neural network — the contract:
+
+  The NN was trained on images with a specific brightness distribution.
+
+  If the AE produces frames that are:
+    Too dark    → NN sees shadows as obstacles, misses lane markings
+    Too bright  → NN sees saturated white where objects should be
+    Flickering  → NN confidence oscillates, control becomes jerky
+    Inconsistent between cameras → road cam and wide cam disagree on scene
+
+  openpilot's AE goal:
+    Produce frames where the road region has mean luminance ≈ 100–120
+    (on a 0–255 scale) regardless of weather, time of day, or lighting
+
+    This is the input contract between camera and neural network.
+    Break it → perception degrades → vehicle control degrades.
+```
+
+---
 
 #### openpilot Model Input Summary
 
