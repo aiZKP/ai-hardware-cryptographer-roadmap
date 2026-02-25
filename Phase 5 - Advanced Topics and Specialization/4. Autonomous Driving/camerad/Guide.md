@@ -131,6 +131,90 @@ DRIVER_CAMERA_CONFIG = {
 
 **Kernel:** Linux V4L2 (Video4Linux2), `CAM_REQ_MGR` (Request Manager) for frame synchronization.
 
+### V4L2: Linux Kernel Camera API
+
+**V4L2** (Video4Linux2) is the standard Linux kernel API for video capture, output, and codecs. camerad uses V4L2 to drive the Qualcomm Spectra ISP and receive processed frames.
+
+#### What V4L2 Provides
+
+| Concept | Description |
+|---------|-------------|
+| **Device nodes** | `/dev/video0`, `/dev/video1`, … — one per capture/output device. camerad opens `/dev/video0` (sync device) for the request manager. |
+| **Media Controller** | Models the pipeline: sensor → CSI → IFE → BPS → video node. Used to discover and link entities. |
+| **Request API** | One *request* = one frame through the pipeline. Sensor capture, IFE, BPS all tied to the same request for synchronization. |
+| **Buffer flow** | `VIDIOC_QBUF` enqueue empty buffer → hardware fills it → `VIDIOC_DQBUF` dequeue filled buffer. |
+
+#### camerad's V4L2 Flow
+
+```
+1. Open /dev/video0 (sync/request manager device)
+2. Media Controller: discover sensor, IFE, BPS entities; configure links
+3. VIDIOC_REQBUFS: allocate capture buffers (YUV output)
+4. VIDIOC_QUERYBUF: get buffer addresses for mmap()
+5. VIDIOC_QBUF: enqueue buffers into the pipeline
+6. VIDIOC_STREAMON: start streaming
+7. poll(fd, POLLPRI): wait for frame-done event
+8. VIDIOC_DQEVENT: dequeue event (frame completed)
+9. processFrame() → YUV ready → sendFrameToVipc()
+10. VIDIOC_QBUF: re-enqueue buffer for next frame
+```
+
+#### Key ioctls Used by camerad
+
+| ioctl | Purpose |
+|-------|---------|
+| `VIDIOC_REQBUFS` | Allocate buffer queue (memory-mapped or DMA) |
+| `VIDIOC_QUERYBUF` | Get buffer info (offset, length) for mmap |
+| `VIDIOC_QBUF` | Enqueue buffer for capture |
+| `VIDIOC_DQBUF` | Dequeue filled buffer (alternatively, events can signal completion) |
+| `VIDIOC_DQEVENT` | Dequeue async event (e.g. frame done) — used with Request API |
+| `VIDIOC_STREAMON` / `VIDIOC_STREAMOFF` | Start/stop streaming |
+| `VIDIOC_S_FMT` | Set pixel format (e.g. NV12) |
+| `VIDIOC_S_PARM` | Set frame rate |
+
+#### Event-Driven Model
+
+camerad uses **event-driven** capture, not blocking `DQBUF`:
+
+- `poll(fd, POLLPRI)` — wait until a frame-done event is available
+- `VIDIOC_DQEVENT` — dequeue the event; payload indicates which request/frame completed
+- Process the frame, re-enqueue buffers, then poll again
+
+`POLLPRI` (priority/exceptional condition) is set when an event is pending. This avoids busy-waiting and integrates cleanly with the Request API.
+
+#### CAM_REQ_MGR (Qualcomm Request Manager)
+
+On Qualcomm platforms, **CAM_REQ_MGR** is a kernel component that:
+
+- **Synchronizes** sensor capture with ISP (IFE, BPS) — one request ties them together
+- **Queues requests** — each request carries buffers and controls for the whole pipeline
+- **Signals completion** — when the pipeline finishes a frame, an event is queued for userspace
+
+Without the Request API, sensor and ISP could run out of sync (e.g. wrong exposure applied to a frame). The Request API guarantees: *this* sensor frame → *this* IFE config → *this* output buffer.
+
+#### Device Layout (Qualcomm Spectra)
+
+| Device | Role |
+|--------|------|
+| `/dev/video0` | Sync/request manager — camerad polls here for frame-done events |
+| `/dev/media0` | Media controller — pipeline topology (sensor ↔ IFE ↔ BPS) |
+| Subdevs (e.g. `/dev/v4l-subdev*`) | Sensor, IFE, BPS as separate entities; configured via media controller |
+
+#### Debugging V4L2
+
+```bash
+# List video devices and capabilities
+v4l2-ctl --list-devices
+
+# List supported formats
+v4l2-ctl -d /dev/video0 --list-formats-ext
+
+# Media controller: show pipeline
+media-ctl -d /dev/media0 -p
+```
+
+**References:** [V4L2 API (kernel.org)](https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/v4l2.html), [VIDIOC_QBUF/VIDIOC_DQBUF](https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/vidioc-qbuf.html), [V4L2 poll()](https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/func-poll.html)
+
 ---
 
 ## 5. ISP Pipeline
@@ -251,12 +335,15 @@ VIDIOC_DQEVENT (frame done)
 | **FrameData** | Cereal message with frame metadata. Used for sync (frame_id, timestamps) and AE debugging. |
 | **ISP** | Image Signal Processor. Converts RAW Bayer → demosaic → color correct → gamma → YUV. |
 | **AE** | Auto exposure. Software loop: measure luminance → compute desired EV → set sensor exposure/gain. |
+| **V4L2** | Video4Linux2 — Linux kernel API for video capture. Device nodes (`/dev/video*`), ioctls (QBUF/DQBUF), Request API. |
 | **Request Manager** | V4L2 CAM_REQ_MGR: ties sensor capture to ISP pipeline. One request = one frame through the pipeline. |
+| **QBUF/DQBUF** | V4L2 buffer exchange: QBUF enqueue empty buffer, DQBUF dequeue filled buffer. |
 
 ---
 
 ## Further Reading
 
+- **V4L2 API:** [kernel.org V4L2 documentation](https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/v4l2.html) — device nodes, ioctls, buffer flow, Request API
 - **Trace the pipeline:** Start at `camerad_thread()` in `camera_qcom2.cc`, follow `handle_camera_event` → `processFrame` → `sendFrameToVipc`
 - **modeld consumption:** `selfdrive/modeld/modeld.py` — `VisionIpcClient` for `VISION_STREAM_ROAD` (and wide if used)
 - **Calibration:** `common/transformations/camera.py`, `get_warp_matrix` for model input warp
