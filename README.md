@@ -105,6 +105,10 @@ A **5-phase self-study curriculum** for engineers who want to build expertise in
 | [**Autonomous Driving**](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Driving/Guide.md) | Openpilot reference—perception, planning, control, ADAS |
 | [**AI Chip Design**](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/5.%20AI%20Chip%20Design/Guide.md) | tinygrad, ML frameworks, hardware-software co-design for AI accelerators |
 
+### Reference: CMU Curriculum
+
+For those interested in formal programs or self-study aligned with top curricula: [**CMU Robotics & AI Courses**](CMU-Robotics-AI-Courses.md) — 07-280 AI/ML I schedule, B.S. Robotics curriculum, and course catalog.
+
 ---
 
 <div align="center">

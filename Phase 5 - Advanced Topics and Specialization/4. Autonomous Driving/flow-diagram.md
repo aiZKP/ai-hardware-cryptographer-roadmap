@@ -224,7 +224,7 @@ flowchart LR
 
 | Process | Path |
 |---------|------|
-| camerad | `system/camerad/` |
+| camerad | `system/camerad/` — [camerad Guide](camerad/Guide.md) |
 | modeld | `selfdrive/modeld/modeld.py` |
 | dmonitoringmodeld | `selfdrive/modeld/dmonitoringmodeld.py` |
 | dmonitoringd | `selfdrive/monitoring/dmonitoringd.py` |
