@@ -7,7 +7,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/ai-hpc/ai-hardware-engineer-roadmap?style=flat-square)](https://github.com/ai-hpc/ai-hardware-engineer-roadmap/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/ai-hpc/ai-hardware-engineer-roadmap?style=flat-square)](https://github.com/ai-hpc/ai-hardware-engineer-roadmap/network/members)
 
-*Build real AI systems on real hardware — from first logic gate to custom accelerator silicon*
+*A 5-phase self-study curriculum for engineers: learn digital design, Verilog, FPGA SoCs, HLS/OpenCL acceleration, and edge AI (Jetson/CUDA/TensorRT), then specialize in autonomous driving, AI chip design, HPC, or robotics. Build the hardware that runs AI — from first logic gate to custom accelerator silicon.*
 
 </div>
 
