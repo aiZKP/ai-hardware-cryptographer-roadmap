@@ -89,6 +89,7 @@ Every phase answers one question: ***What does the hardware need to do to make A
 | [**Hardware Description Languages**](Phase%201%20-%20Foundational%20Knowledge/2.%20Hardware%20Description%20Languages%20(HDLs)/Guide.md) | Verilog syntax, behavioral/dataflow/structural modeling, testbenches, synthesis | *The language you will use to design AI accelerator datapaths* |
 | [**Embedded Systems Basics**](Phase%201%20-%20Foundational%20Knowledge/3.%20Embedded%20Systems%20Basics/Guide.md) | Microcontroller architecture, C for embedded, RTOS concepts | *TinyML runs on microcontrollers; understanding hardware constraints is essential* |
 | [**Linux Fundamentals**](Phase%201%20-%20Foundational%20Knowledge/4.%20Linux%20Fundamentals/Guide.md) | Shell, scripting, permissions, networking | *Every AI development environment and deployment target runs Linux* |
+| [**Operating Systems**](Phase%201%20-%20Foundational%20Knowledge/5.%20Operating%20Systems/Guide.md) | Processes, threads, scheduling, memory management, synchronization, filesystems | *OS underpins Linux, RTOS, and all AI deployment targets; 24-lecture curriculum from Caltech CS124* |
 
 **Projects:** Calculator on breadboard, FPGA digital clock, traffic light controller, UART module, basic RISC-V core
 
@@ -198,6 +199,8 @@ Cryptography fundamentals and hardware implementations. Secure boot mechanisms. 
 For those interested in formal programs or self-study aligned with top university curricula:
 
 [**CMU Robotics & AI Courses**](CMU-Robotics-AI-Courses.md) — 07-280 AI/ML I schedule, B.S. Robotics curriculum, and course catalog. Useful for supplementing Phase 4 (AI Fundamentals) and Track D (Robotics).
+
+[**Caltech CS124 Operating Systems**](https://users.cms.caltech.edu/~donnie/cs124/lectures/) — 24-lecture OS course (processes, threads, scheduling, memory, filesystems). Our [Operating Systems guide](Phase%201%20-%20Foundational%20Knowledge/5.%20Operating%20Systems/Guide.md) provides detailed notes aligned with this curriculum.
 
 ---
 
