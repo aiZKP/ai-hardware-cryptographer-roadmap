@@ -16,11 +16,12 @@
 7. [Optimizing AI Inference](#7-optimizing-ai-inference)
 8. [End-to-End AI Pipeline: Sensors → Inference → Control](#8-end-to-end-ai-pipeline-sensors--inference--control)
 9. [LiDAR, Camera, IMU — Practical Integration](#9-lidar-camera-imu--practical-integration)
-10. [Power and Thermal Management in Practice](#10-power-and-thermal-management-in-practice)
-11. [OTA Update Best Practices](#11-ota-update-best-practices)
-12. [Security Hardening](#12-security-hardening)
-13. [Projects](#13-projects)
-14. [Resources](#14-resources)
+10. [Device Tree Configuration](#10-device-tree-configuration)
+11. [Power and Thermal Management in Practice](#11-power-and-thermal-management-in-practice)
+12. [OTA Update Best Practices](#12-ota-update-best-practices)
+13. [Security Hardening](#13-security-hardening)
+14. [Projects](#14-projects)
+15. [Resources](#15-resources)
 
 ---
 
@@ -1310,7 +1311,76 @@ class FusionNode(Node):
 
 ---
 
-## 10. Power and Thermal Management in Practice
+## 10. Device Tree Configuration
+
+Device tree configuration on NVIDIA Jetson platforms is critical for enabling I2C buses, configuring GPIO pins on the 40-pin header, and integrating camera sensors (CSI). Jetson systems utilize **Device Tree Overlays** (`.dtbo`) to modify base hardware configurations during boot, allowing for peripheral customization without re-flashing the entire board.
+
+### What is Pinmux?
+
+**Pinmux** (pin multiplexing) is the process of assigning each physical I/O pin on the SoC to a specific function. Jetson SoCs have **Multi-Purpose I/O (MPIO)** pins that can be configured as either:
+
+- **GPIO** — General-Purpose I/O for custom logic, LEDs, buttons, etc.
+- **SFIO** — Special Function I/O for dedicated interfaces (I2C, SPI, UART, PWM, etc.)
+
+Signals on the 40-pin header pass through multiplexers; the device tree (or Pinmux Excel sheet for carrier-board design) configures which function each pin serves. For custom carrier boards, NVIDIA provides a Pinmux Excel template that generates `config-pinmux.dtsi`, `padvoltage-default.dtsi`, and `gpio-default.dtsi` for integration into the boot process.
+
+**Reference:** [Jetson AGX Series Module Pinmux Application Note (DA-12015-001)](https://developer.download.nvidia.com/assets/embedded/secure/jetson/agx_orin/Jetson-AGX-Series-Module-Pinmux-Application-Note_DA-12015-001v1.0.pdf) — official NVIDIA pinmux process, Excel sheet usage, and mandatory interface pin direction configuration. *(Also available from [Jetson Download Center](https://developer.nvidia.com/embedded/jetson) — search for "Orin Pinmux" or "Pinmux Application Note".)*
+
+### 10.1 Jetson-IO Tool: The Preferred Method
+
+The easiest way to manage device trees on Jetson (Orin Nano/NX, Xavier NX) is the **jetson-io** tool, which generates overlays for the 40-pin header.
+
+```bash
+# Run the tool
+sudo /opt/nvidia/jetson-io/jetson-io.py
+```
+
+**Purpose:** Configure pinmux for I2C, SPI, PWM, and UART, and save them as a custom `.dtbo`.
+
+**Method:** Select "Configure Jetson 40pin Header", enable the desired interface (e.g., I2C1), and save to a new overlay.
+
+### 10.2 I2C and GPIO Configuration
+
+**Pinmuxing:** Signals on the 40-pin header travel from the Tegra SoC through multiplexers. The device tree configures these multiplexers for specific roles.
+
+**I2C:** To change I2C speeds (e.g., 400 kHz to 100 kHz) or enable a bus, modify the `clock-frequency` and `status` properties in the DTSI file corresponding to the I2C controller.
+
+**GPIO:** Pins can be configured as GPIO or SFIO (Special Function I/O). A minimal overlay defines the pin's Linux name (e.g., `PIO09` for pin 7) and sets its function to `gpio`.
+
+**Voltage:** Jetson GPIO pins are **3.3V rated**; 5V signals can damage the board.
+
+### 10.3 Camera/Sensor Integration
+
+Camera integration requires modifying the device tree to define the sensor, I2C bus, CSI lanes, and power management.
+
+- **tegra-camera-platform:** Define the `tegra-camera-platform` node in the device tree to describe the camera module, including position (e.g., `"rear"`) and orientation.
+- **V4L2 Sensor Driver:** Use V4L2 framework 2.0 for new driver development, ensuring the `devname` matches the I2C address (e.g., `imx185 30-001a`).
+- **Resources:** Specify regulators (`vana-supply`, `vdig-supply`) and GPIOs for reset/power-down (e.g., `H3-gpio`, `H6-gpio`) in the sensor DTSI file.
+
+### 10.4 Creating and Applying Custom Overlays
+
+For complex peripherals not covered by jetson-io, manual overlay creation is necessary.
+
+1. **Write the DTS:** Create a `.dts` file, ensuring the `compatible` string matches your Jetson board (e.g., `"nvidia,p3509-0000+p3668-0001"` for Orin Nano).
+2. **Compile:** Use the Device Tree Compiler (`dtc`):
+
+   ```bash
+   dtc -O dtb -o my-overlay.dtbo -@ my-overlay.dts
+   ```
+
+3. **Apply:** Move the `.dtbo` file to `/boot/` and update `/boot/extlinux/extlinux.conf` to load it using the `FDT` or `OVERLAY_DTB_FILE` entry.
+
+### 10.5 Essential Tips
+
+- **Verification:** Inspect the active device tree at `/proc/device-tree` on a running system.
+- **Camera Nodes:** Camera sensor properties (clock, I2C address, reset GPIOs) are typically defined in a `<sensor>.dtsi` file included in the main platform DTS.
+- **Safety:** Always have a backup configuration in `extlinux.conf` to prevent boot loops if an overlay is misconfigured.
+
+**Further reading:** [NVIDIA Jetson Developer Docs](https://docs.nvidia.com/jetson/) (device tree, camera), [RidgeRun Developer Wiki](https://developer.ridgerun.com/) (custom overlays, extlinux).
+
+---
+
+## 11. Power and Thermal Management in Practice
 
 ### Power Modes
 
@@ -1473,7 +1543,7 @@ Runtime on 5Ah@12V: 60Wh / 12W = 5 hours
 
 ---
 
-## 11. OTA Update Best Practices
+## 12. OTA Update Best Practices
 
 ### OTA Update Strategies on Jetson
 
@@ -1624,7 +1694,7 @@ docker compose up -d
 
 ---
 
-## 12. Security Hardening
+## 13. Security Hardening
 
 ### Threat Model for Jetson Edge Devices
 
@@ -1783,7 +1853,7 @@ Before deployment, verify:
 
 ---
 
-## 13. Projects
+## 14. Projects
 
 ### Project 1: Fresh JetPack 6 Install + NVMe Boot
 Flash Orin Nano 8GB to JetPack 6.x with SDK Manager, configure NVMe boot, and benchmark I/O speed vs SD card.
@@ -1808,10 +1878,11 @@ Start from a fresh Jetson install. Apply all items in the Security Audit Checkli
 
 ---
 
-## 14. Resources
+## 15. Resources
 
 ### Official Documentation
 - **JetPack SDK**: developer.nvidia.com/embedded/jetpack
+- **NVIDIA Device Tree / Camera**: docs.nvidia.com/jetson — camera sensor DTSI, tegra-camera-platform
 - **NVIDIA SDK Manager**: developer.nvidia.com/sdk-manager
 - **L4T Developer Guide**: docs.nvidia.com/jetson/archives/
 - **TensorRT Developer Guide**: docs.nvidia.com/deeplearning/tensorrt/developer-guide/
