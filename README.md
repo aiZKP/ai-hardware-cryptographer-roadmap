@@ -9,8 +9,6 @@
 
 *A 5-phase self-study curriculum for engineers: learn digital design, Verilog, FPGA SoCs, HLS/OpenCL acceleration, and edge AI (Jetson/CUDA/TensorRT), then specialize in autonomous driving, AI chip design, HPC, or robotics. Build the hardware that runs AI — from first logic gate to custom accelerator silicon.*
 
-**Purpose-oriented progression:** The curriculum is structured around four role targets — **[Parallel program optimization](PURPOSE-ORIENTED-ROADMAP.md#step-1-parallel-program-optimization-engineer)** → **[DL inference optimization](PURPOSE-ORIENTED-ROADMAP.md#step-2-deep-learning-inference-optimization-engineer)** → **[DL inference for edge / AV / robotics](PURPOSE-ORIENTED-ROADMAP.md#step-3-dl-inference-optimization-for-edge--av--robotics)** → **[FPGA & custom chip for DL inference](PURPOSE-ORIENTED-ROADMAP.md#step-4-master-fpga-for-dl-inference--custom-chip-design)**. Reference projects: **[tinygrad](https://github.com/tinygrad/tinygrad)** (compiler, IR, kernels) and **[openpilot](https://github.com/commaai/openpilot)** (edge/AV stack using tinygrad). See [**Purpose-Oriented Roadmap**](PURPOSE-ORIENTED-ROADMAP.md) for the full mapping.*
-
 </div>
 
 ---
@@ -56,7 +54,7 @@ Every phase answers one question: ***What does the hardware need to do to make A
 1. **Phases 1–3 are sequential.** Each builds on the last. Do not skip.
 2. **Phase 4 is the bridge.** This is where hardware meets AI. If you already have hardware experience, you can start here and backfill Phases 1–3 as needed.
 3. **Phase 5 tracks are independent.** Choose based on your career goals. You can pursue multiple tracks in parallel.
-4. **Each topic links to a detailed guide** with resources, projects, and hands-on exercises.
+4. **Full phase curriculum** with topics, guides, and projects: [**CURRICULUM.md**](CURRICULUM.md).
 5. **Estimated pace:** The timeline assumes part-time self-study (~10–15 hours/week). Full-time learners can move significantly faster.
 
 ---
@@ -69,133 +67,289 @@ Every phase answers one question: ***What does the hardware need to do to make A
 | 6–12 mo | 6–12 mo | 6–12 mo | 6–12 mo | Ongoing |
 | Logic, Verilog, Embedded C, Linux | Vivado, Zynq SoC, Embedded Linux, Protocols | Timing, HLS, OpenCL, Computer Vision | Neural Networks, Jetson, TensorRT, Sensor Fusion, ROS2 | Autonomous Driving, AI Chips, HPC, Robotics, Security |
 
----
-
-## Purpose-Oriented Progression
-
-The broad 5-phase curriculum supports a **four-step career path**:
-
-| Step | Role |
-|:-----|:-----|
-| **1** | [Parallel program optimization engineer](PURPOSE-ORIENTED-ROADMAP.md#step-1-parallel-program-optimization-engineer) — kernel-level performance, CUDA/OpenCL, memory hierarchy |
-| **2** | [Deep learning inference optimization engineer](PURPOSE-ORIENTED-ROADMAP.md#step-2-deep-learning-inference-optimization-engineer) — model/operator optimization, TensorRT, tinygrad IR & scheduling |
-| **3** | [DL inference for edge / AV / robotics](PURPOSE-ORIENTED-ROADMAP.md#step-3-dl-inference-optimization-for-edge--av--robotics) — Jetson/DRIVE, openpilot stack, latency- and power-constrained deployment |
-| **4** | [FPGA & custom chip for DL inference](PURPOSE-ORIENTED-ROADMAP.md#step-4-master-fpga-for-dl-inference--custom-chip-design) — tinygrad custom backend, HLS/RTL, accelerator design |
-
-**[tinygrad](https://github.com/tinygrad/tinygrad)** and **[openpilot](https://github.com/commaai/openpilot)** are the reference real-world projects: tinygrad for compiler/kernel-level optimization and inference; openpilot for edge/AV deployment. Full mapping of phases to steps and projects: **[Purpose-Oriented Roadmap](PURPOSE-ORIENTED-ROADMAP.md)**.
+→ Full phase-by-phase content, topic guides, and project lists: **[CURRICULUM.md](CURRICULUM.md)**
 
 ---
 
-## Table of Contents
+## The Four Steps
 
-- [Phase 1: Digital Foundations](#-phase-1-digital-foundations-612-months)
-- [Phase 2: Hardware Platforms & SoC Design](#-phase-2-hardware-platforms--soc-design-612-months)
-- [Phase 3: Hardware Acceleration](#-phase-3-hardware-acceleration-612-months)
-- [Phase 4: AI Fundamentals & Edge Deployment](#-phase-4-ai-fundamentals--edge-deployment-612-months)
-- [Phase 5: Specialization Tracks](#-phase-5-specialization-tracks-ongoing)
-- [Purpose-Oriented Roadmap](PURPOSE-ORIENTED-ROADMAP.md) (four-step role progression + tinygrad/openpilot)
-- [Career Paths](#career-paths)
-- [Academic References](#academic-references)
+**From parallel program optimization to custom-chip deep learning inference**
 
----
+This section defines the **career progression** that this curriculum supports. The broad 5-phase structure is re-framed here as **four purpose-oriented steps**. Each step is a concrete role target; the phases are the building blocks.
 
-## ▸ Phase 1: Digital Foundations (6–12 months)
+**Reference real-world projects:** [**tinygrad**](https://github.com/tinygrad/tinygrad) and [**openpilot**](https://github.com/commaai/openpilot) are used throughout. tinygrad exposes compiler, IR, and kernel-level optimization in a minimal ML stack; openpilot is a production edge/AV stack that uses tinygrad for inference. Together they connect parallel optimization → DL inference → edge/AV/robotics → custom hardware.
 
-| Topic | Key Skills | AI Connection |
-|-------|------------|---------------|
-| [**Digital Design Fundamentals**](Phase%201%20-%20Foundational%20Knowledge/1.%20Digital%20Design%20Fundamentals/Guide.md) | Number systems, Boolean algebra, combinational/sequential logic, memory (SRAM, DRAM, ROM) | *MAC units, memory bandwidth, and data types (INT8, FP16) that power AI inference start here* |
-| [**Hardware Description Languages**](Phase%201%20-%20Foundational%20Knowledge/2.%20Hardware%20Description%20Languages%20(HDLs)/Guide.md) | Verilog syntax, behavioral/dataflow/structural modeling, testbenches, synthesis | *The language you will use to design AI accelerator datapaths* |
-| [**Embedded Systems Basics**](Phase%201%20-%20Foundational%20Knowledge/3.%20Embedded%20Systems%20Basics/Guide.md) | Microcontroller architecture, C for embedded, RTOS concepts | *TinyML runs on microcontrollers; understanding hardware constraints is essential* |
-| [**Linux Fundamentals**](Phase%201%20-%20Foundational%20Knowledge/4.%20Linux%20Fundamentals/Guide.md) | Shell, scripting, permissions, networking | *Every AI development environment and deployment target runs Linux* |
-| [**Operating Systems**](Phase%201%20-%20Foundational%20Knowledge/5.%20Operating%20Systems/Guide.md) | Processes, threads, scheduling, memory management, synchronization, filesystems | *OS underpins Linux, RTOS, and all AI deployment targets; 24-lecture curriculum from Caltech CS124* |
-
-**Projects:** Calculator on breadboard, FPGA digital clock, traffic light controller, UART module, basic RISC-V core
+| Step | Role | Focus | Reference Projects |
+|------|------|--------|--------------------|
+| **1** | **Parallel program optimization engineer** | Heterogeneous compute, memory hierarchy, kernel-level performance, CUDA/OpenCL | tinygrad backends, operator→kernel mapping |
+| **2** | **Deep learning inference optimization engineer** | Model-level and operator-level optimization, compilers (TensorRT, TVM, MLIR), quantization, latency/throughput | tinygrad IR, scheduling, BEAM, TensorRT pipeline |
+| **3** | **DL inference optimization for edge / AV / robotics** | Power-limited, latency-sensitive deployment; full pipeline from sensor to actuation; AV/robotics stacks | openpilot (camerad, modeld, tinygrad models), Jetson/DRIVE |
+| **4** | **Master FPGA for DL inference → custom chip design** | Mapping inference to hardware; FPGA prototyping; accelerator architecture; path to ASIC/custom silicon | tinygrad custom backend, HLS/OpenCL, AI Chip Design track |
 
 ---
 
-## ▸ Phase 2: Hardware Platforms & SoC Design (6–12 months)
+### Visual Overview
 
-| Topic | Key Skills | AI Connection |
-|-------|------------|---------------|
-| [**Xilinx FPGA Development**](Phase%202%20-%20Xilinx%20and%20Embedded%20Systems/1.%20Xilinx%20FPGA%20Development/Guide.md) | Vivado flow, IP cores, block design, timing closure, ILA/VIO debugging | *FPGAs are the prototyping platform for AI accelerators (FINN, Vitis AI)* |
-| [**Zynq UltraScale+ MPSoC**](Phase%202%20-%20Xilinx%20and%20Embedded%20Systems/2.%20Zynq%20UltraScale%2B%20MPSoC/Guide.md) | PS/PL integration, embedded Linux on Zynq, device drivers | *Heterogeneous SoCs like Zynq are the template for AI chips (CPU + accelerator)* |
-| [**Embedded Linux**](Phase%202%20-%20Xilinx%20and%20Embedded%20Systems/3.%20Embedded%20Linux/Guide.md) | Yocto, PetaLinux, kernel config, root filesystem | *Jetson, Qualcomm AI, and all edge AI platforms run embedded Linux* |
-| [**Communication Protocols**](Phase%202%20-%20Xilinx%20and%20Embedded%20Systems/4.%20Communication%20Protocols%20(SPI%2C%20UART%2C%20I2C%2C%20CAN)/Guide.md) | SPI, UART, I2C, CAN — specs, drivers, hardware implementation | *Sensor interfaces for cameras, LiDAR, IMU — the input pipeline for AI perception* |
+```mermaid
+graph LR
+  A["You (today)"] --> R1["Step 1<br/>Parallel Program Optimization Engineer"]
+  R1 --> R2["Step 2<br/>Deep Learning Inference Optimization Engineer"]
+  R2 --> R3["Step 3<br/>DL Inference Optimization Engineer<br/>(Edge / AV / Robotics)"]
+  R3 --> R4["Step 4<br/>FPGA & Custom Chip Engineer<br/>(DL Inference Accelerators)"]
 
-**Projects:** High-speed data acquisition, custom protocol, video processing pipeline, motor control with UI, NAS device
+  subgraph External Roles
+    N1["GPU / Parallel Computing Engineer"]
+    N2["Senior DL Inference Optimization Engineer<br/>(NVIDIA-style, Edge/AV/Robotics)"]
+    N3["AI Accelerator / Chip Design Engineer"]
+  end
+
+  R1 --> N1
+  R2 --> N2
+  R3 --> N2
+  R4 --> N3
+
+  subgraph Phases
+    P1["Phase 1<br/>(Digital, OS, Embedded Basics)"]
+    P2["Phase 2<br/>(SoC & Embedded Linux)"]
+    P3["Phase 3<br/>(HLS, OpenCL, FPGA Acceleration)"]
+    P4["Phase 4<br/>(AI & Edge: Jetson, tinygrad, TensorRT)"]
+    P5A["Phase 5A<br/>(Autonomous Driving: openpilot + tinygrad)"]
+    P5B["Phase 5B<br/>(AI Chip Design: tinygrad + FPGA)"]
+  end
+
+  %% Mandatory vs optional phases for each step
+  %% Step 1: strong parallel optimization (CPU/GPU), FPGA optional
+  R1 -- "mandatory" --> P1
+  R1 -- "mandatory" --> P2
+  R1 -- "optional" --> P3
+  R1 -- "mandatory (CUDA)" --> P4
+
+  %% Step 2: inference optimization needs AI+edge; FPGA still optional
+  R2 -- "mandatory" --> P1
+  R2 -- "mandatory" --> P2
+  R2 -- "optional" --> P3
+  R2 -- "mandatory" --> P4
+
+  %% Step 3: edge / AV / robotics
+  R3 -- "mandatory" --> P1
+  R3 -- "mandatory" --> P2
+  R3 -- "mandatory" --> P4
+  R3 -- "optional" --> P3
+  R3 -- "optional" --> P5A
+
+  %% Step 4: custom DL accelerators
+  R4 -- "mandatory" --> P1
+  R4 -- "mandatory" --> P2
+  R4 -- "mandatory" --> P3
+  R4 -- "mandatory" --> P4
+  R4 -- "mandatory" --> P5B
+```
 
 ---
 
-## ▸ Phase 3: Hardware Acceleration (6–12 months)
+## Step 1: Parallel Program Optimization Engineer
 
-| Topic | Key Skills | AI Connection |
-|-------|------------|---------------|
-| [**Advanced FPGA Design**](Phase%203%20-%20Advanced%20FPGA%20and%20Acceleration/1.%20Advanced%20FPGA%20Design/Guide.md) | CDC, floorplanning, power optimization, partial reconfiguration | *Production FPGA accelerators for AI require timing closure, power budgets, and reconfiguration* |
-| [**High-Level Synthesis (HLS)**](Phase%203%20-%20Advanced%20FPGA%20and%20Acceleration/2.%20High-Level%20Synthesis%20(HLS)/Guide.md) | C/C++ to RTL, dataflow, loop unrolling, pipelining | *HLS is how you build CNN accelerators (conv2d, matmul) on FPGAs without writing RTL by hand* |
-| [**OpenCL**](Phase%203%20-%20Advanced%20FPGA%20and%20Acceleration/3.%20OpenCL/Guide.md) | Kernels, work-groups, heterogeneous computing (CPU/GPU/FPGA) | *The programming model for deploying AI workloads across different hardware targets* |
-| [**Computer Vision**](Phase%203%20-%20Advanced%20FPGA%20and%20Acceleration/4.%20Computer%20Vision/Guide.md) | Image processing, object detection, OpenCV | *The primary AI workload you will deploy on hardware: perception from pixels* |
+**Goal:** Reason about performance at the **kernel and memory-hierarchy level**. You understand how code maps to hardware (GPU, multi-core CPU, SoC), how to interpret profiler output, and how to optimize for occupancy, data movement, and compute utilization.
 
-**Projects:** Matrix multiply accelerator, convolution engine, image processing pipeline, neural network acceleration, CPU vs GPU vs FPGA benchmarking
+**What you build toward:**
+- Writing and tuning CUDA/OpenCL (or equivalent) kernels
+- Understanding warp/SM behavior, memory coalescing, shared memory, streams
+- Using tinygrad as a lens: see how high-level ops lower to kernels and how backends (CPU, CUDA, etc.) implement them
+
+**Curriculum mapping:**
+
+| Phase | Topics that feed Step 1 |
+|-------|-------------------------|
+| **Phase 1** | Digital design (data paths, memory), OS (processes, scheduling, memory management) |
+| **Phase 2** | SoC and embedded Linux (heterogeneous CPU + accelerators) |
+| **Phase 3** *(optional for Step 1)* | OpenCL (kernels, work-groups, heterogeneous compute), HLS (pipelining, dataflow) — useful but not strictly required if you focus on CPU/GPU parallelism first |
+| **Phase 4** | Jetson Platform (CUDA, Nsight), Edge AI Optimization (CUDA kernels, TensorRT under the hood) |
+
+**tinygrad / openpilot:**
+- **tinygrad:** Study `tinygrad/runtime/` — how each backend (e.g. `ops_cuda.py`) implements `Allocator`, `Compiler`, `Runner`. Trace one op (e.g. `matmul`) from Python to generated kernel. Use BEAM/search to see how tiling affects performance.
+- **openpilot:** Not yet central; Step 1 is the foundation that makes "why openpilot uses tinygrad" meaningful later.
+
+**Outcome:** You can read kernel traces, identify memory-bound vs compute-bound code, and optimize parallel programs on GPU/SoC with confidence.
 
 ---
 
-## ▸ Phase 4: AI Fundamentals & Edge Deployment (6–12 months)
+## Step 2: Deep Learning Inference Optimization Engineer
 
-> *This is where hardware meets AI. Start with neural network fundamentals to understand what the hardware needs to compute, then deploy and optimize on real edge devices.*
+**Goal:** Optimize **neural network inference** end-to-end: model and graph structure, operator choice, compilation (fusion, scheduling, codegen), quantization, and deployment toolchains (e.g. TensorRT, ONNX, tinygrad).
 
-| Topic | Key Skills | Projects |
-|-------|------------|----------|
-| [**AI Fundamentals**](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI/2.%20AI%20Fundamentals%20-%20Neural%20Networks%20and%20Edge%20AI/Guide.md) | Neural networks, backpropagation, CNNs, tinygrad, PyTorch | micrograd implementation, CNN from scratch, tinygrad internals |
-| [**Nvidia Jetson Platform**](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI/1.%20Nvidia%20Jetson%20Platform/Guide.md) | Jetson Orin Nano, JetPack, L4T, CUDA, Nsight | Real-time object detection, custom model deployment, autonomous robot |
-| [**Edge AI Optimization**](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI/3.%20Edge%20AI%20Optimization/Guide.md) | Quantization, pruning, TensorRT, CUDA kernels | Optimized model on Orin Nano, video analytics, low-power AI pipeline |
-| [**Sensor Fusion**](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI/4.%20Sensor%20Fusion/Guide.md) | Camera + LiDAR + IMU, Kalman filtering, BEVFusion | Navigation robot, drone flight control, 3D mapping |
-| [**ROS2**](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI/5.%20ROS2/Guide.md) | ROS 2, DDS, nodes, topics, multi-robot systems | Robot navigation, multi-robot coordination, edge deployment |
+**What you build toward:**
+- Inspecting model architectures down to the operator level
+- Using compiler stacks (TensorRT, Torch-TRT, MLIR-TRT, or tinygrad's own compiler) to improve latency and throughput
+- Quantization (INT8, QAT), pruning, and kernel fusion in practice
+
+**Curriculum mapping:**
+
+| Phase | Topics that feed Step 2 |
+|-------|--------------------------|
+| **Phase 4** | AI Fundamentals (neural nets, backprop, CNNs, tinygrad), Jetson (CUDA, TensorRT), Edge AI Optimization (quantization in tinygrad, TensorRT, tinygrad→ONNX→TensorRT) |
+| **Phase 5 – Autonomous Driving** | tinygrad guides (internals, ops, custom backend), BEAM search, pattern matching |
+
+**tinygrad / openpilot:**
+- **tinygrad:** Core learning vehicle. Lazy evaluation, linearized IR, scheduling, BEAM for tile selection. Implement or modify ops; add a custom op; understand how the compiler bridges high-level graphs to Step 1 (kernels).
+- **openpilot:** Uses tinygrad for inference (e.g. `driving_vision_tinygrad.pkl`, `driving_policy_tinygrad.pkl`). Understanding openpilot's model usage motivates "why inference optimization matters" and what "production on device" means.
+
+**Outcome:** You can take a model, analyze its operator graph and memory footprint, apply quantization/fusion/scheduling, and deploy it with measurable latency/throughput improvements.
 
 ---
 
-## ▸ Phase 5: Specialization Tracks (Ongoing)
+## Step 3: DL Inference Optimization for Edge / AV / Robotics
 
-> *Choose one or more tracks based on your career goals. All tracks assume completion of Phases 1–4.*
+**Goal:** Apply inference optimization in **power-limited, latency-sensitive, safety-aware** environments: embedded SoCs (Jetson, DRIVE, Snapdragon), autonomous vehicles, and robots. You understand the full pipeline from sensors to actuation and how inference fits in.
 
-### Track A: Autonomous Driving
+**What you build toward:**
+- Deploying and tuning inference on Jetson, DRIVE, or similar edge/AV platforms
+- Understanding AV/robotics stacks: perception (camera, radar, fusion), planning, control
+- Working within real-time and power budgets; awareness of safety (e.g. ISO 26262, SOTIF) where relevant
 
-**Prerequisites:** Phase 3 (Computer Vision), Phase 4 (Sensor Fusion, Edge AI Optimization)
+**Curriculum mapping:**
 
-[**Detailed Guide →**](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Driving/Guide.md)
+| Phase | Topics that feed Step 3 |
+|-------|--------------------------|
+| **Phase 4** | Jetson, Edge AI Optimization (Jetson + TensorRT), Sensor Fusion, ROS2 |
+| **Phase 5 – Autonomous Driving** | openpilot architecture (camerad, modeld, planning, control), flow diagram, tinygrad in openpilot; camerad Guide; BEV/sensor fusion as needed |
+| **Phase 5 – Robotics** | ROS2, sensor fusion, motion planning (for robotics-specific deployment) |
 
-Openpilot reference architecture — perception (camerad, modeld), planning, control, ADAS. tinygrad for on-device inference. Camera ISP pipelines, sensor calibration, BEV perception, end-to-end driving models.
+**tinygrad / openpilot:**
+- **openpilot:** Primary reference. End-to-end flow: camera → ISP → VisionIpc → modeld (tinygrad models) → planning → control → CAN. Study [flow-diagram.md](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Driving/flow-diagram.md), [camerad Guide](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Driving/camerad/Guide.md), and the openpilot codebase.
+- **tinygrad:** In openpilot, tinygrad runs on device (e.g. Snapdragon). All of Step 2 (quantization, scheduling, ops) applies here under edge constraints.
 
-### Track B: AI Chip Design
+**Outcome:** You can own inference optimization for edge/AV/robotics: deploy models on target SoCs, hit latency and power targets, and understand how your work fits into the full autonomous or robotic system.
 
-**Prerequisites:** Phase 3 (HLS, Advanced FPGA Design), Phase 4 (AI Fundamentals)
+---
 
-[**Detailed Guide →**](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/5.%20AI%20Chip%20Design/Guide.md)
+## Step 4: Master FPGA for DL Inference → Custom Chip Design
 
-Hardware-software co-design for AI accelerators. tinygrad as a reference ML framework — study how software maps to hardware. Systolic arrays, dataflow architectures, custom operator design. FPGA prototyping of accelerators, ASIC flow overview.
+**Goal:** Move from **software inference optimization** to **hardware**: map inference workloads to FPGAs (HLS, OpenCL, RTL), design accelerator architectures (systolic arrays, dataflow), and understand the path to custom silicon (ASIC/SoC) for DL.
 
-### Track C: HPC & GPU Infrastructure
+**What you build toward:**
+- Profiling and characterizing DL workloads (from tinygrad or real models) to drive hardware design
+- Implementing inference on FPGA (e.g. matmul, conv2d, small networks) via HLS or RTL
+- Understanding compiler–hardware interface (e.g. TVM, MLIR, or tinygrad backends) and one day contributing to or defining custom accelerator targets
 
-**Prerequisites:** Phase 4 (CUDA from Jetson Platform)
+**Curriculum mapping:**
 
-[**Detailed Guide →**](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/1.%20HPC%20with%20Nvidia%20GPU/Guide.md)
+| Phase | Topics that feed Step 4 |
+|-------|--------------------------|
+| **Phase 1–2** | Digital design, Verilog, SoC (PS/PL, embedded Linux) |
+| **Phase 3** | Advanced FPGA design, HLS, OpenCL, Computer Vision (workloads to accelerate) |
+| **Phase 4** | AI Fundamentals, tinygrad (operator semantics, memory patterns) |
+| **Phase 5 – AI Chip Design** | tinygrad as reference ML stack; accelerator architecture (systolic, dataflow); FPGA prototyping; RTL/HLS; path to ASIC |
 
-Multi-GPU programming with NCCL, NVLink/NVSwitch interconnects. vGPU and KVM virtualization. InfiniBand, RDMA, GPUDirect for distributed training. GPU cluster architecture and scheduling.
+**tinygrad / openpilot:**
+- **tinygrad:** Reference for "what hardware must do." Study operator semantics (conv2d, matmul, attention), graph and memory patterns. Implement a **custom tinygrad backend** (e.g. for an FPGA or simulator) to solidify the software–hardware boundary. AI Chip Design guide: "Implement a Custom tinygrad Backend," "Map a tinygrad Model to Your Accelerator."
+- **openpilot:** Supplies real workloads (vision, policy) that you can profile and use to justify accelerator design choices (e.g. which ops to harden in silicon).
 
-### Track D: Robotics
+**Outcome:** You can characterize DL inference workloads, design and implement FPGA accelerators for them, and understand how this extends to custom-chip design for AI.
 
-**Prerequisites:** Phase 4 (ROS2, Sensor Fusion)
+---
 
-[**Detailed Guide →**](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/2.%20Robotics%20Application/Guide.md)
+## NVIDIA-Style Skill Coverage
 
-Advanced ROS 2 patterns, Nav2 navigation stack, MoveIt manipulation. Sensor fusion for autonomous robots. Motion planning algorithms. Industrial automation with ROS-Industrial. Builds on Phase 4 Sensor Fusion with robotics-specific applications.
+This roadmap is explicitly designed so that, by the time you reach **Step 3 (DL inference for edge / AV / robotics)** and optionally **Step 4 (FPGA/custom chip)**, you can cover the skills expected for a **Senior Deep Learning Inference Optimization Engineer** (e.g., NVIDIA AV/robotics roles).
 
-### Track E: Embedded Security
+### Deep Learning Architectures & Inference
 
-**Prerequisites:** Phases 1–3 (Digital Design, FPGA)
+- **Architectures:** Transformers, attention variants, ViT/vision encoders, multi-modal VLMs, diffusion/flow-matching models, state space models (SSMs), hybrid SSM–Transformer backbones, multi-camera tokenizers.
+  - **Where you build this:**
+    - Phase 4 AI Fundamentals (CNNs, attention, sequence models) → Step 2.
+    - Phase 5 Autonomous Driving + tinygrad guides (vision backbones, BEV/VLM-style architectures, multi-camera perception) → Steps 2–3.
+- **Model-level reasoning (down to operator/kernel):**
+  - Step 2 via tinygrad internals (ops → IR → kernels, BEAM, scheduling) and TensorRT pipeline.
+  - Step 1 via CUDA/OpenCL and tinygrad backends (how each op becomes a kernel and uses memory).
+- **Inference & optimization (quantization, pruning/fusion, kernel selection, scheduling, batching, tiling, mixed precision, latency/memory trade-offs):**
+  - Phase 4 Edge AI Optimization + Jetson guides (quantization in tinygrad, QAT, TensorRT, batching/throughput vs latency).
+  - Step 2 projects: tinygrad → ONNX → TensorRT, INT8/QAT experiments, kernel-level profiling.
+- **Benchmarks & MLPerf-style thinking:**
+  - Step 1/2: you design repeatable benchmarks for Jetson/tinygrad/TensorRT projects (configs, seeds, environment).
+  - Step 3: openpilot and AV/robotics workloads as "real" benchmarks; practice defining metrics and success criteria (latency, FPS, power, safety envelope).
 
-[**Detailed Guide →**](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/3.%20Security%20in%20Embedded%20Systems/Guide.md)
+### GPU / SoC Performance & Parallel Programming
 
-Cryptography fundamentals and hardware implementations. Secure boot mechanisms. Side-channel attack resistance. FPGA bitstream security and IP protection.
+- **GPU architecture fundamentals (warps, SMs, occupancy, memory hierarchy, tensor cores, streams, concurrency):**
+  - Phase 4 Jetson Platform (CUDA + Nsight) + Step 1 parallel-program optimization focus.
+- **CUDA expertise (writing, profiling, optimizing kernels, reading traces and counters):**
+  - Step 1 projects: custom CUDA kernels, Nsight profiling, memory-bound vs compute-bound diagnosis.
+  - Step 2: using that knowledge to understand compiler-generated kernels (tinygrad, TensorRT) and guide their optimization.
+- **Parallel programming (CUDA, OpenMP-style patterns, data/pipeline parallelism and utilization):**
+  - Phase 3 OpenCL + HLS dataflow; Phase 4 CUDA on Jetson; Step 1 as consolidation.
+- **Heterogeneous compute (GPU + ARM SoC, offload strategies):**
+  - Phase 2 Zynq/SoC; Phase 4 Jetson/DRIVE-style SoCs; Step 1 + Step 3 when deploying to real edge hardware.
+
+### Inference Toolchains & Compilers
+
+- **NVIDIA stack (TensorRT, Jetson, DRIVE, GPU+ARM; Torch-TRT, MLIR-TRT):**
+  - Phase 4 Jetson + Edge AI Optimization and TensorRT pipeline → Step 2.
+  - Step 3: applying the same stack to AV/robotics workloads (openpilot-like systems).
+- **Compiler concepts (IRs, graph optimizations, lowering, scheduling, codegen, memory planning):**
+  - tinygrad IR and compiler (Phase 4 AI Fundamentals tinygrad section + Phase 5 tinygrad guides) → Step 2.
+  - AI Chip Design track (TVM/MLIR-style concepts, accelerator IRs) → Step 4.
+- **Bonus stacks (TVM, MLIR, XLA, Triton; runtime contributions):**
+  - Step 2/4: after tinygrad/TensorRT, you can plug in TVM/MLIR/Triton as parallel study paths; the roadmap assumes you'll be comfortable enough with IR and kernels to contribute to such toolchains.
+
+### Embedded / Edge Systems
+
+- **Operating systems (QNX/Linux internals, processes, scheduling, drivers, real-time constraints):**
+  - Phase 1 Operating Systems (Caltech-style course notes).
+  - Phase 2 Embedded Linux + drivers; Step 3 when reasoning about real-time/near-real-time AV/robotics constraints.
+- **System software (C/C++, memory management, concurrency, low-level debugging):**
+  - Phase 1 Embedded Systems Basics (C), Phase 2/3 FPGA + HLS/OpenCL (C/C++), and tinygrad/openpilot C++ where relevant.
+- **Deployment constraints (power, thermal, latency/throughput SLAs, reliability):**
+  - Step 3 edge/AV/robotics focus: Jetson/DRIVE-style SoCs, openpilot running under thermal and power limits, ROS2 robots.
+
+### Autonomous Vehicles & Robotics Domain
+
+- **Stacks (perception, sensor fusion, planning/control, end-to-end driving models, robot foundation models):**
+  - Phase 4 Sensor Fusion + ROS2 + Computer Vision; Phase 5 Autonomous Driving/Robotics guides → Step 3.
+  - openpilot as concrete perception→planning→control pipeline; tinygrad models within that stack.
+- **Full pipeline from sensors to trajectory/actuation:**
+  - Step 3: flow diagrams and code tracing in openpilot (camerad → modeld → plannerd → control → CAN) and ROS2 robotics projects.
+- **Production AV/robotics deployment:**
+  - Step 3 projects: run and modify openpilot (in sim or on supported hardware), deploy optimized models on Jetson/edge devices; ROS2-based robots with on-device inference.
+
+### Physical AI, Safety & Standards
+
+- **Physical AI model landscape (VLM + action experts, end-to-end driving, robot policies):**
+  - Phase 5 Autonomous Driving + tinygrad/openpilot models; potential extensions in Robotics track.
+- **Safety & standards (ISO 26262, SOTIF) and implications:**
+  - Step 3: integrate reading of AV safety standards into openpilot/AV work; think about determinism, redundancy, monitoring, fail-safe modes when modifying inference pipelines.
+
+### Benchmarking, Diagnosis & Optimization Workflow
+
+- **Performance investigation (kernel traces, profiling, bottlenecks):**
+  - Step 1 + Step 2 via CUDA/Nsight, tinygrad debug flags (e.g. `DEBUG=4`), and TensorRT profiling tools.
+- **Benchmark ownership (design, metrics, reproducibility):**
+  - Every major project in Steps 1–3 is treated as a benchmark: you define the workload, target metrics (latency, FPS, power), and keep configs/scripts for reproducibility.
+- **Delivering solutions (not just advice):**
+  - All roadmap projects require **implemented optimizations**: changed kernels, compiler settings, model graphs, or deployment configs that measurably improve performance, especially for Jetson, tinygrad, TensorRT, and openpilot-based workloads.
+
+---
+
+## How to Use This With the 5-Phase Curriculum
+
+- **Phases 1–3** are the **foundation** for all four steps (digital, SoC, parallel compute, HLS/OpenCL).
+- **Phase 4** is where **Steps 1 and 2** converge: parallel optimization (CUDA, Jetson) and DL inference (tinygrad, TensorRT, quantization).
+- **Phase 5** is **specialization**: Autonomous Driving (openpilot + tinygrad) for **Step 3**; AI Chip Design (tinygrad + FPGA/custom) for **Step 4**.
+
+See **[CURRICULUM.md](CURRICULUM.md)** for the full phase-by-phase topic guide with resources, guides, and projects.
+
+**Suggested path if your target is "NVIDIA-style" inference optimization (edge/AV/robotics):**
+
+1. Complete Phase 1–3 (or equivalent) for foundations.
+2. Use Phase 4 to become strong in **Step 1** (parallel/CUDA) and **Step 2** (DL inference, tinygrad, TensorRT).
+3. Deep-dive **Step 3** via Phase 5 Autonomous Driving: openpilot end-to-end, camerad, modeld, tinygrad on device.
+4. Optionally add **Step 4** via Phase 5 AI Chip Design and Phase 3 HLS/OpenCL/FPGA for custom hardware.
+
+**Reference projects summary:**
+
+| Project | Step 1 | Step 2 | Step 3 | Step 4 |
+|---------|--------|--------|--------|--------|
+| **tinygrad** | Backends, op→kernel | IR, scheduling, BEAM, quantization | Inference on device (e.g. openpilot) | Custom backend, workload for accelerator design |
+| **openpilot** | — | Why inference matters in production | Full edge/AV stack, perception→control | Real workloads for hardware design |
 
 ---
 
