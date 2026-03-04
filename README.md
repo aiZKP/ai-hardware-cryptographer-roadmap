@@ -9,6 +9,8 @@
 
 *A 5-phase self-study curriculum for engineers: learn digital design, Verilog, FPGA SoCs, HLS/OpenCL acceleration, and edge AI (Jetson/CUDA/TensorRT), then specialize in autonomous driving, AI chip design, HPC, or robotics. Build the hardware that runs AI — from first logic gate to custom accelerator silicon.*
 
+**Purpose-oriented progression:** The curriculum is structured around four role targets — **[Parallel program optimization](PURPOSE-ORIENTED-ROADMAP.md#step-1-parallel-program-optimization-engineer)** → **[DL inference optimization](PURPOSE-ORIENTED-ROADMAP.md#step-2-deep-learning-inference-optimization-engineer)** → **[DL inference for edge / AV / robotics](PURPOSE-ORIENTED-ROADMAP.md#step-3-dl-inference-optimization-for-edge--av--robotics)** → **[FPGA & custom chip for DL inference](PURPOSE-ORIENTED-ROADMAP.md#step-4-master-fpga-for-dl-inference--custom-chip-design)**. Reference projects: **[tinygrad](https://github.com/tinygrad/tinygrad)** (compiler, IR, kernels) and **[openpilot](https://github.com/commaai/openpilot)** (edge/AV stack using tinygrad). See [**Purpose-Oriented Roadmap**](PURPOSE-ORIENTED-ROADMAP.md) for the full mapping.*
+
 </div>
 
 ---
@@ -69,6 +71,21 @@ Every phase answers one question: ***What does the hardware need to do to make A
 
 ---
 
+## Purpose-Oriented Progression
+
+The broad 5-phase curriculum supports a **four-step career path**:
+
+| Step | Role |
+|:-----|:-----|
+| **1** | [Parallel program optimization engineer](PURPOSE-ORIENTED-ROADMAP.md#step-1-parallel-program-optimization-engineer) — kernel-level performance, CUDA/OpenCL, memory hierarchy |
+| **2** | [Deep learning inference optimization engineer](PURPOSE-ORIENTED-ROADMAP.md#step-2-deep-learning-inference-optimization-engineer) — model/operator optimization, TensorRT, tinygrad IR & scheduling |
+| **3** | [DL inference for edge / AV / robotics](PURPOSE-ORIENTED-ROADMAP.md#step-3-dl-inference-optimization-for-edge--av--robotics) — Jetson/DRIVE, openpilot stack, latency- and power-constrained deployment |
+| **4** | [FPGA & custom chip for DL inference](PURPOSE-ORIENTED-ROADMAP.md#step-4-master-fpga-for-dl-inference--custom-chip-design) — tinygrad custom backend, HLS/RTL, accelerator design |
+
+**[tinygrad](https://github.com/tinygrad/tinygrad)** and **[openpilot](https://github.com/commaai/openpilot)** are the reference real-world projects: tinygrad for compiler/kernel-level optimization and inference; openpilot for edge/AV deployment. Full mapping of phases to steps and projects: **[Purpose-Oriented Roadmap](PURPOSE-ORIENTED-ROADMAP.md)**.
+
+---
+
 ## Table of Contents
 
 - [Phase 1: Digital Foundations](#-phase-1-digital-foundations-612-months)
@@ -76,6 +93,7 @@ Every phase answers one question: ***What does the hardware need to do to make A
 - [Phase 3: Hardware Acceleration](#-phase-3-hardware-acceleration-612-months)
 - [Phase 4: AI Fundamentals & Edge Deployment](#-phase-4-ai-fundamentals--edge-deployment-612-months)
 - [Phase 5: Specialization Tracks](#-phase-5-specialization-tracks-ongoing)
+- [Purpose-Oriented Roadmap](PURPOSE-ORIENTED-ROADMAP.md) (four-step role progression + tinygrad/openpilot)
 - [Career Paths](#career-paths)
 - [Academic References](#academic-references)
 
