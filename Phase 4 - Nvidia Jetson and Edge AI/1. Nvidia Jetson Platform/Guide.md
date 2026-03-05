@@ -7,26 +7,310 @@
 
 ## Table of Contents
 
-1. [Jetson Hardware Overview](#1-jetson-hardware-overview)
-2. [Installing JetPack — Step by Step](#2-installing-jetpack--step-by-step)
-3. [Upgrading JetPack on Orin Nano 8GB](#3-upgrading-jetpack-on-orin-nano-8gb)
-4. [Benefits of Higher JetPack Versions](#4-benefits-of-higher-jetpack-versions)
-5. [Porting AI Models to Jetson](#5-porting-ai-models-to-jetson)
-6. [ROS2 Integration](#6-ros2-integration)
-7. [Optimizing AI Inference](#7-optimizing-ai-inference)
-8. [End-to-End AI Pipeline: Sensors → Inference → Control](#8-end-to-end-ai-pipeline-sensors--inference--control)
-9. [LiDAR, Camera, IMU — Practical Integration](#9-lidar-camera-imu--practical-integration)
-10. [Device Tree Configuration](#10-device-tree-configuration)
-11. [Power and Thermal Management in Practice](#11-power-and-thermal-management-in-practice)
-12. [OTA Update Best Practices](#12-ota-update-best-practices)
-13. [Security Hardening](#13-security-hardening)
-14. [Projects](#14-projects)
-15. [Jetson Containers — Cloud-Native ML Deployment](#15-jetson-containers--cloud-native-ml-deployment)
-16. [Resources](#16-resources)
+1. [Orin Nano 8GB — Hardware & Boot Chain Internals](#1-orin-nano-8gb--hardware--boot-chain-internals)
+2. [Jetson Hardware Overview](#2-jetson-hardware-overview)
+3. [Installing JetPack — Step by Step](#3-installing-jetpack--step-by-step)
+4. [Upgrading JetPack on Orin Nano 8GB](#4-upgrading-jetpack-on-orin-nano-8gb)
+5. [Benefits of Higher JetPack Versions](#5-benefits-of-higher-jetpack-versions)
+6. [Porting AI Models to Jetson](#6-porting-ai-models-to-jetson)
+7. [ROS2 Integration](#7-ros2-integration)
+8. [Optimizing AI Inference](#8-optimizing-ai-inference)
+9. [End-to-End AI Pipeline: Sensors → Inference → Control](#9-end-to-end-ai-pipeline-sensors--inference--control)
+10. [LiDAR, Camera, IMU — Practical Integration](#10-lidar-camera-imu--practical-integration)
+11. [Device Tree Configuration](#11-device-tree-configuration)
+12. [Power and Thermal Management in Practice](#12-power-and-thermal-management-in-practice)
+13. [OTA Update Best Practices](#13-ota-update-best-practices)
+14. [Security Hardening](#14-security-hardening)
+15. [Projects](#15-projects)
+16. [Jetson Containers — Cloud-Native ML Deployment](#16-jetson-containers--cloud-native-ml-deployment)
+17. [Resources](#17-resources)
 
 ---
 
-## 1. Jetson Hardware Overview
+## 1. Orin Nano 8GB — Hardware & Boot Chain Internals
+
+This section walks through the **real boot chain**, firmware layout, memory usage, A/B slots, and what happens specifically on Orin Nano 8GB. Understanding this gives you the foundation to debug boot failures, customize firmware, optimize memory, and work confidently with the Jetson platform at the hardware level.
+
+> **Deep dive:** For production-level memory architecture details (SMMU translation, CMA internals, camera zero-copy pipeline, DLA memory path, multi-camera planning, and production debugging), see [**Orin Nano Memory Architecture Deep Dive**](Orin-Nano-Memory-Architecture/Guide.md).
+
+### 1.1 Hardware Context — What Orin Nano 8GB Actually Is
+
+Orin Nano 8GB uses:
+
+* **SoC:** Tegra234 (T234)
+* **CPU:** ARM Cortex-A78AE cluster (6 cores)
+* **GPU:** Ampere architecture (1024 CUDA cores)
+* **Memory:** 8GB LPDDR5 (unified — shared between CPU and GPU)
+* **Storage (Dev Kit):** NVMe (usually)
+* **Boot storage:** QSPI NOR flash (for bootloader + firmware)
+
+Important distinctions:
+
+* Boot components are **not all stored on NVMe** — critical boot stages live in **QSPI NOR flash**
+* Jetson is closer to **smartphone architecture** than PC architecture
+
+### 1.2 Secure Boot Chain (Hardware Root of Trust)
+
+Boot starts inside SoC silicon. Each stage verifies the next before handing off control.
+
+#### Step 1: BootROM (BR)
+
+* Hard-coded in silicon — cannot be modified
+* Executes immediately at power-on
+* Reads fuses for secure boot configuration
+* Verifies next stage (MB1)
+
+If secure boot is enabled:
+
+* Uses PKC (Public Key Cryptography)
+* Verifies digital signatures on all subsequent stages
+
+#### Step 2: MB1 (Microboot1)
+
+Loaded from QSPI NOR flash.
+
+Responsibilities:
+
+* DRAM training (LPDDR5 initialization)
+* Power rails configuration
+* Clock setup
+* Security configuration
+* Initializes BPMP (Boot and Power Management Processor)
+* Verifies MB2
+
+Without correct DRAM training, the system will not boot.
+
+#### Step 3: MB2
+
+Still loaded from QSPI NOR flash.
+
+MB2 handles:
+
+* Additional hardware initialization
+* Memory carveout preparation
+* Loading UEFI, OP-TEE (Trusted OS), and firmware blobs
+
+At this stage the CPU is still not running Linux — this is still the NVIDIA boot world.
+
+### 1.3 UEFI Stage (Firmware Layer)
+
+Jetson Orin Nano uses an EDK2-based UEFI implementation.
+
+UEFI responsibilities:
+
+* Enumerates devices (PCIe, NVMe, USB)
+* Selects boot device
+* Handles A/B slot logic
+* Loads `Image` (kernel), `kernel-dtb` (device tree), and `initrd`
+
+Boot variables are stored in QSPI and EFI variable storage.
+
+### 1.4 A/B Partition Layout (Critical for OTA)
+
+Orin Nano uses a redundancy system for safe over-the-air updates:
+
+```
+APP        → rootfs A
+APP_b      → rootfs B
+
+kernel      → A
+kernel_b    → B
+```
+
+UEFI checks:
+
+* Which slot is active
+* Boot success flag
+* Retry counter
+
+If boot fails too many times, the system automatically switches to the other slot. This is handled by the Boot Control Block (BCB) and EFI variables — this is how OTA updates work safely.
+
+### 1.5 Linux Kernel Stage (On Orin Nano)
+
+UEFI jumps to kernel entry.
+
+Kernel binary:
+
+```
+/boot/Image
+```
+
+Device Tree:
+
+```
+tegra234-p3767-0000-p3768-0000-a0.dtb
+```
+
+#### CPU Setup
+
+* Switch to EL1 (Exception Level 1)
+* Setup page tables
+* Enable MMU
+* Initialize SMP cores
+
+#### Memory Layout
+
+8GB RAM is split into:
+
+* **Linux usable RAM** — available to userspace and kernel
+* **CMA region** — for GPU and V4L2 allocations
+* **Carveouts** for:
+  * BPMP (Boot and Power Management Processor)
+  * RCE (camera real-time engine)
+  * SPE (Safety Processor Engine)
+  * OP-TEE (Trusted Execution Environment)
+  * Display firmware
+
+Inspect the memory layout with:
+
+```bash
+cat /proc/iomem
+```
+
+#### NVIDIA Driver Stack
+
+Unlike normal PC Linux, Orin loads Jetson-specific drivers:
+
+* `nvgpu` — GPU driver
+* `nvhost` — host1x multimedia subsystem
+* `tegra-camrtc` — camera real-time controller
+* `vi` — Video Input driver
+* `isp` — Image Signal Processor driver
+* `nvcsi` — NVIDIA CSI driver
+
+Camera pipeline path:
+
+```
+Sensor → NVCSI → VI → ISP → Memory (NVMM) → CUDA / V4L2
+```
+
+### 1.6 Camera Pipeline (Jetson Specific)
+
+On Orin Nano, the camera data flow is:
+
+1. Sensor connected via CSI (Camera Serial Interface)
+2. NVCSI block receives raw data
+3. VI (Video Input) captures frames
+4. ISP processes (debayer, denoise, tone-map)
+5. Memory allocated via CMA
+6. Exposed as `/dev/video0`
+
+Zero-copy path:
+
+* **NVMM memory** — NVIDIA multimedia memory
+* **DMA-BUF** — kernel buffer sharing
+* **CUDA interop** — direct GPU access without copies
+
+This is why CMA size is critical for camera + AI workloads.
+
+### 1.7 initramfs Stage
+
+Before mounting the full rootfs:
+
+* Loads kernel modules
+* Checks root partition
+* Handles encryption (if enabled)
+* Switches root
+
+Then executes:
+
+```bash
+exec /sbin/init
+```
+
+### 1.8 systemd Stage
+
+On Jetson Ubuntu, systemd starts:
+
+* `nvargus-daemon` — camera service
+* `nvpmodel` service — power mode management
+* `networkd` — networking
+* `display manager` — GUI
+* `docker` — container runtime (if enabled)
+
+NVIDIA-specific services:
+
+* `nvpmodel` controls power modes (e.g., 15W vs 7W)
+* `jetson_clocks` tool adjusts clocks for maximum performance
+
+### 1.9 Graphics Stack
+
+Display flow:
+
+```
+Kernel DRM driver
+ → NVIDIA display controller
+  → Wayland (default on recent Ubuntu)
+   → GNOME
+    → Login screen
+```
+
+GPU firmware is loaded during driver probe.
+
+### 1.10 Full Boot Chain Summary
+
+```
+Power On
+ ↓
+BootROM (silicon — immutable)
+ ↓
+MB1 (QSPI — DRAM training + security)
+ ↓
+MB2 (QSPI — loads UEFI + OP-TEE + firmware)
+ ↓
+UEFI (device enumeration + A/B slot selection)
+ ↓
+Load Kernel + DTB + initrd
+ ↓
+Linux Kernel (memory + drivers + GPU + camera)
+ ↓
+Mount APP or APP_b
+ ↓
+initramfs → switch root
+ ↓
+systemd (NVIDIA services + desktop)
+```
+
+### 1.11 Advanced Engineering Details
+
+#### Where Are Bootloaders Stored?
+
+QSPI NOR flash contains:
+
+* MB1, MB2, UEFI
+* Firmware blobs
+* Boot configuration tables
+
+Rootfs (APP partition) lives on:
+
+* NVMe (Dev Kit)
+* Or eMMC (production module variants)
+
+#### Firmware Running Outside Linux
+
+Even when Linux is running, these microcontrollers remain active:
+
+* **BPMP** — Boot and Power Management Processor
+* **SPE** — Safety Processor Engine
+* **RCE** — Camera Real-Time Engine
+
+They run their own firmware loaded during boot. Linux communicates with them via mailbox + IPC.
+
+### 1.12 What Makes Orin Nano Different From PC?
+
+| PC Boot            | Jetson Orin Boot              |
+|--------------------|-------------------------------|
+| BIOS/UEFI          | NVIDIA MB1 + MB2 + UEFI      |
+| Simple DRAM init   | Complex LPDDR5 training       |
+| Standard GPU       | Firmware-heavy embedded GPU   |
+| No carveouts       | Multiple memory carveouts     |
+| No BPMP            | Dedicated power MCU (BPMP)    |
+
+Jetson is closer to smartphone architecture than PC — understanding this distinction is key to working effectively with the platform.
+
+---
+
+## 2. Jetson Hardware Overview
 
 ### Orin Nano 8GB vs the Orin Family
 
@@ -72,7 +356,7 @@ This means zero-copy GPU inference: camera frames captured by CPU stay in place 
 
 ---
 
-## 2. Installing JetPack — Step by Step
+## 3. Installing JetPack — Step by Step
 
 ### What is JetPack?
 
@@ -218,7 +502,7 @@ sudo tegrastats
 
 ---
 
-## 3. Upgrading JetPack on Orin Nano 8GB
+## 4. Upgrading JetPack on Orin Nano 8GB
 
 ### Can You Upgrade In-Place?
 
@@ -292,7 +576,7 @@ pip3 install -r /media/backup/requirements.txt
 
 ---
 
-## 4. Benefits of Higher JetPack Versions
+## 5. Benefits of Higher JetPack Versions
 
 ### JetPack 6.x vs 5.x (Orin Nano Context)
 
@@ -357,7 +641,7 @@ JetPack 6.x → Ubuntu 22.04 → ROS2 Humble (LTS until 2027) ← Use this
 
 ---
 
-## 5. Porting AI Models to Jetson
+## 6. Porting AI Models to Jetson
 
 ### The Porting Pipeline
 
@@ -536,7 +820,7 @@ config.set_flag(trt.BuilderFlag.FP16)           # DLA requires FP16 or INT8
 
 ---
 
-## 6. ROS2 Integration
+## 7. ROS2 Integration
 
 ### Installing ROS2 Humble on JetPack 6 (Ubuntu 22.04)
 
@@ -758,7 +1042,7 @@ self.cmd_pub = self.create_publisher(
 
 ---
 
-## 7. Optimizing AI Inference
+## 8. Optimizing AI Inference
 
 ### Precision Tradeoffs
 
@@ -900,7 +1184,7 @@ benchmark_inference(inferencer, dummy_input)
 
 ---
 
-## 8. End-to-End AI Pipeline: Sensors → Inference → Control
+## 9. End-to-End AI Pipeline: Sensors → Inference → Control
 
 ### Full Pipeline Architecture
 
@@ -1049,7 +1333,7 @@ for t in threads:
 
 ---
 
-## 9. LiDAR, Camera, IMU — Practical Integration
+## 10. LiDAR, Camera, IMU — Practical Integration
 
 ### Camera Integration
 
@@ -1312,7 +1596,7 @@ class FusionNode(Node):
 
 ---
 
-## 10. Device Tree Configuration
+## 11. Device Tree Configuration
 
 Device tree configuration on NVIDIA Jetson platforms is critical for enabling I2C buses, configuring GPIO pins on the 40-pin header, and integrating camera sensors (CSI). Jetson systems utilize **Device Tree Overlays** (`.dtbo`) to modify base hardware configurations during boot, allowing for peripheral customization without re-flashing the entire board.
 
@@ -1381,7 +1665,7 @@ For complex peripherals not covered by jetson-io, manual overlay creation is nec
 
 ---
 
-## 11. Power and Thermal Management in Practice
+## 12. Power and Thermal Management in Practice
 
 ### Power Modes
 
@@ -1544,7 +1828,9 @@ Runtime on 5Ah@12V: 60Wh / 12W = 5 hours
 
 ---
 
-## 12. OTA Update Best Practices
+## 13. OTA Update Best Practices
+
+> **Deep dive:** For production-level rootfs architecture, A/B redundancy internals, flash XML layout, safe field update design, and bootloop debugging, see [**Orin Nano Rootfs & A/B Redundancy Deep Dive**](Orin-Nano-Rootfs-and-AB-Redundancy/Guide.md).
 
 ### OTA Update Strategies on Jetson
 
@@ -1695,7 +1981,7 @@ docker compose up -d
 
 ---
 
-## 13. Security Hardening
+## 14. Security Hardening
 
 ### Threat Model for Jetson Edge Devices
 
@@ -1854,7 +2140,7 @@ Before deployment, verify:
 
 ---
 
-## 14. Projects
+## 15. Projects
 
 ### Project 1: Fresh JetPack 6 Install + NVMe Boot
 Flash Orin Nano 8GB to JetPack 6.x with SDK Manager, configure NVMe boot, and benchmark I/O speed vs SD card.
@@ -1879,7 +2165,7 @@ Start from a fresh Jetson install. Apply all items in the Security Audit Checkli
 
 ---
 
-## 15. Jetson Containers — Cloud-Native ML Deployment
+## 16. Jetson Containers — Cloud-Native ML Deployment
 
 [jetson-containers](https://github.com/dusty-nv/jetson-containers) is a modular container build system that provides the latest AI/ML packages for NVIDIA Jetson and JetPack-L4T. It enables **cloud-native deployment** on edge devices: reproducible environments, version-pinned dependencies, and OTA-friendly updates via `docker pull`.
 
@@ -2011,7 +2297,7 @@ docker compose pull && docker compose up -d
 
 ---
 
-## 16. Resources
+## 17. Resources
 
 ### Official Documentation
 - **Jetson Linux Developer Guide** (L4T r36.4): [docs.nvidia.com/jetson/archives/r36.4/DeveloperGuide](https://docs.nvidia.com/jetson/archives/r36.4/DeveloperGuide/index.html) — primary reference: boot, kernel, device tree, pinmux, camera, flashing, OTA, security
@@ -2025,7 +2311,7 @@ docker compose pull && docker compose up -d
 ### Community and Tools
 - **JetsonHacks** (https://jetsonhacks.com/): Practical Jetson tutorials, GPIO pinouts (Orin Nano, AGX Orin, Xavier, Nano), JetPack updates, hardware setup — essential reference for Jetson mastering
 - **NVIDIA NGC**: ngc.nvidia.com — pre-built containers optimized for Jetson
-- **jetson-containers** (https://github.com/dusty-nv/jetson-containers): See [Section 15](#15-jetson-containers--cloud-native-ml-deployment) for deep dive. Quick start: `jetson-containers run $(autotag l4t-pytorch)`.
+- **jetson-containers** (https://github.com/dusty-nv/jetson-containers): See [Section 16](#16-jetson-containers--cloud-native-ml-deployment) for deep dive. Quick start: `jetson-containers run $(autotag l4t-pytorch)`.
 - **DeepStream Getting Started**: docs.nvidia.com/metropolis/deepstream/
 
 ### Performance and Profiling
