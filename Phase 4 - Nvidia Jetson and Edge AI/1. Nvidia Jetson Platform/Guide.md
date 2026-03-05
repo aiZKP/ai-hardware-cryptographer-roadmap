@@ -33,6 +33,8 @@ This section walks through the **real boot chain**, firmware layout, memory usag
 
 > **Deep dive:** For production-level memory architecture details (SMMU translation, CMA internals, camera zero-copy pipeline, DLA memory path, multi-camera planning, and production debugging), see [**Orin Nano Memory Architecture Deep Dive**](Orin-Nano-Memory-Architecture/Guide.md).
 
+> **Deep dive:** For production-scale Yocto/OpenEmbedded BSP development — meta-tegra layer, custom layers, rootfs optimization, cross-compilation, secure boot integration, CI/CD pipelines, OTA at scale (25,000+ devices), system bring-up, boot performance, licensing compliance, and release engineering — see [**Orin Nano Yocto BSP & Production Deployment**](Orin-Nano-Yocto-BSP-Production/Guide.md).
+
 ### 1.1 Hardware Context — What Orin Nano 8GB Actually Is
 
 Orin Nano 8GB uses:
