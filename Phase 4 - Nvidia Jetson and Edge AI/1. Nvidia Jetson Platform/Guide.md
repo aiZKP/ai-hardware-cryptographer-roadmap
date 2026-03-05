@@ -1044,6 +1044,8 @@ self.cmd_pub = self.create_publisher(
 
 ## 8. Optimizing AI Inference
 
+> **Deep dive:** For DLA-specific optimization — hardware architecture, TensorRT DLA integration, supported layers, multi-engine scheduling (DLA + GPU), profiling, and production deployment patterns — see [**Orin Nano DLA Deep Dive**](Orin-Nano-DLA-Deep-Dive/Guide.md).
+
 ### Precision Tradeoffs
 
 ```

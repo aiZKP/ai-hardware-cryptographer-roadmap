@@ -571,6 +571,8 @@ On Orin Nano 8GB, GPU and CPU compete for the same 8GB. A large model loaded in 
 
 ## 12. DLA Memory Path
 
+> **Deep dive:** For full DLA coverage — hardware architecture (MAC/SDP/PDP/CDP), TensorRT integration, supported layers, multi-engine scheduling, profiling, and production deployment patterns — see [**Orin Nano DLA Deep Dive**](../Orin-Nano-DLA-Deep-Dive/Guide.md).
+
 Orin Nano 8GB includes **1 DLA (Deep Learning Accelerator)** capable of up to 10 TOPS (INT8).
 
 ### How DLA Accesses Memory
