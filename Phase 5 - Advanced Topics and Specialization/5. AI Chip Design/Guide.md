@@ -38,14 +38,24 @@
     * **Mixed-Precision Training:** FP16/BF16 for training. Study gradient scaling and loss scaling.
 
 * **Compiler and Runtime:**
-    * **TVM and MLIR:** Study TVM for compiling high-level models to hardware. Understand MLIR dialects for AI accelerators.
-    * **Kernel Fusion and Scheduling:** Learn how compilers fuse ops and schedule kernels for optimal performance.
+    * **LLVM:** Understand LLVM IR, the three-phase compiler design (frontend → optimizer → backend), and how to write a backend for a custom accelerator. Study passes critical for AI: loop vectorization, alias analysis, instruction selection via TableGen.
+    * **MLIR:** Study multi-level intermediate representation — dialects (linalg, tensor, memref, affine, vector, gpu), progressive lowering, and how to define a custom dialect for your accelerator.
+    * **TVM and MLIR-Based Compilers:** Study TVM's schedule-based approach (TIR + auto-tuning), MLIR-based compilers (IREE, Triton-MLIR, torch-mlir), and tinygrad's minimal compiler design. Understand how ML models are compiled to hardware-specific code.
+    * **Kernel Fusion and Scheduling:** Learn how compilers fuse ops (linalg fusion, tinygrad scheduler) and schedule kernels for optimal performance.
+    * **Detailed Lectures:** See the [LLVM & MLIR Lecture Series](Lectures/) for in-depth coverage:
+        * [Lecture 1: LLVM IR & Architecture](Lectures/Lecture-01.md) — IR types, SSA, address spaces, intrinsics
+        * [Lecture 2: LLVM Passes & Code Generation](Lectures/Lecture-02.md) — optimization passes, TableGen, backend pipeline
+        * [Lecture 3: MLIR Fundamentals](Lectures/Lecture-03.md) — dialects, operations, progressive lowering
+        * [Lecture 4: MLIR for ML Compilers](Lectures/Lecture-04.md) — linalg, tensor, affine, vector dialects
+        * [Lecture 5: ML-to-Hardware Compilation Pipelines](Lectures/Lecture-05.md) — TVM, IREE, Triton-MLIR, tinygrad
 
 **Resources:**
 
 * **"Eyeriss: A Spatial Architecture for Energy-Efficient Dataflow for CNN" (paper):** Classic accelerator architecture.
 * **"A Full-Stack Accelerator for Deep Learning" (NVDLA):** Open-source Nvidia design.
 * **TVM and Apache TVM:** Compiler stack for deep learning.
+* **[LLVM Language Reference](https://llvm.org/docs/LangRef.html):** Authoritative LLVM IR specification.
+* **[MLIR Documentation](https://mlir.llvm.org/):** Official MLIR docs, dialect references, and tutorials.
 
 **Projects:**
 
