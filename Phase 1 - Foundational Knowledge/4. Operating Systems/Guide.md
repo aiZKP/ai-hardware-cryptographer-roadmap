@@ -47,6 +47,8 @@ This guide provides a structured, in-depth treatment of operating systems concep
 | [22](Lectures/Lecture-22.md) | File Locking & SSDs | flock, lockf, FTL, write amplification, TRIM |
 | [23](Lectures/Lecture-23.md) | Pintos File System Design | Project 5 design discussion |
 | [24](Lectures/Lecture-24.md) | Journaling Filesystems | Log-structured updates, crash consistency |
+| [25](Lectures/Lecture-25.md) | Capstone Project | Custom Linux images with Yocto |
+| [26](Lectures/Lecture-26.md) | **eBPF Deep Dive** | eBPF VM & ISA, verifier, BPF maps, libbpf CO-RE, XDP networking, sched_ext, AI system observability |
 
 ---
 
@@ -58,6 +60,8 @@ This guide provides a structured, in-depth treatment of operating systems concep
 4. **Lectures 13–14:** System calls and signals — user/kernel boundary
 5. **Lectures 15–20:** Memory management — VM, paging, replacement
 6. **Lectures 21–24:** Filesystems — allocation, locking, journaling
+7. **Lecture 25:** Capstone — Yocto build integration
+8. **Lecture 26:** eBPF — programmable kernel observability, XDP networking, custom schedulers
 
 ---
 
@@ -79,3 +83,4 @@ This guide provides a structured, in-depth treatment of operating systems concep
 | **File descriptors & I/O** | Camera streams, CAN bus, logging |
 | **Process/thread model** | modeld, camerad, plannerd in openpilot |
 | **Kernel vs user mode** | Driver vs userspace inference |
+| **eBPF** | Production profiling of GPU driver latency, scheduler analysis for RT inference, XDP for sensor data filtering, custom schedulers (sched_ext) for inference-priority scheduling |
