@@ -4,6 +4,7 @@ This phase uses **Openpilot** (comma.ai) as a reference implementation for ADAS�
 
 > **📊 [Flow Diagram](flow-diagram.md)** — End-to-end pipeline from perception → planning → control → actuation.
 > **📷 [camerad Guide](camerad/Guide.md)** — Camera capture, ISP, auto exposure, VisionIpc.
+> **🖧 [AGNOS + OS Course](agnos/Guide.md)** — Clone [agnos-kernel-sdm845](https://github.com/commaai/agnos-kernel-sdm845) and [agnos-builder](https://github.com/commaai/agnos-builder); learn boot, Device Tree, and scheduling with Phase 1 Operating Systems lectures.
 
 **1. Openpilot and Open-Source ADAS**
 

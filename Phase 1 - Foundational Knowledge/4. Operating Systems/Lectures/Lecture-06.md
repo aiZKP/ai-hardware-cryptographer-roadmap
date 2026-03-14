@@ -99,36 +99,84 @@ Now that we understand CFS's limitations, let's look at its replacement and why 
 
 ## EEVDF: Earliest Eligible Virtual Deadline First (Linux 6.6+)
 
-**EEVDF** replaces CFS entirely in Linux 6.6. CFS code is removed from the kernel tree.
+**EEVDF** replaces CFS entirely in Linux 6.6. CFS code is removed from the kernel tree. EEVDF keeps fairness (like CFS) but fixes CFS’s main weakness: a task that just woke up often has to wait behind tasks that have been running and thus have *lower* vruntime, even when the woken task is latency‑sensitive. EEVDF instead uses **eligibility** and **virtual deadlines** so that a task that is “owed” CPU runs as soon as it is allowed to, without being stuck behind others’ vruntime history.
 
-### Key Concepts
+### The Problem EEVDF Solves (CFS Recap)
 
-- **lag**: how much CPU time a task is owed relative to the ideal fair scheduler; positive lag means the task is behind schedule
-- **eligible**: task whose virtual start time is at or before the current virtual time (lag >= 0)
-- **virtual deadline**: assigned per task from `sched_slice` and current vruntime
-- **Selection rule**: among all eligible tasks, pick the one with the **earliest virtual deadline**
+Under CFS, the scheduler always runs the task with the **smallest vruntime**. When a task sleeps (e.g. waiting for a camera frame), it stops accumulating vruntime. Other runnable tasks keep running and their vruntime grows. When the sleeping task wakes up, its vruntime is *older* (smaller) than no one’s — it’s just *not the smallest* among the many tasks that have been running. So CFS may not pick it until after several other tasks get their turn, and the woken task can see **wakeup-to-run latency** of up to the full scheduling period (e.g. 6 ms). For a 30 Hz inference pipeline, that extra jitter is unacceptable. EEVDF changes the selection rule so that “how much CPU am I owed?” and “when is my next deadline?” matter more than raw vruntime order.
+
+### Key Concepts (Plain Language)
+
+- **lag**  
+  How much CPU time a task is **owed** compared to an “ideal” fair share. If the ideal scheduler would have given the task 10 ms by now but it only got 5 ms (e.g. because it was sleeping), **lag = +5 ms** (it is behind). If it got 12 ms, **lag = −2 ms** (it is ahead).  
+  - **Positive lag** → task is behind; it *should* get CPU soon.  
+  - **Zero or negative lag** → task has had at least its fair share; others can go first.
+
+- **eligible**  
+  A task is **eligible** when it is allowed to run from a fairness point of view. In EEVDF, that means its “virtual start time” is at or before the current virtual time, which corresponds to **lag ≥ 0**: the task is not ahead of its fair share.  
+  - So: **eligible ≈ “has non-negative lag (lag ≥ 0)” in the intuition** — actually eligibility is defined via virtual time, but the effect is: if a task has already had *more* than its fair share (negative lag), it is **not** eligible and is not considered for selection until virtual time catches up.
+
+- **virtual deadline**  
+  Each runnable task gets a **virtual deadline**: a point in virtual time by which it “should” get its next slice of CPU. The kernel computes this from the task’s `sched_slice` (how much virtual time it gets per scheduling round) and the current vruntime. A task that needs to be more responsive gets a smaller slice and thus an **earlier** virtual deadline.
+
+- **Selection rule**  
+  Among **all runnable tasks**, first drop any that are **not eligible**. Among the **eligible** ones, run the task with the **earliest virtual deadline**. So: **Earliest Eligible Virtual Deadline First**.
+
+### Why “Eligible” Matters
+
+If the scheduler only chose “earliest deadline,” a task that had already consumed *more* than its fair share (negative lag) could still have the earliest deadline and keep getting selected, starving others. The **eligible** filter prevents that: only tasks that are not ahead of their fair share (i.e. eligible) are candidates. So we get both **fairness** (only eligible tasks run) and **good latency** (among those, the one with the earliest deadline runs next).
+
+### EEVDF Selection Logic — Step by Step
+
+At each scheduling decision, the kernel has a set of runnable tasks. For each task it knows (conceptually) **lag** and **virtual deadline**.
+
+1. **Compute eligibility**  
+   For each runnable task, check if it is **eligible** (virtual start time ≤ current virtual time; in the “who is owed CPU?” view: not ahead of its fair share). Mark ineligible tasks (e.g. lag &lt; 0) as **not** candidates.
+
+2. **Among eligible tasks only**  
+   Ignore ineligible tasks for this decision.
+
+3. **Pick earliest virtual deadline**  
+   Among the eligible tasks, choose the one whose **virtual deadline** is smallest (earliest in virtual time). That task runs next.
+
+**Example:**
 
 ```
-EEVDF Selection Logic
-All runnable tasks:
-  Task A: lag=+5ms (owed CPU), deadline=T+2ms  → eligible, earlier deadline
-  Task B: lag=+1ms (owed CPU), deadline=T+8ms  → eligible, later deadline
-  Task C: lag=-2ms (ahead),    deadline=T+1ms  → NOT eligible (got too much CPU already)
+EEVDF Selection — at current virtual time T
 
-EEVDF picks Task A: eligible AND earliest deadline
+  Task A:  lag = +5 ms (owed CPU)     deadline = T + 2 ms   → eligible, deadline in 2 ms
+  Task B:  lag = +1 ms (owed CPU)     deadline = T + 8 ms   → eligible, deadline in 8 ms
+  Task C:  lag = −2 ms (ahead)        deadline = T + 1 ms   → NOT eligible (already got extra CPU)
+
+Eligible set: {A, B}. Earliest deadline among them: A (T+2 ms).
+→ EEVDF picks Task A.
 ```
 
-### Why EEVDF Improves Tail Latency
+Task C has the earliest deadline (T+1 ms) but is **ineligible**, so it is not considered. That preserves fairness. Between A and B, A has the earlier deadline, so A runs — which matches the fact that A is more “behind” (larger positive lag).
 
-CFS delays a freshly woken task if other tasks have lower vruntime. EEVDF's deadline-based selection ensures tight-deadline tasks run as soon as they become eligible, regardless of other tasks' vruntime history.
+### Why EEVDF Improves Tail Latency (Especially for AI Workloads)
+
+- **CFS:** A freshly woken task (e.g. inference thread after a frame arrives) often has vruntime larger than that of tasks that have been running. So CFS runs those others first, and the woken task can wait up to the full scheduling period (e.g. 6 ms). That shows up as **high tail latency** and jitter.
+
+- **EEVDF:** When the inference thread wakes up, it typically has **positive lag** (it was blocked, so it is “owed” CPU). So it is **eligible**. Its virtual deadline is set from its `sched_slice`. Among all eligible tasks, the scheduler picks the **earliest deadline**. So the woken inference thread runs as soon as it is eligible and has the earliest deadline — **without** having to “catch up” in vruntime behind long‑running background tasks. That reduces wakeup-to-run latency and tail latency in mixed workloads (inference + logging, telemetry, etc.).
+
+So: **EEVDF improves tail latency** because scheduling is driven by “who is owed CPU?” (eligibility) and “who has the tightest deadline?” (virtual deadline), not by who has the smallest vruntime. A freshly woken, latency‑sensitive task is often both owed CPU and given an early deadline, so it gets scheduled quickly.
+
+### Inspecting EEVDF (and CFS) Behavior
 
 ```bash
 cat /proc/[pid]/sched | grep slice    # per-task sched_slice; smaller = more responsive
 ```
 
-Jetson JetPack 6.x (5.15 kernel) still uses CFS. EEVDF is the default on Linux 6.6+ hosts and in Yocto Scarthgap.
+Smaller `sched_slice` means the task gets a shorter virtual-time slice per round and an earlier virtual deadline, so it tends to be more responsive under EEVDF.
 
-> **Key Insight:** EEVDF's key improvement over CFS for AI workloads is that a freshly woken inference thread that is "owed" CPU time (positive lag) will be scheduled as soon as it becomes eligible, regardless of what other tasks' vruntime histories look like. In a mixed workload with background processes that have been accumulating low vruntime, CFS would delay the inference thread while it "catches up." EEVDF avoids this entirely through the eligibility + deadline selection rule.
+### Where EEVDF vs CFS Is Used
+
+- **Linux 6.6+** (mainline): EEVDF is the default fair scheduler; CFS code is removed.
+- **Jetson JetPack 6.x** (kernel 5.15): still uses CFS.
+- **Yocto Scarthgap** and other 6.6+‑based BSPs: EEVDF is the default.
+
+> **Key Insight:** EEVDF’s improvement over CFS for AI workloads is that a freshly woken inference thread that is “owed” CPU (positive lag) is scheduled as soon as it is eligible and has the earliest deadline, regardless of other tasks’ vruntime history. Under CFS, the same thread could be delayed while background tasks with lower vruntime run first. EEVDF’s eligibility + earliest‑deadline rule avoids that and reduces tail latency for mixed workloads (inference, logging, telemetry) on the same cores.
 
 ---
 
@@ -283,3 +331,20 @@ High `nr_involuntary_switches` on `modeld` indicates CFS preemption — first si
 - `chrt -f 50 $(pgrep modeld)` is a standard production tuning step on openpilot and Autoware-based AV stacks; for persistent configuration use systemd unit options `CPUSchedulingPolicy=fifo` and `CPUSchedulingPriority=50`.
 - `rt_throttling` disabled (`sched_rt_runtime_us = -1`) is used in safety-certified AV ECU deployments where all RT tasks have formally verified bounded CPU usage and non-RT starvation is mitigated by running telemetry at `SCHED_IDLE`.
 - `perf sched latency` after a field test surfaces scheduler-induced delays invisible in application-level timing — the primary diagnostic when inference latency increases in deployment vs. bench testing on the same hardware.
+
+### Real example in openpilot (this repo)
+
+The openpilot code in this roadmap implements the same scheduling concepts from this lecture:
+
+| Lecture concept | Openpilot implementation |
+|------------------|---------------------------|
+| **SCHED_FIFO** / `chrt -f` | **`common/util.cc`**: `set_realtime_priority(int level)` uses `sched_setscheduler(tid, SCHED_FIFO, &sa)`. The comment states it is *"equivalent to the 'chrt' command"*. Priority is 1–99 (same as Lecture-06). |
+| **CPU affinity** (pin task to cores) | **`common/util.cc`**: `set_core_affinity(std::vector<int> cores)` uses `sched_setaffinity(tid, ...)` to pin the calling thread to the given cores — avoids migration and cache thrash for RT threads. |
+| **Declarations** | **`common/util.h`**: Declares `set_realtime_priority(int level)` and `set_core_affinity(std::vector<int> cores)`. |
+
+Relevant snippets:
+
+- **`openpilot/common/util.cc`** (lines 36–61): `set_realtime_priority()` — gets TID via `gettid`, fills `sched_param` with `sched_priority`, calls `sched_setscheduler(tid, SCHED_FIFO, &sa)`.
+- **`openpilot/common/util.cc`** (lines 63–76): `set_core_affinity()` — builds `cpu_set_t`, calls `sched_setaffinity(tid, ...)`.
+
+Processes like `controlsd` and `modeld` (or their launchers) call these helpers at startup to run with SCHED_FIFO and pinned cores so CAN writes and inference meet deadlines. Search the openpilot tree for `set_realtime_priority` and `set_core_affinity` to find exact call sites.

@@ -359,3 +359,17 @@ All three together give inference threads essentially interrupt-free CPU time.
 - Secure boot chain verification (BootROM → MB1 → CBoot → kernel) is mandatory for production AV deployment; an unverified kernel image breaks the safety argument for ISO 26262 ASIL compliance and opens the platform to persistent rootkit attacks.
 - DKMS manages the NVIDIA proprietary GPU driver on development hosts across kernel point-release updates — without it, every kernel update would break CUDA initialization and TensorRT engine builds.
 - `isolcpus=4-7 nohz_full=4-7 rcu_nocbs=4-7` in the Jetson kernel command line reserves the big-cluster Cortex-A78AE cores exclusively for `modeld`, `camerad`, and `controlsd` before any userspace process starts, forming the foundation of real-time inference CPU isolation.
+
+### Real example in openpilot (this repo)
+
+Lecture-05 topics (boot, Device Tree, kernel modules, kernel cmdline) live in the **platform** (Agnos on comma devices, L4T on Jetson), not in the openpilot application source. On comma devices, that platform is **AGNOS** — **forked and custom-modified Linux** built for openpilot on the road; the **development changes** for boot chain, device tree, and kernel modules are in [agnos-kernel-sdm845](https://github.com/commaai/agnos-kernel-sdm845) and [agnos-builder](https://github.com/commaai/agnos-builder) (see Phase 5 — [AGNOS Guide — Development Changes](../../../../Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Driving/agnos/Guide.md#os-lectures--agnos-development-changes-fork--custom-mods-for-openpilot)). The openpilot repo in this roadmap still ties in as follows:
+
+| Lecture-05 concept | How it connects to openpilot |
+|--------------------|-----------------------------|
+| **Kernel command line** (`isolcpus`, `nohz_full`, `rcu_nocbs`) | Set in the platform’s boot config (e.g. `extlinux.conf` on Jetson). Those parameters reserve cores so that when openpilot runs, only the intended processes use them. |
+| **CPU isolation → userspace pinning** | Once the kernel has isolated cores (cmdline), openpilot pins threads to those cores. **`openpilot/common/util.cc`**: `set_core_affinity(std::vector<int> cores)` uses `sched_setaffinity(tid, ...)` so `modeld`/`camerad`/`controlsd` run only on the isolated cores — the **userspace half** of the isolation described in this lecture. |
+| **Device Tree / DTBO** | Camera sensor nodes (e.g. IMX477) and CSI are described in the platform DTB/overlays. openpilot’s `camerad` talks to the V4L2 devices that those DT nodes bring up; no DTB sources are in the openpilot app repo. |
+| **Boot chain / secure boot** | On comma hardware, Agnos implements the verified boot chain; on Jetson, L4T/CBoot do. openpilot assumes a correctly booted kernel and rootfs. |
+| **Kernel modules** | Camera, CAN, and GPU drivers are loaded by the platform (udev/modprobe from the OS image). openpilot does not ship kernel modules. |
+
+For concrete examples of DTB, `extlinux.conf`, and `isolcpus` on a Jetson-style stack, see the Phase 4 Jetson/Orin guides (e.g. Orin-Nano-Real-Time-Inference, Orin-Nano-Security, Orin-Nano-Yocto-BSP-Production). For the matching userspace scheduling and affinity code, see **Lecture-06** and **`openpilot/common/util.cc`** (`set_realtime_priority`, `set_core_affinity`).

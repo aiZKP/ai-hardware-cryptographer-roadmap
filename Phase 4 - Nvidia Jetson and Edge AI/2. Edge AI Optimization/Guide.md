@@ -27,6 +27,7 @@
 | Subfolder | Description |
 |-----------|-------------|
 | [tao-toolkit/](tao-toolkit/Guide.md) | NVIDIA TAO Toolkit — fine-tune NGC pre-trained models, prune, QAT, export to TensorRT, and deploy on Jetson without writing a training loop |
+| [small-object-detection-jetson/](small-object-detection-jetson/Guide.md) | **Project:** Small object detection on Jetson — full walkthrough using VisDrone2019-DET, YOLOv8, best practices, and DeepStream deployment |
 
 ---
 
@@ -1678,6 +1679,26 @@ Some layers are sensitive to INT8. Write a script that:
 4. Stops when accuracy target is met
 
 This is a simplified version of what tools like NVIDIA's AMO (Automatic Mixed Precision Optimizer) do.
+
+### Project 7: Small Object Detection on Jetson (Real-Time CV Backend)
+
+**Context:** Improve an existing MVP on Jetson Orin Nano: a real-time vision backend (DeepStream + GStreamer + FastAPI) that does video ingest, object detection, optional secondary classification, tracking, streaming, and recording. Targets are very small in-frame (few pixels); the system needs better detection reliability and lower false positives in a constrained embedded environment.
+
+**Full project guide:** [small-object-detection-jetson/](small-object-detection-jetson/Guide.md) — dataset (VisDrone2019-DET from GitHub), annotation format and YOLO conversion, best methods (YOLOv8 + multi-scale, SPD, etc.), training pipeline, TensorRT export, and DeepStream integration.
+
+**Requirements (technical):**
+- **Platform:** NVIDIA Jetson Orin Nano; stack: DeepStream, GStreamer, FastAPI.
+- **Detection:** Improve primary object detection and optional secondary classification; reduce false positives; handle very small targets (low pixel count).
+- **Constraints:** Real-time pipeline, limited memory and compute; code quality, optimization, and feature completion.
+
+**Solution (technical):**
+- **Small-object handling:** Multi-scale detection (e.g. FPN or multi-scale inputs), feature pyramid networks, anchor tuning for small boxes, and higher-resolution inference where latency budget allows. Tune confidence and NMS thresholds to favor recall on small targets while controlling false positives.
+- **Inference:** Optimize TensorRT engines (FP16/INT8, calibration, layer placement); consider DLA for primary detector if throughput allows. Profile with `tegrastats` and Nsight Systems to stay within real-time budget.
+- **Limited or scarce data:** Transfer learning from pretrained detectors; fine-tune on domain data. Use augmentation (scale variation, motion blur, lighting/contrast, background diversity) and, if needed, synthetic or collected data to improve robustness.
+- **Stability:** For small, fast-moving or ambiguous targets, stabilize detections across frames (tracking association, temporal smoothing, or lightweight re-ID) so the backend delivers consistent results to the API.
+- **Deliverables:** Cleaned/refactored pipeline, improved detection and classification metrics, reduced false positives, and documentation of model choices, resolution vs. speed tradeoffs, and TensorRT settings.
+
+**Goal:** Ship a production-ready real-time detection/classification backend on Jetson that reliably finds small objects and supports secondary classification with acceptable latency and accuracy.
 
 ---
 
