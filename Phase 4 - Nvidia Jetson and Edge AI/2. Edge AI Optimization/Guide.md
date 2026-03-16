@@ -28,6 +28,7 @@
 |-----------|-------------|
 | [tao-toolkit/](tao-toolkit/Guide.md) | NVIDIA TAO Toolkit — fine-tune NGC pre-trained models, prune, QAT, export to TensorRT, and deploy on Jetson without writing a training loop |
 | [small-object-detection-jetson/](small-object-detection-jetson/Guide.md) | **Project:** Small object detection on Jetson — full walkthrough using VisDrone2019-DET, YOLOv8, best practices, and DeepStream deployment |
+| [non-contact-monitoring-edge/](non-contact-monitoring-edge/Guide.md) | **Project:** Non-contact monitoring — RGB/Depth + thermal fusion, 0.8–3 Hz micro-fluctuation extraction (EVM, bandpass), edge deployment, BLE/MQTT IoT |
 
 ---
 
@@ -1699,6 +1700,26 @@ This is a simplified version of what tools like NVIDIA's AMO (Automatic Mixed Pr
 - **Deliverables:** Cleaned/refactored pipeline, improved detection and classification metrics, reduced false positives, and documentation of model choices, resolution vs. speed tradeoffs, and TensorRT settings.
 
 **Goal:** Ship a production-ready real-time detection/classification backend on Jetson that reliably finds small objects and supports secondary classification with acceptable latency and accuracy.
+
+### Project 8: Non-Contact Multi-Sensor Monitoring on Edge (RGB/Depth + Thermal + Micro-Signals)
+
+**Context:** A non-contact monitoring device that observes a subject remotely using a **dual-camera setup** (RGB/Depth + thermal) and optional audio. The goal is to **map ROIs between cameras** with sub-pixel accuracy and extract **micro-fluctuation signals** (0.8–3 Hz) from thermal data—e.g. physiological cues—while running the full pipeline **on the edge** (e.g. Raspberry Pi) with optional **IoT** (BLE, MQTT).
+
+**Full project guide:** [non-contact-monitoring-edge/](non-contact-monitoring-edge/Guide.md) — device/sensors, multi-camera fusion, thermal micro-fluctuation (EVM, bandpass, SNR), edge constraints, Phase 1 (offline) and Phase 2 (live + IoT) workflow.
+
+**Requirements (technical):**
+- **Sensors:** RGB/Depth camera (color + depth), thermal camera; different FOVs, resolutions, alignments. Optional audio for sync.
+- **Fusion:** Extrinsic and intrinsic calibration; ROI mapping from RGB/Depth to thermal with sub-pixel accuracy.
+- **DSP:** Extract 0.8–3 Hz thermal fluctuations (EVM or similar, bandpass filter); validate SNR.
+- **Edge:** All processing local; real-time; efficient NumPy/SciPy (or equivalent); no cloud offload.
+- **Phase 2:** Live hardware, synchronized audio, BLE provisioning, MQTT streaming.
+
+**Solution (technical):**
+- **Calibration:** Compute intrinsics and extrinsics for both cameras; implement ROI projection/warping from RGB/Depth to thermal.
+- **Micro-signals:** EVM (or analogous temporal magnification), 0.8–3 Hz bandpass, FFT/PSD for validation; optimize for SNR and edge runtime.
+- **Deployment:** Optimize pipelines for target device; add BLE and MQTT for provisioning and real-time data streaming.
+
+**Goal:** Demonstrate reliable extraction of thermal micro-fluctuations in the 0.8–3 Hz band from aligned ROIs, first on pre-recorded data (Phase 1), then on a live edge device with optional IoT (Phase 2).
 
 ---
 
