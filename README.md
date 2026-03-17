@@ -144,6 +144,7 @@ graph LR
 | **C: HPC & GPU Infrastructure** | Phase 4 (CUDA) | Multi-GPU NCCL, NVLink/NVSwitch, InfiniBand, RDMA, GPUDirect for distributed training, cluster scheduling | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/1.%20HPC%20with%20Nvidia%20GPU/Guide.md) |
 | **D: Robotics** | Phase 4 (ROS2, Sensor Fusion) | Nav2, MoveIt manipulation, motion planning, ROS-Industrial, sensor fusion for autonomous robots | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/2.%20Robotics%20Application/Guide.md) |
 | **E: Edge AI / Embedded ML** | Phases 1–2, Phase 4 (Jetson, TensorRT) | Efficient architectures (MobileNet, EfficientNet, YOLO), quantization, TinyML, edge inference runtimes, system integration | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/3.%20Edge%20AI%20and%20Embedded%20ML/Guide.md) |
+| **F: DL Inference Optimization** | Phases 1–2, Phase 4 (Jetson, TensorRT, Edge AI) | Graph/operator optimization, **kernel engineering** (Triton, CUTLASS, Flash-Attention, long-context), TensorRT, tinygrad compiler (IR, BEAM), quantization, NCCL; aligns with MTS Kernels–style roles. *Lives inside Track C (HPC).* | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/1.%20HPC%20with%20Nvidia%20GPU/DL%20Inference%20Optimization/Guide.md) |
 
 ---
 
@@ -151,6 +152,8 @@ graph LR
 
 | Role | Primary Phases | Specialization Track |
 |------|---------------|---------------------|
+| Parallel Program Optimization Engineer | [1](Phase%201%20-%20Foundational%20Knowledge)–[4](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI) | — |
+| **DL Inference Optimization Engineer** | [1](Phase%201%20-%20Foundational%20Knowledge)–[2](Phase%202%20-%20Embedded%20Systems), [4](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI) | Track F: DL Inference Optimization |
 | AI Accelerator / Chip Design Engineer | [1](Phase%201%20-%20Foundational%20Knowledge)–[4](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI) | Track B: AI Chip Design |
 | Edge AI / Embedded ML Engineer | [1](Phase%201%20-%20Foundational%20Knowledge)–[2](Phase%202%20-%20Embedded%20Systems), [4](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI) | Track E: Edge AI / Embedded ML |
 | ADAS / Autonomous Driving Engineer | [1](Phase%201%20-%20Foundational%20Knowledge)–[2](Phase%202%20-%20Embedded%20Systems), [4](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI) | Track A: Autonomous Driving |

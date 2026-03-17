@@ -1721,6 +1721,60 @@ This is a simplified version of what tools like NVIDIA's AMO (Automatic Mixed Pr
 
 **Goal:** Demonstrate reliable extraction of thermal micro-fluctuations in the 0.8–3 Hz band from aligned ROIs, first on pre-recorded data (Phase 1), then on a live edge device with optional IoT (Phase 2).
 
+### Project 9: HPC Porting from NVIDIA CUDA to AMD GPU Ecosystem
+
+**Context:** You already have CUDA-based compute and AI workloads (training or inference) running on NVIDIA GPUs, plus desktop visualization/UX code that assumes a single-vendor GPU stack. The goal is to **port those workloads to AMD GPUs** (RDNA or CDNA) with **minimal performance loss**, while modernizing the code to support **multi-backend (NVIDIA + AMD) desktop apps** including **ray tracing** and AI kernels (e.g., tinygrad).
+
+**Requirements (technical):**
+- **Compute port (HPC):** Take at least one real CUDA HPC workload (e.g., stencil/CFD, Monte Carlo, linear algebra, or graph analytics) and:
+  - Port it to **HIP/ROCm** (or SYCL/oneAPI as a second variant if desired).
+  - Verify numerical equivalence and performance on both **NVIDIA + AMD** GPUs.
+- **Desktop multi-backend + ray tracing:**
+  - Implement a small **desktop app** (Windows/Linux) that can render a simple 3D scene and run a compute kernel, with **two rendering backends**:
+    - NVIDIA path: e.g., DirectX 12 / Vulkan + RTX (DXR/VK_KHR_ray_tracing_pipeline).
+    - AMD path: Vulkan ray tracing or DXR on RDNA GPUs.
+  - Abstract GPU resources (buffers, descriptors, acceleration structures) behind an internal API so the **same app binary** can target both vendors.
+- **AI port (CUDA → AMD, tinygrad):**
+  - Port at least one CUDA-based AI kernel / model pipeline to run on AMD:
+    - Option A: Use **tinygrad** with ROCm/OpenCL backend on AMD and CUDA backend on NVIDIA.
+    - Option B: Port custom CUDA kernels to **HIP** and integrate with ROCm.
+  - Ensure identical outputs within numerical tolerance across GPU vendors, and compare throughput/latency.
+
+**Solution (technical):**
+- **1. Port CUDA HPC kernel to AMD:**
+  - Start from an existing CUDA kernel (matrix multiply, Poisson solver, N-body, etc.).
+  - Use `hipify-clang` or manual porting to convert CUDA to **HIP**, then build with ROCm for AMD GPUs.
+  - Add a **unified benchmarking harness** that:
+    - Detects GPU vendor.
+    - Builds and launches the right binary (CUDA vs HIP).
+    - Measures runtime, memory bandwidth, and FLOPs on each platform.
+- **2. Multi-backend desktop app with ray tracing:**
+  - Choose **Vulkan** as the common API where possible:
+    - Implement a basic PBR path with a simple path tracer or hybrid raster + ray traced shadows/reflections.
+    - Use `VK_KHR_ray_tracing_pipeline` and `VK_KHR_acceleration_structure` so the same code path works on NVIDIA and AMD, with vendor-agnostic SPIR-V shaders.
+  - Alternatively, implement **DX12 + DXR** on Windows as a second backend, mapping the same engine abstractions (scene graph, materials, BLAS/TLAS, ray-gen/miss/hit shaders) to DXR.
+  - Build a **backend interface**:
+    - `IGPUDevice`, `IGPUBuffer`, `IAccelerationStructure`, `IRayTracingPipeline` interfaces.
+    - Implement `VulkanDevice` and `DX12Device` variants; select at runtime based on OS / GPU.
+- **3. AI port to AMD with tinygrad:**
+  - Run tinygrad on **CUDA** (NVIDIA) and **ROCm/OpenCL** (AMD) with the same model:
+    - Confirm backend switch via environment variables (`CUDA=1`, `ROCM=1` or `OPENCL=1`, depending on tinygrad version).
+    - Train or run inference on a small CNN/MLP and compare performance and numerical outputs.
+  - For custom CUDA kernels:
+    - Rewrite kernels using **HIP** (or generic OpenCL) and provide a thin wrapper so tinygrad (or your app) can call into them.
+    - Validate correctness with unit tests that run the same input on CPU reference, NVIDIA CUDA, and AMD ROCm.
+
+**Deliverables:**
+- CUDA + HIP versions of at least one **non-trivial HPC kernel** with a shared benchmark script comparing NVIDIA vs AMD GPUs (runtime, bandwidth, and FLOPs).
+- A **desktop demo app** that:
+  - Renders a minimal ray-traced scene with **two GPU backends** (e.g., Vulkan-only on NVIDIA/AMD, or Vulkan + DX12).
+  - Runs a small compute shader or AI kernel and displays timing / performance in the UI.
+- A **tinygrad-based AI pipeline** (or HIP-ported AI kernels) that runs on both NVIDIA and AMD, with:
+  - Scripts to compare numerical accuracy across backends.
+  - Benchmarks of throughput/latency on representative models (e.g., small CNN, transformer block, or MLP).
+
+**Goal:** Build **vendor-portable GPU skills**: be able to take an existing CUDA-centric codebase (HPC + AI + visualization) and systematically port it to AMD GPUs with ROCm/hip/Vulkan while preserving performance, correctness, and a unified application UX.
+
 ---
 
 ## 15. Resources

@@ -87,6 +87,58 @@ Validate the full signal chain on **pre-recorded, synchronized** datasets before
    - **Validate SNR:** Ensure the hardware and pipeline yield a sufficient signal-to-noise ratio to reliably detect the target micro-signals.
 4. **Output:** Clean frequency-domain (or filtered time-domain) data demonstrating that 0.8–3 Hz micro-fluctuations can be extracted and that the setup is suitable for Phase 2.
 
+### Phase 1 dataset: camera01 only (Free-Viewpoint RGB-D Video Dataset)
+
+For Phase 1, use **only camera01** from the Free-Viewpoint RGB-D Video Dataset. This gives a single, synchronized RGB + depth stream so you can implement and validate the RGB/Depth side of the pipeline (calibration, ROI definition, temporal alignment) without multi-view complexity.
+
+**Files (local)**
+
+| File | Role |
+|------|------|
+| `Free-Viewpoint-RGB-D-Video-Dataset-main/camera01-rgb.mp4` | RGB video (1920×1080, synchronized). |
+| `Free-Viewpoint-RGB-D-Video-Dataset-main/camera01-depth.mp4` | Per-frame depth video (same resolution); depth encoded as grayscale; convert to metric depth (see below). |
+| `Free-Viewpoint-RGB-D-Video-Dataset-main/Camera Parameters/` | Intrinsics and extrinsics for all 12 cameras; use **camera 1** (COLMAP camera ID `1`, or the first 5-line block in `paras.txt`). |
+
+**Camera01 calibration**
+
+- **COLMAP:** In `Camera Parameters/sparse/cameras.txt`, camera ID **1** is camera01 (PINHOLE, 1920×1080; params: fx, fy, cx, cy). Extrinsics per frame are in `images.txt` / `images.bin` (image names or IDs map to camera ID 1 for camera01).
+- **paras.txt:** First 5 lines = camera01: resolution, K_matrix (fx, fy, cx, cy), R_matrix (3×3), world_position (t). Projection: `Xp = K * R * (Xw - t)`.
+
+**Depth conversion (from dataset README)**
+
+Depth video frames are grayscale 0–255. Convert to metric depth (e.g. mm or m) with:
+
+```text
+fB = 32504
+mindepth, maxdepth = 40, 150
+maxdisp, mindisp = fB/mindepth, fB/maxdepth
+depth = fB / (gray/255 * (maxdisp - mindisp) + mindisp)
+```
+
+Use the same frame index for `camera01-rgb.mp4` and `camera01-depth.mp4` so RGB and depth stay synchronized.
+
+**Phase 1 code:** The folder [phase1/](phase1/README.md) provides Python code for **camera calibration** (load `paras.txt`), **real-time object detection** (face + person via OpenCV), and **depth calculation** per detection ROI. Run: `python phase1/run_pipeline.py` (see [phase1/README.md](phase1/README.md)).
+
+**Phase 1 workflow with camera01**
+
+1. **Load** `camera01-rgb.mp4` and `camera01-depth.mp4`; align by frame index.
+2. **Load** camera01 intrinsics (and extrinsics if needed) from `Camera Parameters`.
+3. **Define ROIs** in RGB (e.g. face, hand via detection or manual box); optionally back-project to 3D using depth and intrinsics.
+4. **Temporal pipeline:** When you add thermal later, you will map these ROIs to the thermal image. For camera01 alone, validate ROI stability over time and depth-based masking.
+5. **Thermal:** Not in this dataset; use another source or Phase 2 live capture for 0.8–3 Hz micro-fluctuation and EVM/bandpass/SNR.
+
+**Dataset summary (camera01 only)**
+
+| Aspect | camera01 (this dataset) | Phase 1 use |
+|--------|--------------------------|-------------|
+| **RGB** | ✓ `camera01-rgb.mp4`, 1920×1080 | Single-view ROI and alignment |
+| **Depth** | ✓ `camera01-depth.mp4`, COLMAP-derived, post-processed | 3D ROI, scale, occlusion; convert with formula above |
+| **Calibration** | ✓ Camera 1 in `Camera Parameters/sparse` or `paras.txt` | Intrinsics (and extrinsics for future thermal rig) |
+| **Thermal** | ✗ None | Add via other dataset or Phase 2 |
+| **Citation** | Guo et al., MMSys 2022; see also README in dataset folder | — |
+
+**Source:** [Free-Viewpoint RGB-D Video Dataset](https://medialab.sjtu.edu.cn/post/free-viewpoint-rgb-d-video-dataset/) (SJTU); academic, non-commercial. Full dataset has 12 views and 14 sequences; for this project, Phase 1 uses only the camera01 pair above.
+
 ---
 
 ## 4. Phase 2: Live and IoT Integration
@@ -139,6 +191,7 @@ Other uses of a non-contact, multi-sensor (RGB/Depth + thermal) device that extr
 
 ## 8. Resources
 
+- **Phase 1 RGB/Depth data:** Use **camera01 only**: `camera01-rgb.mp4` and `camera01-depth.mp4` in `Free-Viewpoint-RGB-D-Video-Dataset-main/`, with calibration in `Camera Parameters/`. Dataset: [Free-Viewpoint RGB-D Video Dataset](https://medialab.sjtu.edu.cn/post/free-viewpoint-rgb-d-video-dataset/) (SJTU). See [Phase 1 dataset: camera01 only](#phase-1-dataset-camera01-only-free-viewpoint-rgb-d-video-dataset).
 - **Eulerian Video Magnification (EVM)** — original paper and implementations for amplifying subtle temporal changes in video.
 - **Multi-camera calibration:** OpenCV camera calibration, stereo/rig calibration; thermal–RGB alignment (e.g. FLIR/opencv thermal examples).
 - **Bandpass filtering / FFT:** SciPy signal processing (butter, filtfilt, fft, welch PSD) for 0.8–3 Hz and SNR estimation.
