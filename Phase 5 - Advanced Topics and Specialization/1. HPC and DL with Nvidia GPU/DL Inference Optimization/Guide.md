@@ -1,4 +1,4 @@
-# DL Inference Optimization (inside HPC with Nvidia GPU)
+# DL Inference Optimization (inside HPC and DL with Nvidia GPU)
 
 **Role target:** [Step 2 — DL Inference Optimization Engineer](../../../../README.md#the-four-career-steps)
 
@@ -47,6 +47,10 @@ At scale, **communication and synchronization** dominate. **NCCL** (and alternat
 * **Continuous batching** — Add and remove requests from the batch without full flush.
 * **High-throughput serving** — Architecture and scheduling for millions of requests and 100B+ parameter models.
 * **GPU resource scheduling** — Utilization, fairness, multi-tenant.
+
+### CuTe DSL (CUDA Template Engine) — why it shows up in kernel work
+
+When you read CUTLASS, cuBLASLt, or kernel talks, you’ll see **CuTe** (CUDA Template Engine). It’s a C++ header library and DSL that defines **layouts** (how tensor dimensions map to memory: shape + stride, possibly tiled) and **copy** operations (vectorized, async, composable loads/stores). Kernel authors use CuTe to describe tiling (e.g. block tile, warp tile, thread tile) and data movement between global memory, shared memory, and registers without hand-written indexing. That makes it easier to get peak performance and to retarget when hardware changes (e.g. new tile sizes on Blackwell). In this track you’ll meet it in **02 — Kernel Engineering** (CUTLASS/CuTe) and when studying production GEMM/attention kernels.
 
 ### New architecture = new kernel challenges
 

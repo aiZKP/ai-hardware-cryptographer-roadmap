@@ -1,6 +1,6 @@
 # HPC Setup
 
-**Part of:** [1. HPC with Nvidia GPU](../Guide.md) (Phase 5 Track C)
+**Part of:** [1. HPC and DL with Nvidia GPU](../Guide.md) (Phase 5 Track C)
 
 This guide combines **HPC fundamentals, virtualization, interconnects, and advanced topics** with **hardware-specific deep dives** for real-world GPU cluster setup and optimization. Study the fundamentals first, then use the deep dives for your target hardware (8x H200, L40S, NCCL, CUDA, GDS).
 
