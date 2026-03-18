@@ -1,19 +1,15 @@
 /*
- * rt_demo.c — Example using concepts from OS Lectures 1–9 (user plan).
+ * rt_demo.c — Small user-space demo for OS Lectures 1–9.
  *
- * L1: Process runs in user space; kernel mediates via syscalls.
- * L2: Process + thread (getpid, gettid); affinity affects this task.
- * L3: Interrupts (concept): RT loop simulates wake-on-event; real IRQs in kernel.
- * L4: Syscalls: sched_setscheduler, sched_setaffinity, mlockall, gettid, clock_gettime.
- * L5: (Boot/modules — see README; no kernel code here.)
- * L6: SCHED_FIFO vs SCHED_OTHER, priority.
- * L7: mlockall, pre-fault, no malloc in RT loop.
- * L8: CPU affinity (sched_setaffinity).
- * L9: Mutex, rwlock, completion-style (cond var).
+ * It shows, in one program:
+ * - how a normal process asks the kernel for scheduling help
+ * - how a thread can be pinned to specific CPUs
+ * - how memory locking and pre-faulting reduce surprise page faults
+ * - how threads coordinate with mutexes, rwlocks, and condition variables
  *
  * Build: make
- * Run:  ./rt_demo [--rt] [--lock-memory] [--cpu 2,3] [--no-rt]
- *       sudo ./rt_demo --rt --lock-memory --cpu 1   # full RT setup
+ * Run:   ./rt_demo [--rt] [--lock-memory] [--cpu 2,3] [--no-rt]
+ *        sudo ./rt_demo --rt --lock-memory --cpu 1   # full RT setup
  */
 #define _GNU_SOURCE
 #include <errno.h>
@@ -122,13 +118,13 @@ static void *worker_thread(void *arg)
 	struct timespec ts;
 	int i;
 
-	/* Signal "completion": worker is ready (L9 completion-like) */
+/* Signal that the worker is ready, like a simple completion event (L9). */
 	pthread_mutex_lock(&s->mutex);
 	s->worker_ready = 1;
 	pthread_cond_signal(&s->cond);
 	pthread_mutex_unlock(&s->mutex);
 
-	/* RT-style loop: no malloc, use pre-faulted data (L7) */
+	/* RT-style loop: avoid malloc and use pre-faulted data (L7). */
 	while (!s->stop && s->run_iterations > 0) {
 		/* L9: read lock for config (many readers OK) */
 		pthread_rwlock_rdlock(&s->rwlock);
@@ -140,7 +136,7 @@ static void *worker_thread(void *arg)
 		s->counter++;
 		pthread_mutex_unlock(&s->mutex);
 
-		/* Simulate work; use vDSO-friendly clock (L4) */
+		/* Simulate work; clock_gettime is a normal time source here (L4). */
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 		(void)ts;
 		(void)cfg;
@@ -172,7 +168,7 @@ static void run_demo(int use_rt, int lock_mem, const char *cpus)
 		return;
 	prefault_pages();
 
-	/* Writer: hold write lock briefly (L9 rwlock) */
+	/* Update shared config briefly under the write lock (L9). */
 	pthread_rwlock_wrlock(&sh.rwlock);
 	sh.config_value = 100;
 	pthread_rwlock_unlock(&sh.rwlock);
@@ -183,12 +179,12 @@ static void run_demo(int use_rt, int lock_mem, const char *cpus)
 		return;
 	}
 
-	/* Wait for completion: worker ready (L9) */
+	/* Wait until the worker tells us it has started (L9). */
 	pthread_mutex_lock(&sh.mutex);
 	while (!sh.worker_ready)
 		pthread_cond_wait(&sh.cond, &sh.mutex);
 	pthread_mutex_unlock(&sh.mutex);
-	printf("[L9] Worker signaled ready (completion-style)\n");
+	printf("[L9] Worker signaled ready\n");
 
 	pthread_join(th, NULL);
 	printf("[L9] Final counter = %d\n", sh.counter);

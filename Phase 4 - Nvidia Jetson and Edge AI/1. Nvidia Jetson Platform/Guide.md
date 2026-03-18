@@ -35,6 +35,8 @@ This section walks through the **real boot chain**, firmware layout, memory usag
 
 > **Deep dive:** For production-scale Yocto/OpenEmbedded BSP development — meta-tegra layer, custom layers, rootfs optimization, cross-compilation, secure boot integration, CI/CD pipelines, OTA at scale (25,000+ devices), system bring-up, boot performance, licensing compliance, and release engineering — see [**Orin Nano Yocto BSP & Production Deployment**](Orin-Nano-Yocto-BSP-Production/Guide.md).
 
+> **Deep dive:** For **tensor core architecture** and how it works on Orin Nano (Ampere) — what tensor cores are, how they differ from CUDA cores, matrix multiply-accumulate (MMA), precision (FP16/INT8), and how TensorRT/cuDNN use them for high TOPS — see [**Orin Nano — Tensor Core Architecture and How It Works**](Orin-Nano-Tensor/Guide.md).
+
 ### 1.1 Hardware Context — What Orin Nano 8GB Actually Is
 
 Orin Nano 8GB uses:
@@ -343,6 +345,8 @@ I/O:
   M.2 Key E (WiFi/BT)
   Camera connector (CSI-2, 2-lane)
 ```
+
+> **Tensor Cores** are the hardware units that deliver most of the **40 AI TOPS** on Orin Nano: they perform matrix multiply-accumulate (MMA) in one instruction for FP16/INT8, which is why FP16 and INT8 inference are so much faster than FP32. For a detailed explanation of tensor core architecture and how they work, see [**Orin Nano — Tensor Core Architecture and How It Works**](Orin-Nano-Tensor/Guide.md).
 
 ### Memory Architecture (Critical for AI)
 
