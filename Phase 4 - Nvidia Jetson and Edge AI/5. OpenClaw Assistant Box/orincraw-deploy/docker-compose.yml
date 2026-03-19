@@ -1,4 +1,6 @@
-# OrinCraw — template Docker Compose for Jetson (L4T / JetPack 6.x)
+# OrinCraw — template Docker Compose for Jetson (L4T)
+# JetPack lifecycle: 5.1.2 (initial) → 6.2.1 (production-aligned) → 7.x when officially supported.
+# Tag images for your L4T line (e.g. r35.x vs r36.x)—do not mix across JetPack upgrades.
 #
 # Uncomment and fill in services after you have L4T-compatible images.
 # Copy to e.g. /opt/orincraw/ on the device; bind-mount /data/* per Guide.md.

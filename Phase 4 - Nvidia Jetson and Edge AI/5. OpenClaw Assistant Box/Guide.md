@@ -125,18 +125,32 @@ The **ultimate shippable product** is **not** a stock dev kit in a box. It requi
 
 - **Why custom PCB**: Dev kits include **unnecessary** parts (extra connectors, debug headers, full-size carriers, features you do not ship) and **miss** product needs (tight integration of PD, audio codec, ESP32-C6 + antenna, LED ring drivers, battery BMS, mechanical fit, EMI/thermal). A custom board **removes waste**, **adds only what the BOM requires**, and reaches **product-grade** reliability, cost, and certification readiness.
 - **BOM discipline**: For each net and component, ask: **required for the defined UX?** If not, **omit**. If yes but missing on dev kit, **add** (e.g. dedicated SPI for ESP-Hosted, PMIC for battery path, codec for I2S mics, status LED chain, factory test points).
-- **Compute**: Use a **Jetson compute module** (e.g. Orin Nano 8GB module) on **your** carrier—not the dev kit PCB—for the final product. Software is developed and proven on the dev kit first, then **ported** to the custom carrier (same JetPack, validated pinmux and power).
+- **Compute**: Use a **Jetson compute module** (e.g. Orin Nano 8GB module) on **your** carrier—not the dev kit PCB—for the final product. Software is developed and proven on the dev kit first, then **ported** to the custom carrier (**document the JetPack revision** per release; re-validate pinmux, power, and drivers after each JetPack migration).
 - **Deliverables**: Schematics, PCB layout, stackup, fab/assembly outputs (Gerber, pick-and-place, BOM), DFM/DFA notes, and **bring-up** checklist for the custom board (see §10 Hardware deliverables).
 
 ### Recommended baseline (bring-up and software development)
 Use the **Orin Nano 8GB Developer Kit** only as the **reference for software bring-up** and pipeline development; migrate to the **custom module carrier** for the ultimate product.
 
-- **Compute (bring-up)**: NVIDIA Jetson Orin Nano 8GB Dev Kit (JetPack 6.x)
+- **Compute (bring-up)**: NVIDIA Jetson Orin Nano 8GB Dev Kit — **JetPack / L4T strategy** (pinned versions, upgrades): see **JetPack / L4T version strategy** below.
 - **Storage**: **512GB NVMe** (default; boot + rootfs + models + logs/OTA staging). Optional **eMMC** for fixed-BOM or rugged SKUs where removable storage is undesirable.
 - **Connectivity**: **Gigabit Ethernet** on Jetson only (no on-board WiFi 6 / BT 5.x). **WiFi and Bluetooth/BLE** to Linux use **[ESP-Hosted](https://github.com/espressif/esp-hosted)** over **SPI** between Jetson and **ESP32-C6** (see below). **Thread**, **Zigbee**, and **Matter** remain on the C6 (coexistence with ESP-Hosted firmware per Espressif docs). **Reliable WiFi** is a product requirement—SPI + ESP-Hosted-NG gives a proper Linux wireless interface (`cfg80211`, `wpa_supplicant`, NetworkManager).
 - **Audio**: 2-mic array + far-field DSP (I2S) + speaker (see “Speaker design” below)
 - **Power**: USB-C PD input (target 15W typical, 25W peak); **own battery** option for backup/portable (see “Battery design” below)
 - **Enclosure**: thermally designed case with dedicated heat sink and airflow (see “Heat sink design” below)
+
+### JetPack / L4T version strategy
+OrinCraw tracks NVIDIA releases in **phases** so early bring-up can start on a stable older stack and the product line moves forward deliberately.
+
+| Phase | JetPack target | Role |
+|-------|----------------|------|
+| **1 — Initial bring-up** | **5.1.2** | First flash, kernel, and baseline validation (audio, NVMe, Ethernet, early inference experiments). Pin **CUDA / cuDNN / TensorRT** to NVIDIA’s matrix for **5.1.2**. |
+| **2 — Production-aligned** | **6.2.1** | Planned upgrade for the main software line: rebuild **TensorRT/ONNX** engines on-device, rebuild **ESP-Hosted** host driver for the new **L4T kernel**, rebase **containers** to matching L4T base images, re-run OTA + rollback tests. |
+| **3 — Future** | **7.x** | Adopt **when NVIDIA officially supports** the OrinCraw **target module + carrier** on JetPack 7. Treat as a **major migration** (same rigor as 5 → 6: full regression, optional forced OTA channel). |
+
+**Rules**
+- Record the **active JetPack** in release notes, factory config, and `/health` (or equivalent).
+- Never load kernel modules or DKMS builds (e.g. ESP-Hosted) built for one JetPack onto another without rebuilding.
+- After each jump, re-run the **benchmark checklist** (§10) and **risk review** (§9), especially **R2** (ESP-Hosted / kernel).
 
 ### Hardware phases (dev kit → custom PCB)
 - **Phase 1 — Software on dev kit**: Validate STT/LLM/TTS, OpenClaw, ESP-Hosted (SPI to C6 on a **breakout or interposer** if needed), audio pipeline, and OTA on the **Orin Nano Dev Kit**.
@@ -269,7 +283,7 @@ OrinCraw remains **offline-first**; cloud LLM/API use is **opt-in** via **bring 
 If **no keys** are configured, behavior is **strictly local**.
 
 ### Base OS and packaging
-- **OS**: JetPack 6.x (L4T on Ubuntu 22.04, CUDA 12.x, TensorRT 10.x). Optimize L4T for fast boot and SD (see “L4T Linux optimization” below).
+- **OS / JetPack**: Follow **§3 JetPack / L4T version strategy** (start **5.1.2**, upgrade to **6.2.1**, then **7** when officially supported). **Ubuntu rootfs, CUDA, TensorRT, and system libraries** are defined by the **flashed JetPack**—use NVIDIA release notes for the exact versions per line (they differ between 5.1.2 and 6.2.1). Optimize L4T for fast boot and **NVMe** (see “L4T Linux optimization” below).
 - **App packaging**: Docker Compose (OTA-friendly), with host-level udev and minimal services. **Template:** [orincraw-deploy/docker-compose.yml](orincraw-deploy/docker-compose.yml) — replace image names/build contexts with your built L4T-compatible images.
 - **Data layout** (bind-mount or named volumes on Jetson):
   - `/data/models` (persistent model cache)
@@ -311,7 +325,7 @@ Jetson Orin Nano is **not** the same memory model as a typical laptop or small s
 - **Carveouts and reserved memory**: L4T reserves regions for **CMA** (GPU, multimedia), firmware, and subsystems. Usable free memory for models is **less** than `8 GB` in `free -h`. Treat **measured** `tegrastats` / `/proc/meminfo` under load as the truth, not datasheet RAM alone.
 - **Why “normal small LLM” isn’t optimized by default**:
   - Recipes assume **PCIe GPUs** (explicit H2D/D2H) or **CPU-only** with no unified allocator pressure.
-  - Default **batch sizes**, **context lengths**, and **KV cache** growth can spike unified memory and trigger **OOM**, **swap thrashing** on SD, or **kills** of unrelated services.
+  - Default **batch sizes**, **context lengths**, and **KV cache** growth can spike unified memory and trigger **OOM**, **swap thrashing** on NVMe (or severe slowdown), or **kills** of unrelated services.
   - **GGUF + llama.cpp**-style stacks can work but must be sized for **total** RAM including GPU mapping; prefer paths that use **TensorRT / ONNX Runtime with CUDA** on Jetson where they match your model and give predictable memory.
 - **What to do on this project**:
   - **Profile end-to-end** with STT + LLM + TTS + Gateway running; set **max context** and **cache** limits explicitly.
@@ -558,7 +572,7 @@ Run on **final** or representative hardware (dev kit or custom PCB), JetPack ver
 
 ## 11) Suggested milestone plan (9 milestones)
 
-1. **Bring-up**: JetPack 6 + **NVMe boot** (512GB) + tegrastats monitoring
+1. **Bring-up**: **JetPack 5.1.2** + **NVMe** (512GB) + `tegrastats` monitoring; plan **JetPack 6.2.1** upgrade + full regression; adopt **JetPack 7** only when NVIDIA officially supports target hardware
 2. **Audio I/O**: microphone + speaker pipeline, echo control baseline
 3. **Wake word**: reliable far-field trigger + privacy switch
 4. **STT**: streaming transcription (measure latency + WER on your room)
