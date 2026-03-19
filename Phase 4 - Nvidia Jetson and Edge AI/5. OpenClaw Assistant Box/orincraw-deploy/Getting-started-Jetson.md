@@ -4,7 +4,7 @@ Checklist for bringing up **OrinCraw** on **Jetson Orin Nano 8GB** (dev kit firs
 
 ## 1. Base system
 
-- [ ] Flash **JetPack 6.x** (L4T) to **128GB SD** (or your boot media)
+- [ ] Flash **JetPack 6.x** (L4T) to **512GB NVMe** (default OrinCraw storage; boot + rootfs + models + logs/OTA)
 - [ ] First boot: create user, set hostname to **`orincraw`** (or `orincraw-<room>`)
 - [ ] Enable **SSH** (keys only for production), apply updates
 - [ ] Install **NVIDIA Container Toolkit** if using Docker for inference
@@ -54,5 +54,5 @@ Checklist for bringing up **OrinCraw** on **Jetson Orin Nano 8GB** (dev kit firs
 
 ## 8. Next steps
 
-- [ ] Run **benchmark checklist** in Guide §9
-- [ ] Track **milestone** list in Guide §10 through **custom PCB** bring-up
+- [ ] Run **benchmark checklist** in Guide §10
+- [ ] Track **milestone** list in Guide §11 through **custom PCB** bring-up

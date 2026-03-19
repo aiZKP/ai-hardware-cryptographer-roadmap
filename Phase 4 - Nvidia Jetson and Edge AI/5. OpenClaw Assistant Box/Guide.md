@@ -28,6 +28,55 @@ The target is **better usability than Alexa Pro-style assistants** by being:
 
 **Brainstorm names not chosen:** ClawForge, OrinOwl, EdgeManta, LocalLynx, WhisperHarbor, SentinelNest, NimbleDLA, HushPilot, QuartzClaw, KestrelBox.
 
+### Product visualization (AI image prompts)
+
+![OrinCraw reference product concept: cylindrical voice assistant, blue LED ring, fabric grille, USB-C and Ethernet on base](OrinClaw.png)
+
+*Reference render / concept art only—not mechanical drawings or a frozen BOM.*
+
+#### Exploded / cutaway (illustrative)
+
+![OrinCraw stylized cutaway: internal PCB, speaker, heatsink visible through transparent mid shell](OrinClaw-Exploded.png)
+
+*Storytelling visualization only—not an approved assembly, stack-up, or thermal model.*
+
+#### Retail packaging concept
+
+![OrinCraw device beside minimal black box with line-art device outline](OrinClaw-Package.png)
+
+*Packaging mock-up for marketing; final graphics and regulatory markings TBD.*
+
+#### CMF study (color, material, finish)
+
+![OrinCraw three colorways: dark graphite, warm gray, silver—with top views and small satellite units](OrinClaw-CMF-Study.png)
+
+*CMF exploration; satellite / accessory units are optional product ideas, not committed SKUs.*
+
+#### Lifestyle context
+
+![OrinCraw on wooden table in warm living room with lamp and sofa bokeh](OrinClaw-Lifestyle.png)
+
+*Lifestyle render for scale and ambience; proportions are approximate.*
+
+Use these for pitch decks, README hero art, or CMF exploration. **Do not treat renders as engineering truth**—they are mood and proportion references only.
+
+**Master prompt (copy-paste):**
+
+> Premium smart-home AI assistant hardware, compact voice-first device, **no screen**. Cylindrical or softly rounded tower (~130 mm tall), matte dark graphite polycarbonate with a thin brushed aluminum accent ring. **Top:** minimal LED status ring, soft blue pulse (listening). **Front:** acoustic fabric grille, full-range speaker, small recessed **hardware mute** on the side. **Base:** subtle ventilation slots, rubber foot ring. **Rear:** USB-C PD, Gigabit Ethernet, clean industrial design. Photorealistic product photo, studio softbox, white seamless background, soft shadow, three-quarter hero angle, 85 mm lens look, shallow DOF, high detail, **no text, no logos, no people**.
+
+**Negative prompt (when the tool supports it):** screen, display, laptop, phone, messy cables, cartoon, illustration, low quality, blurry, deformed, garish RGB gamer aesthetic, watermark, readable text, brand logos.
+
+**Tool hints**
+- **Midjourney:** `--ar 4:5` or `--ar 16:9` for hero; add `--style raw` for straighter product look; iterate with `--sref` on a seed you like.
+- **DALL·E / ChatGPT image:** ask for “studio product photography, single object, white background” and paste the master paragraph.
+- **Flux / SDXL:** use the master prompt + negative; CFG medium; fix seed for A/B on grille texture and LED diffusion.
+
+**Shot variants (short add-ons)**
+- **Lifestyle:** same device on walnut side table, warm evening light, living room bokeh, still no screen.
+- **CMF study:** three colorways in one frame (graphite, warm gray fabric, silver accent)—orthographic front/side/top layout sheet.
+- **Packaging:** minimal black retail box beside device, embossed line only (no readable words).
+- **Exploded (stylized):** ghost layers suggesting speaker, PCB edge, heatsink fins—keep subtle, not a full mechanical drawing.
+
 ---
 
 ## 2) Product definition (what “better” means)
@@ -77,13 +126,13 @@ The **ultimate shippable product** is **not** a stock dev kit in a box. It requi
 - **Why custom PCB**: Dev kits include **unnecessary** parts (extra connectors, debug headers, full-size carriers, features you do not ship) and **miss** product needs (tight integration of PD, audio codec, ESP32-C6 + antenna, LED ring drivers, battery BMS, mechanical fit, EMI/thermal). A custom board **removes waste**, **adds only what the BOM requires**, and reaches **product-grade** reliability, cost, and certification readiness.
 - **BOM discipline**: For each net and component, ask: **required for the defined UX?** If not, **omit**. If yes but missing on dev kit, **add** (e.g. dedicated SPI for ESP-Hosted, PMIC for battery path, codec for I2S mics, status LED chain, factory test points).
 - **Compute**: Use a **Jetson compute module** (e.g. Orin Nano 8GB module) on **your** carrier—not the dev kit PCB—for the final product. Software is developed and proven on the dev kit first, then **ported** to the custom carrier (same JetPack, validated pinmux and power).
-- **Deliverables**: Schematics, PCB layout, stackup, fab/assembly outputs (Gerber, pick-and-place, BOM), DFM/DFA notes, and **bring-up** checklist for the custom board (see §9 Hardware deliverables).
+- **Deliverables**: Schematics, PCB layout, stackup, fab/assembly outputs (Gerber, pick-and-place, BOM), DFM/DFA notes, and **bring-up** checklist for the custom board (see §10 Hardware deliverables).
 
 ### Recommended baseline (bring-up and software development)
 Use the **Orin Nano 8GB Developer Kit** only as the **reference for software bring-up** and pipeline development; migrate to the **custom module carrier** for the ultimate product.
 
 - **Compute (bring-up)**: NVIDIA Jetson Orin Nano 8GB Dev Kit (JetPack 6.x)
-- **Storage**: **128GB SD card** (cost-effective default; boot + rootfs + models). Optional **NVMe** (e.g. 256–512GB) for faster load and better endurance if budget allows.
+- **Storage**: **512GB NVMe** (default; boot + rootfs + models + logs/OTA staging). Optional **eMMC** for fixed-BOM or rugged SKUs where removable storage is undesirable.
 - **Connectivity**: **Gigabit Ethernet** on Jetson only (no on-board WiFi 6 / BT 5.x). **WiFi and Bluetooth/BLE** to Linux use **[ESP-Hosted](https://github.com/espressif/esp-hosted)** over **SPI** between Jetson and **ESP32-C6** (see below). **Thread**, **Zigbee**, and **Matter** remain on the C6 (coexistence with ESP-Hosted firmware per Espressif docs). **Reliable WiFi** is a product requirement—SPI + ESP-Hosted-NG gives a proper Linux wireless interface (`cfg80211`, `wpa_supplicant`, NetworkManager).
 - **Audio**: 2-mic array + far-field DSP (I2S) + speaker (see “Speaker design” below)
 - **Power**: USB-C PD input (target 15W typical, 25W peak); **own battery** option for backup/portable (see “Battery design” below)
@@ -91,12 +140,12 @@ Use the **Orin Nano 8GB Developer Kit** only as the **reference for software bri
 
 ### Hardware phases (dev kit → custom PCB)
 - **Phase 1 — Software on dev kit**: Validate STT/LLM/TTS, OpenClaw, ESP-Hosted (SPI to C6 on a **breakout or interposer** if needed), audio pipeline, and OTA on the **Orin Nano Dev Kit**.
-- **Phase 2 — Ultimate product (required)**: **Custom carrier PCB** for **Jetson Orin Nano (or Orin NX) compute module** with only necessary circuits: module socket, **USB-C PD** controller and power path, **Ethernet PHY**, **microSD or eMMC/NVMe** (per product SKU), **I2S audio codec** + mic array interface + speaker amp, **ESP32-C6** (SPI for ESP-Hosted + optional UART for LED/buttons), **LED drivers** (ring or chain), **buttons/mute**, optional **battery + BMS**, **test points**, **ESD/EMI** per certification plan. **Remove** dev-kit-only blocks (unused USB stacks, debug, duplicate power) from the product BOM.
+- **Phase 2 — Ultimate product (required)**: **Custom carrier PCB** for **Jetson Orin Nano (or Orin NX) compute module** with only necessary circuits: module socket, **USB-C PD** controller and power path, **Ethernet PHY**, **eMMC and/or NVMe** (per product SKU), **I2S audio codec** + mic array interface + speaker amp, **ESP32-C6** (SPI for ESP-Hosted + optional UART for LED/buttons), **LED drivers** (ring or chain), **buttons/mute**, optional **battery + BMS**, **test points**, **ESD/EMI** per certification plan. **Remove** dev-kit-only blocks (unused USB stacks, debug, duplicate power) from the product BOM.
 - **Optional SKU**: Second PCB revision or BOM variant for **Orin NX 16GB** if you need more unified memory for a larger local model—same mechanical envelope where possible.
 
 ### Key hardware design choices (what you optimize)
 - **Custom PCB vs dev kit**: Final product ships on **custom PCB**; dev kit is for **development only**. Route **ESP-Hosted SPI** per Espressif **length/matching** guidelines; keep **RF** (C6 antenna) and **audio** **analog** sections clean of noisy digital return paths.
-- **128GB SD vs NVMe**: Use **128GB SD as default** for cost effectiveness; optimize software so one small/medium model is loaded once and kept resident in RAM (see “Model optimization for SD” below). Add **NVMe as optional** for faster cold start and better write endurance (logs, OTA).
+- **Storage (NVMe vs eMMC)**: Use **512GB NVMe as the default** for OrinCraw so boot, rootfs, models, logs, and OTA staging share a fast, high-endurance SSD. Use **eMMC** where you need soldered-down storage (rugged or tamper-resistant SKU). Size models and logs so typical deployments stay well within rated drive endurance.
 - **Audio I/O**: use I2S + codec (lower latency, better SNR) instead of USB audio dongles.
 - **Thermals**: design for **sustained** performance (avoid thermal throttling that ruins UX).
 - **Power integrity**: avoid brownouts during peak GPU load + speaker output.
@@ -229,10 +278,10 @@ If **no keys** are configured, behavior is **strictly local**.
   - `/data/config` (device config, secrets, BYOK keys)
 - **Observability**: per-service health endpoints where applicable; aggregate on `/health` in a small reverse proxy or gateway sidecar; log rotation under `/data/logs`
 
-### L4T Linux optimization (boot time, SD, memory)
+### L4T Linux optimization (boot time, storage, memory)
 - **Boot time**: Disable or delay unused services; use `systemd` parallelization; trim initramfs and optional rootfs; target minimal time from power-on to “assistant ready.”
 - **Disable unused services**: Turn off desktop/GDM if headless; disable unneeded L4T/JetPack daemons (e.g. extra nv* services not required for inference); reduce default network/avahi usage if not needed.
-- **SD-friendly**: Minimize writes to SD (e.g. logs to tmpfs or aggressive rotate; OTA staging with care); consider read-only rootfs with overlay or append-only config partitions.
+- **Storage-friendly**: Minimize unnecessary writes to NVMe/eMMC (e.g. logs to tmpfs or aggressive rotate; OTA staging with care); consider read-only or mostly-static rootfs with overlay for configs and app data.
 - **Memory footprint**: Free RAM for model residency by reducing kernel/CMA carveouts only if safe; avoid unnecessary background processes.
 - **Checklist**: Document a concrete list (services to disable, kernel/device-tree options, filesystem mounts) in the project repo or guide.
 
@@ -281,21 +330,21 @@ Jetson Orin Nano is **not** the same memory model as a typical laptop or small s
 - **Memory**
   - **Unified memory**: Remember CPU+GPU share LPDDR; budget KV cache, CUDA, and system together (see “Jetson memory architecture” above).
   - Pre-allocate and reuse buffers (avoid allocator jitter).
-  - On **SD storage**: load model once at boot or on first use, keep resident in RAM; avoid repeated reads from SD. Optionally pre-build TensorRT/ONNX engines on the image to skip first-boot compile. NVMe (if present) allows faster load and more models on disk.
+  - On **NVMe storage**: load model once at boot or on first use and keep it resident in RAM; avoid unnecessary re-reads from disk during normal inference. Pre-build TensorRT/ONNX engines on the image to skip first-boot compile and reduce disk churn.
 - **Profiling**
   - `trtexec` for baseline throughput/latency
   - Nsight Systems for end-to-end (audio→STT→LLM→TTS)
   - `tegrastats` for thermal/power + throttling detection
 
-### Model optimization for 128GB SD (cost-effective setup)
-- **Single default stack**: One small/medium LLM (e.g. Q4 quantized), one STT, one TTS to fit 128GB and limit cold start.
-- **Quantization**: Prefer INT4/INT8 for LLM and INT8/FP16 for STT/TTS to reduce size and load time from SD.
-- **Load-once, keep resident**: Load the active model into RAM at startup or first use; do not re-read from SD during normal inference so SD speed does not affect latency.
-- **Pre-built engines**: Ship or build TensorRT/ONNX engines once (e.g. on first OTA or factory image) so the device does not compile on first boot from SD.
-- **When to use NVMe**: Recommend NVMe if the user wants multiple models, faster cold start, or heavy logging/OTA (better write endurance).
+### Model and disk optimization for 512GB NVMe (default setup)
+- **Single default stack (baseline)**: One small/medium LLM (e.g. Q4 quantized), one STT, one TTS that comfortably fit in **512GB NVMe** alongside logs and OTA staging.
+- **Quantization**: Prefer INT4/INT8 for LLM and INT8/FP16 for STT/TTS to reduce model size and cold-start time from NVMe.
+- **Load-once, keep resident**: Load the active model into RAM at startup or first use; avoid repeated loads during normal inference so disk speed has minimal impact on latency.
+- **Pre-built engines**: Ship or build TensorRT/ONNX engines once (e.g. on first OTA or factory image) so the device does not compile on first boot; this improves UX and reduces write amplification.
+- **Multiple models**: Use remaining NVMe capacity for alternate models or RAG indices, but document how many configurations you support within endurance and backup constraints.
 
 ### Recommended default models (Orin Nano 8GB)
-Concrete starting points for the single default stack (fit 128GB SD, load-once resident). **Pick and validate under full unified-memory load** (see “Jetson memory architecture” above)—a model that fits in isolation may OOM with STT+TTS+OS+Docker.
+Concrete starting points for the single default stack (fit 512GB NVMe with room for logs/OTA, load-once resident). **Pick and validate under full unified-memory load** (see “Jetson memory architecture” above)—a model that fits in isolation may OOM with STT+TTS+OS+Docker.
 
 - **LLM**: Phi-3 mini (Q4), Qwen2.5-7B (Q4), or TinyLlama (lowest footprint); choose by latency vs quality on 8GB **unified** RAM with the whole pipeline running. Export to ONNX or use GGUF; build TensorRT/ONNX Runtime engines **on the Jetson**.
 - **STT**: Whisper small (or distilled) with streaming; alternative: faster/smaller model for lower latency. Prefer ONNX or TensorRT for GPU.
@@ -424,7 +473,37 @@ If targeting sale or distribution, plan for: **FCC/CE** (RF from ESP32-C6, emiss
 
 ---
 
-## 9) Deliverables (what you must ship)
+## 9) Risk analysis (OrinCraw)
+
+Use this as a living **risk register**: review at each milestone (especially before **custom PCB tape-out**, **ESP-Hosted** integration freeze, and **OTA** go-live). Scale *Likelihood* and *Impact* as **L/M/H** (Low / Medium / High) for your program.
+
+### Summary risk register
+
+| ID | Risk | Likelihood | Impact | Mitigation (summary) |
+|----|------|------------|--------|----------------------|
+| R1 | **Unified memory OOM** — STT + LLM + TTS + Docker + OS exceed 8 GB UMA under real workloads | M–H | H | One resident LLM; hard caps on context/KV; profile with `tegrastats`; staged service start; see §5 |
+| R2 | **ESP-Hosted fragility** — host driver / C6 firmware / JetPack kernel mismatch breaks `wlan0` or needs rebuild after L4T update | M | H | Pin **ESP-Hosted + JetPack** versions; CI or doc’d rebuild path; Ethernet fallback; keep SPI layout per Espressif |
+| R3 | **Thermal throttle** — sustained inference + enclosure reduces clocks; UX feels “slow” | M | M | Heatsink + airflow per §3; power/clock caps; graceful “reduced performance” UX |
+| R4 | **NVMe endurance / I/O behavior** — heavy logs/OTA/model churn reduce SSD life or trigger throttling/filesystem issues | M | M | Log rotation and retention limits; careful OTA staging; journaling FS with tested power-loss behavior; optional battery-backed or “safe shutdown” design; monitor SMART/health where available |
+| R5 | **RF coexistence** — WiFi + Thread/Zigbee/Matter on one C6 causes drops or certification issues | M | H | Early **coexistence** testing; antenna/layout discipline §3; firmware split or feature flags if needed |
+| R6 | **Custom PCB NRE / spin cost** — schematic or SI errors on module carrier, PD, or audio | M | H | Dev-kit software baseline first (§11 milestones); peer review; bring-up checklist; budget **re-spin** |
+| R7 | **Supply chain** — Jetson module, ESP32-C6 module, or PMIC lead times | M | M | Dual-source where possible; early long-lead orders; SKU that tolerates module revision |
+| R8 | **Compliance delay** — FCC/CE/Matter/battery certification fails or slips schedule | L–M | H | Pre-scan EMC; keep RF test modes; engage lab early; document intentional radiators §7 |
+| R9 | **LAN / device compromise** — weak defaults, exposed services, or stolen `/data/config` (BYOK keys) | M | H | SSH keys, firewall, least-privilege containers §8; encrypt-at-rest if threat model requires; BYOK off by default |
+| R10 | **OTA brick** — bad update with failed rollback | L | H | A/B or staged slots, boot counters, signed artifacts, health gate §8; UART-recovery doc |
+| R11 | **Upstream churn** — OpenClaw or inference stack API/version breaks your integration | M | M | Pin versions; smoke tests on upgrade; fork only if necessary |
+| R12 | **Battery safety** (if shipped) — thermal runaway, shipping restrictions | L–M | H | BMS, cell quality, enclosure venting, UN38.3 / regional rules §3 battery design |
+| R13 | **Privacy / trust** — user perception of “always listening” or accidental cloud send | M | M | Hardware mute, clear LED states §6, offline-first defaults §2, explicit BYOK consent §4 |
+
+### Notes
+
+- **Coupled risks**: R1+R3 often appear together (memory pressure + thermal); R2+R5 interact on the same C6 firmware.
+- **Residual risk**: After mitigations, record *residual* L/I and any **accepted** risks for ship approval.
+- **Owner**: Assign each ID to a named owner and review date in your project tracker.
+
+---
+
+## 10) Deliverables (what you must ship)
 
 ### Hardware deliverables
 - **Custom PCB package**: schematics, PCB layout (source + release gerbers), stackup, BOM (optimized: **no unnecessary parts**, **all necessary parts** documented), assembly drawing, pick-and-place, **DFM/DFA** checklist, revision history.
@@ -477,9 +556,9 @@ Run on **final** or representative hardware (dev kit or custom PCB), JetPack ver
 
 ---
 
-## 10) Suggested milestone plan (9 milestones)
+## 11) Suggested milestone plan (9 milestones)
 
-1. **Bring-up**: JetPack 6 + SD card boot (or optional NVMe) + tegrastats monitoring
+1. **Bring-up**: JetPack 6 + **NVMe boot** (512GB) + tegrastats monitoring
 2. **Audio I/O**: microphone + speaker pipeline, echo control baseline
 3. **Wake word**: reliable far-field trigger + privacy switch
 4. **STT**: streaming transcription (measure latency + WER on your room)
