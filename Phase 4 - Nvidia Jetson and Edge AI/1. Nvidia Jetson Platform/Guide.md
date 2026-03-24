@@ -2191,10 +2191,10 @@ Implement a simple OTA update service that fetches a new Docker image, tests it 
 ### Project 7: Security Hardening
 Start from a fresh Jetson install. Apply all items in the Security Audit Checklist. Verify each item. Run `nmap` from another machine to confirm attack surface.
 
-### Project 8: OrinCraw — End-to-End Product Capstone (OpenClaw-based)
-Design **OrinCraw**, a custom “AI assistant box” optimized from **hardware level → inference level → UX**, with offline-first privacy, streaming voice, robust OTA, and Home Assistant/browser automation integration (OpenClaw gateway + local inference).
+### Project 8: OrinClaw — End-to-End Product Capstone (OpenClaw-based)
+Design **OrinClaw**, a custom “AI assistant box” optimized from **hardware level → inference level → UX**, with offline-first privacy, streaming voice, robust OTA, and Home Assistant/browser automation integration (OpenClaw gateway + local inference).
 
-**Guide:** [OrinCraw (OpenClaw Assistant Box folder) →](../5. OpenClaw Assistant Box/Guide.md)
+**Guide:** [OrinClaw (OpenClaw Assistant Box folder) →](../5. OpenClaw Assistant Box/Guide.md)
 
 ---
 

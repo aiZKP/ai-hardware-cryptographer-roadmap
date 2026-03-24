@@ -130,7 +130,7 @@ graph LR
 | [**Edge AI Optimization**](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI/2.%20Edge%20AI%20Optimization/Guide.md) | Quantization, pruning, TensorRT, CUDA kernels | Optimized model on Orin Nano, video analytics, low-power AI pipeline |
 | [**Sensor Fusion**](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI/3.%20Sensor%20Fusion/Guide.md) | Camera + LiDAR + IMU, Kalman filtering, BEVFusion | Navigation robot, drone flight control, 3D mapping |
 | [**ROS2**](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI/4.%20ROS2/Guide.md) | ROS 2, DDS, nodes, topics, multi-robot systems | Robot navigation, multi-robot coordination, edge deployment |
-| [**OrinCraw**](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI/5.%20OpenClaw%20Assistant%20Box/Guide.md) (OpenClaw-based capstone) | Hardware-aware edge AI product design, low-power inference, on-device voice + automation, OTA, privacy/security | Jetson Orin Nano assistant box: **OrinCraw**, Alexa-level UX, offline-first |
+| [**OrinClaw**](Phase%204%20-%20Nvidia%20Jetson%20and%20Edge%20AI/5.%20OpenClaw%20Assistant%20Box/Guide.md) (OpenClaw-based capstone) | Hardware-aware edge AI product design, low-power inference, on-device voice + automation, OTA, privacy/security | Jetson Orin Nano assistant box: **OrinClaw**, Alexa-level UX, offline-first |
 
 ---
 
