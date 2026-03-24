@@ -1,10 +1,10 @@
-# OrinCraw — Hardware→Inference→UX Capstone (OpenClaw-based)
+# OrinClaw — Hardware→Inference→UX Capstone (OpenClaw-based)
 
-**OrinCraw** is the **project and product name** for this Phase 4 capstone: an always-on **local AI assistant box** built on **Jetson Orin Nano 8GB**, orchestrated by [**OpenClaw**](https://github.com/openclaw/openclaw), with **ClawBox-inspired** goals (offline-first voice, smart home, optional BYOK cloud). The roadmap folder is still named `5. OpenClaw Assistant Box` for repository structure; use **OrinCraw** in hostname, UI, OTA channel, and documentation.
+**OrinClaw** is the **project and product name** for this Phase 4 capstone: an always-on **local AI assistant box** built on **Jetson Orin Nano 8GB**, orchestrated by [**OpenClaw**](https://github.com/openclaw/openclaw), with **ClawBox-inspired** goals (offline-first voice, smart home, optional BYOK cloud). The roadmap folder is still named `5. OpenClaw Assistant Box` for repository structure; use **OrinClaw** in hostname, UI, OTA channel, and documentation.
 
-Build OrinCraw end-to-end, optimized across:
+Build OrinClaw end-to-end, optimized across:
 - **Hardware-level**: power, thermals, storage, audio I/O, connectivity, serviceability
-- **System-level**: secure boot, reliable OTA, observability, deterministic latency
+- **System-level**: secure boot, reliable OTA, observability, deterministic latency — **§4** (*Jetson host notes, OrinClaw scope*) links bring-up and userspace basics to Phase 1 OS material where useful
 - **Inference-level**: quantization, TensorRT/ONNX Runtime, batching, KV-cache, streaming, memory reuse
 - **UX-level**: fast wake, low-latency voice, offline-first privacy, “it just works” setup
 
@@ -20,41 +20,41 @@ The target is **better usability than Alexa Pro-style assistants** by being:
 
 | Use | Example |
 |-----|---------|
-| **Product / project name** | **OrinCraw** |
-| **Hostname** | `orincraw` or `orincraw-<room>` |
-| **Local URL (mDNS)** | `http://orincraw.local` (or serial-suffixed variant for multiple units) |
-| **OTA / update channel id** | e.g. `orincraw-stable`, `orincraw-beta` |
-| **Stack orchestration (template)** | See [orincraw-deploy/docker-compose.yml](orincraw-deploy/docker-compose.yml) |
+| **Product / project name** | **OrinClaw** |
+| **Hostname** | `orinclaw` or `orinclaw-<room>` |
+| **Local URL (mDNS)** | `http://orinclaw.local` (or serial-suffixed variant for multiple units) |
+| **OTA / update channel id** | e.g. `orinclaw-stable`, `orinclaw-beta` |
+| **Stack orchestration (template)** | See [orinclaw-deploy/docker-compose.yml](orinclaw-deploy/docker-compose.yml) |
 
 **Brainstorm names not chosen:** ClawForge, OrinOwl, EdgeManta, LocalLynx, WhisperHarbor, SentinelNest, NimbleDLA, HushPilot, QuartzClaw, KestrelBox.
 
 ### Product visualization (AI image prompts)
 
-![OrinCraw reference product concept: cylindrical voice assistant, blue LED ring, fabric grille, USB-C and Ethernet on base](OrinClaw.png)
+![OrinClaw reference product concept: cylindrical voice assistant, blue LED ring, fabric grille, USB-C and Ethernet on base](OrinClaw.png)
 
 *Reference render / concept art only—not mechanical drawings or a frozen BOM.*
 
 #### Exploded / cutaway (illustrative)
 
-![OrinCraw stylized cutaway: internal PCB, speaker, heatsink visible through transparent mid shell](OrinClaw-Exploded.png)
+![OrinClaw stylized cutaway: internal PCB, speaker, heatsink visible through transparent mid shell](OrinClaw-Exploded.png)
 
 *Storytelling visualization only—not an approved assembly, stack-up, or thermal model.*
 
 #### Retail packaging concept
 
-![OrinCraw device beside minimal black box with line-art device outline](OrinClaw-Package.png)
+![OrinClaw device beside minimal black box with line-art device outline](OrinClaw-Package.png)
 
 *Packaging mock-up for marketing; final graphics and regulatory markings TBD.*
 
 #### CMF study (color, material, finish)
 
-![OrinCraw three colorways: dark graphite, warm gray, silver—with top views and small satellite units](OrinClaw-CMF-Study.png)
+![OrinClaw three colorways: dark graphite, warm gray, silver—with top views and small satellite units](OrinClaw-CMF-Study.png)
 
 *CMF exploration; satellite / accessory units are optional product ideas, not committed SKUs.*
 
 #### Lifestyle context
 
-![OrinCraw on wooden table in warm living room with lamp and sofa bokeh](OrinClaw-Lifestyle.png)
+![OrinClaw on wooden table in warm living room with lamp and sofa bokeh](OrinClaw-Lifestyle.png)
 
 *Lifestyle render for scale and ambience; proportions are approximate.*
 
@@ -72,7 +72,7 @@ The **optional ESP32 smart-home controller** (wall/shelf satellite, Matter-prefe
 
 **Optional master prompt — glanceable top UI (display SKU, copy-paste):**
 
-> Same OrinCraw-class smart-home AI assistant as above—cylindrical tower (~130 mm), matte dark graphite, brushed aluminum accent ring, acoustic fabric grille, hardware mute, USB-C PD and Ethernet on base. **Top surface:** keep the **soft blue LED status ring**; **add a small round flush-mounted panel** (~35–45 mm) centered inside or beside the ring—a **high-contrast monochrome or e-paper–like** glanceable UI showing only **abstract icons and digits**: **clock time** (generic numerals, not a real timezone), **simple battery glyph + “100”** style segment, **tiny sun/cloud** weather icon (no words), **indoor temperature as two digits + degree symbol**. **No sentences, no chat bubbles, no notifications, no app chrome, no brand names.** Soft anti-glare cover, subtle bezel; still photorealistic studio product shot, white seamless, three-quarter hero, 85 mm look, shallow DOF, **no logos, no people**.
+> Same OrinClaw-class smart-home AI assistant as above—cylindrical tower (~130 mm), matte dark graphite, brushed aluminum accent ring, acoustic fabric grille, hardware mute, USB-C PD and Ethernet on base. **Top surface:** keep the **soft blue LED status ring**; **add a small round flush-mounted panel** (~35–45 mm) centered inside or beside the ring—a **high-contrast monochrome or e-paper–like** glanceable UI showing only **abstract icons and digits**: **clock time** (generic numerals, not a real timezone), **simple battery glyph + “100”** style segment, **tiny sun/cloud** weather icon (no words), **indoor temperature as two digits + degree symbol**. **No sentences, no chat bubbles, no notifications, no app chrome, no brand names.** Soft anti-glare cover, subtle bezel; still photorealistic studio product shot, white seamless, three-quarter hero, 85 mm look, shallow DOF, **no logos, no people**.
 
 **Negative prompt (UI variant — use instead of the default negative for this shot):** laptop, phone, tablet, large screen, TV, messy cables, cartoon, illustration, low quality, blurry, deformed, garish RGB gamer aesthetic, watermark, **readable words or sentences**, **chat UI**, **message threads**, **notification text**, brand logos, **app store icons**, **QR codes**.
 
@@ -80,7 +80,7 @@ The **optional ESP32 smart-home controller** (wall/shelf satellite, Matter-prefe
 
 > **Separate** compact smart-home **control panel** (not a voice speaker). **Form:** shallow **wall-mount or magnetic shelf** puck or rounded rectangle, ~95–115 mm wide, ~12–18 mm deep, matte **warm gray or graphite** polycarbonate, **soft micro-texture**. **Front:** **small touch-capable glass panel** (~60–75 mm) showing a **neutral smart-home dashboard**—**icon-only tiles** (generic lamp, thermostat arc, lock, blinds, scene “star” **without labels**), **soft pastel tile backgrounds**, **no sentences**, **no chat**, **no notifications**, **no WiFi password fields**, **no personal names**. One **tiny status LED** (amber/white) beside the glass; optional **very subtle** abstract **mesh / hex** motif in the bezel suggesting **Thread / Matter** (decorative only, not a logo). **Bottom edge:** **USB-C** for power only. **No microphone**, **no speaker grille**, **no large cylinder**. Photorealistic **studio product** photo, white seamless, soft shadow, three-quarter or straight-on, 85 mm lens look, shallow DOF, **no logos, no people**.
 
-**Negative prompt (satellite controller — use for this shot):** voice assistant, **smart speaker**, **cylindrical tower**, **fabric acoustic grille**, **microphone holes**, laptop, TV, cartoon, illustration, low quality, blurry, deformed, gamer RGB, watermark, **readable words**, **real app screenshots**, **notification banners**, **QR codes**, brand logos, **OrinCraw voice device** as the main subject (unless intentional **lifestyle** variant below), messy cables.
+**Negative prompt (satellite controller — use for this shot):** voice assistant, **smart speaker**, **cylindrical tower**, **fabric acoustic grille**, **microphone holes**, laptop, TV, cartoon, illustration, low quality, blurry, deformed, gamer RGB, watermark, **readable words**, **real app screenshots**, **notification banners**, **QR codes**, brand logos, **OrinClaw voice device** as the main subject (unless intentional **lifestyle** variant below), messy cables.
 
 **Tool hints**
 - **Midjourney:** `--ar 4:5` or `--ar 16:9` for hero; add `--style raw` for straighter product look; iterate with `--sref` on a seed you like.
@@ -107,13 +107,49 @@ The **optional ESP32 smart-home controller** (wall/shelf satellite, Matter-prefe
 - **Predictable**: stable latency (p99) under load; graceful degradation when hot or memory-tight.
 
 ### Primary use-cases
-- Voice assistant (wake word, STT, NLU, TTS, tools)
+- Voice assistant (Siri-like hands-free flow: wake word, STT, NLU, TTS, tools)
 - Browser automation (“Open this site, login, click X”)
 - Home control (MQTT/Home Assistant)
 - Local RAG over personal docs (optional)
 
+### Value proposition (positioning)
+
+Ship story combines three threads—consistent with **OpenClaw** as the orchestrator:
+
+| Pillar | What we promise |
+|--------|------------------|
+| **Privacy + security** | **Offline-first** assistant path; **self-hosted** stack; least-privilege tools/skills; **§8** hardening, OTA, and optional **FDE** on **512GB NVMe** |
+| **Smart-home hub** | LAN-first automation (**MQTT / Home Assistant**); **Matter-prefer** path via **ESP32-C6** (and optional **§3** satellite controller for UI) |
+| **Siri-like experience** | Natural **wake → listen → reply** with streaming STT/LLM/TTS; extensible via **skills** and channels—not a closed vendor assistant |
+
+**Office / remote use:** Trusted users can reach a **home or lab OrinClaw** over a private mesh VPN (e.g. **Tailscale**) without WAN port-forwarding—see **§8** *Office remote access (private) via Tailscale* for topology, ACLs, and verification.
+
+### Target users, launch scope, and non-goals
+
+**Primary target users**
+- **Privacy-conscious home power users** who want a local voice assistant and smart-home hub they control.
+- **Developers / makers** comfortable with self-hosting, skills, logs, and home-lab maintenance.
+- **Small shared spaces** (family home, studio, office corner) where one always-on assistant is more useful than a phone-only workflow.
+
+**V1 launch scope (must be true for first shippable product)**
+- **Single-room** voice assistant with reliable wake, STT, local LLM, and TTS.
+- **Offline-first** core path with **LAN web UI**, **MQTT / Home Assistant**, and optional **Matter-prefer** integration.
+- **Secure-by-default** deployment: **FDE**, OTA rollback, default-deny network posture, hardware mute, clear local/cloud indicators.
+- **Remote private admin/user access** over **Tailscale** or equivalent, with no public port-forwarding.
+
+**Explicit non-goals for V1**
+- General-purpose tablet-style on-device UI.
+- Whole-home synchronized audio and person-aware routing by default.
+- Cloud-dependent assistant behavior as the primary product mode.
+- Enterprise fleet management, SOC2-style admin features, or public multi-tenant hosting.
+
+**Later / optional roadmap items**
+- **Multi-room** speaker endpoints, occupancy-aware routing, and optional **ESP-CAM** person-aware intercom features.
+- **Display SKU**, **battery SKU**, and separate **ESP32 smart-home controller** SKU.
+- Heavier local RAG, advanced automations, and richer mobile-node workflows once core assistant reliability is proven.
+
 ### Offline-first product requirements & acceptance criteria
-OrinCraw ships **offline-first**: core voice and automation work **without internet** unless the user enables optional cloud connectors.
+OrinClaw ships **offline-first**: core voice and automation work **without internet** unless the user enables optional cloud connectors.
 
 **Must work with WAN unavailable** (no upstream internet; LAN may still exist):
 - Wake word → LED/audio ack → streaming STT → **local** LLM + tools → streaming TTS
@@ -138,7 +174,7 @@ OrinCraw ships **offline-first**: core voice and automation work **without inter
 
 ## 3) Hardware platform (recommended + alternatives)
 
-### Dedicated hardware options for OrinCraw (OpenClaw stack)
+### Dedicated hardware options for OrinClaw (OpenClaw stack)
 
 Dedicated hardware options for **OpenClaw** prioritize **isolation**, **efficiency**, and **24/7 operation** so the always-on assistant is not tied to a laptop (thermal throttling, sleep policies, accidental suspend, and a larger attack surface).
 
@@ -153,20 +189,20 @@ Dedicated hardware options for **OpenClaw** prioritize **isolation**, **efficien
 
 *TOPS and on-device figures are workload- and stack-dependent; use the table for **relative** shopping only.*
 
-*OrinCraw targets **512GB NVMe** on Jetson (Orin Nano class does **not** rely on soldered eMMC for system storage in this program); **stolen-drive** risk is **high**—**§8** *Physical theft & storage* is **mandatory** for production (FDE, keys off-drive, mechanical hardening).*
+*OrinClaw targets **512GB NVMe** on Jetson (Orin Nano class does **not** rely on soldered eMMC for system storage in this program); **stolen-drive** risk is **high**—**§8** *Physical theft & storage* is **mandatory** for production (FDE, keys off-drive, mechanical hardening).*
 
-#### Compared with **OrinCraw** (this capstone)
+#### Compared with **OrinClaw** (this capstone)
 
-**OrinCraw** here means the **product spec in this guide**: **Jetson Orin Nano 8GB-class** compute (dev kit for bring-up → **custom carrier** for ship), **512GB NVMe** (M.2 **2280**, boot + rootfs + models + logs + OTA staging) as **default** mass storage, **Gigabit Ethernet**, **ESP32-C6** + **ESP-Hosted** on **SPI** for Linux WiFi/BT and smart-home radios, **I2S** mic array + speaker, **USB-C PD** power path, optional **battery**, **offline-first OpenClaw** orchestration with OTA discipline, and **strong at-rest security** when hardware is stolen (**§8**)—not a single off-the-shelf retail bundle.
+**OrinClaw** here means the **product spec in this guide**: **Jetson Orin Nano 8GB-class** compute (dev kit for bring-up → **custom carrier** for ship), **512GB NVMe** (M.2 **2280**, boot + rootfs + models + logs + OTA staging) as **default** mass storage, **Gigabit Ethernet**, **HDMI** for an **external** monitor (factory bring-up, debug, optional desktop—**not** the integrated “main display” in Core SKU), **ESP32-C6** + **ESP-Hosted** on **SPI** for Linux WiFi/BT and smart-home radios, **I2S** mic array + speaker, **USB-C PD** power path, optional **battery**, **offline-first OpenClaw** orchestration with OTA discipline, and **strong at-rest security** when hardware is stolen (**§8**)—not a single off-the-shelf retail bundle.
 
-| Dedicated option | How it relates to OrinCraw |
+| Dedicated option | How it relates to OrinClaw |
 |------------------|----------------------------|
-| **ClawBox One** | **Closest turnkey cousin**: same **Jetson Orin Nano–class** story and OpenClaw-friendly stack. OrinCraw **diverges** on **mechanical/CAD**, **custom carrier BOM** (only what the UX needs), **ESP32-C6 + Matter/Thread/Zigbee** integration, and **your** OTA/channel naming—more engineering, **no** boxed retail SKU unless you ship one. |
-| **Mac Mini M4** | **Different platform**: Apple Silicon + macOS vs **ARM SoC + L4T/JetPack** pipeline. Often **faster** for large local models and dev tools; **higher** sustained wall power and **no** native match to OrinCraw’s **ESP-Hosted / ESP32-C6** RF + IoT architecture. Use as a **dev or secondary** machine, not a drop-in for the Jetson carrier spec. |
-| **ACEMAGIC M5 PRO+** (x86 + dGPU class) | **Heavy throughput / RAM** for big models and multi-agent loads. **Much higher** TDP, **different** stack (CUDA on dGPU vs Jetson unified memory + TensorRT-on-Orin workflows). OrinCraw optimizes **watts-per-wake-word** and **edge BOM**; this class optimizes **raw FLOPS and DRAM**. |
-| **Jetson Orin Nano (DIY)** | **Same silicon family** as OrinCraw **Phase 1** (dev kit or equivalent). DIY stops at “board in a case”; OrinCraw continues to **custom PCB**, **product audio**, **C6**, **enclosure thermals**, and **acceptance criteria** in §2–§3. **Lowest cost** entry to validate software; **not** the shippable product by itself. |
+| **ClawBox One** | **Closest turnkey cousin**: same **Jetson Orin Nano–class** story and OpenClaw-friendly stack. OrinClaw **diverges** on **mechanical/CAD**, **custom carrier BOM** (only what the UX needs), **ESP32-C6 + Matter/Thread/Zigbee** integration, and **your** OTA/channel naming—more engineering, **no** boxed retail SKU unless you ship one. |
+| **Mac Mini M4** | **Different platform**: Apple Silicon + macOS vs **ARM SoC + L4T/JetPack** pipeline. Often **faster** for large local models and dev tools; **higher** sustained wall power and **no** native match to OrinClaw’s **ESP-Hosted / ESP32-C6** RF + IoT architecture. Use as a **dev or secondary** machine, not a drop-in for the Jetson carrier spec. |
+| **ACEMAGIC M5 PRO+** (x86 + dGPU class) | **Heavy throughput / RAM** for big models and multi-agent loads. **Much higher** TDP, **different** stack (CUDA on dGPU vs Jetson unified memory + TensorRT-on-Orin workflows). OrinClaw optimizes **watts-per-wake-word** and **edge BOM**; this class optimizes **raw FLOPS and DRAM**. |
+| **Jetson Orin Nano (DIY)** | **Same silicon family** as OrinClaw **Phase 1** (dev kit or equivalent). DIY stops at “board in a case”; OrinClaw continues to **custom PCB**, **product audio**, **C6**, **enclosure thermals**, and **acceptance criteria** in §2–§3. **Lowest cost** entry to validate software; **not** the shippable product by itself. |
 
-**One-line takeaway:** If you want **“buy and run OpenClaw today”**, **ClawBox** aligns with the stack. If you want **“own the hardware product”** (carrier, RF, audio, OTA), that **is** OrinCraw; **DIY Jetson** is the on-ramp; **Mac / ACEMAGIC** are **adjacent** hosts for speed or scale, not the same architecture.
+**One-line takeaway:** If you want **“buy and run OpenClaw today”**, **ClawBox** aligns with the stack. If you want **“own the hardware product”** (carrier, RF, audio, OTA), that **is** OrinClaw; **DIY Jetson** is the on-ramp; **Mac / ACEMAGIC** are **adjacent** hosts for speed or scale, not the same architecture.
 
 #### Performance and use analysis
 
@@ -175,6 +211,12 @@ Dedicated hardware options for **OpenClaw** prioritize **isolation**, **efficien
 #### Cost and security verdict
 
 **ClawBox** offers strong **TCO** for a turnkey box (€549 one-time often beats ~2 years of cloud subs for comparable capability) with **maximal isolation** by default—no vendor telemetry on the assistant path, **offline-first** operation when configured that way. Use **Mac** when raw speed and macOS tooling matter; **pair both** (dedicated assistant + dev machine) is a common split. All of these beat a **VPS** for **mic/audio privacy**; add a **UPS** on the LAN path for reliability. For Jetson software lineage and upgrades on DIY or carrier builds, see **JetPack / L4T version strategy** in this section.
+
+#### Market context: “mini AI server” demand (signal vs noise)
+
+Press and social feeds sometimes tie **Mac Mini** stock levels to **AI agents** and **local inference**, and sometimes to an **Apple silicon refresh** (e.g. next-generation Mini). **Inventory cycles** and **headline hype** are hard to separate from public data—treat **retail availability** as **weak evidence** of any single cause.
+
+The **useful signal** for OrinClaw is structural: **always-on agent stacks** want a **small, quiet, network-attached computer** that is **not** a laptop. That role can be filled by a **Mac Mini**, a **Jetson** box, an **x86 mini PC**, a **homelab NUC**, or **cloud/VPS**—each with different **wall power**, **RAM**, **OS control**, **peripheral integration** (mic, speaker, **Matter** radio), and **TCO**. OrinClaw is the bet that a **Jetson + custom carrier + appliance UX** wins the **home edge** niche that a **general-purpose desktop-class Mini** does not optimize for (see table above: **watts**, **L4T**, **ESP32-C6**, **§8** ownership).
 
 ### Product requirement: custom PCB for ultimate product-grade
 The **ultimate shippable product** is **not** a stock dev kit in a box. It requires a **custom PCB** (carrier / product board) that is **purpose-built** for this assistant:
@@ -194,14 +236,27 @@ Use the **Orin Nano 8GB Developer Kit** only as the **reference for software bri
 - **Power**: USB-C PD input (target 15W typical, 25W peak); **own battery** option for backup/portable (see “Battery design” below)
 - **Enclosure**: thermally designed case with dedicated heat sink and airflow (see “Heat sink design” below)
 
+### Recommended SKU strategy (keep launch focused)
+
+Use a **single primary SKU** for launch, then add variants only after the baseline product is stable.
+
+| SKU | Ship priority | Definition |
+|-----|---------------|------------|
+| **Core OrinClaw** | **V1 / required** | Jetson Orin Nano 8GB-class, **512GB NVMe**, **HDMI** (external monitor for setup/debug), no **integrated** main display, voice + LED + LAN web UI, optional Tailscale remote access |
+| **Display SKU** | Later / optional | Same core hardware plus a small top-mounted glanceable display |
+| **Battery SKU** | Later / optional | Same core product plus battery/UPS subsystem for brief backup or portable use |
+| **Satellite controller** | Later / optional | Separate ESP32-based touch/glance smart-home controller |
+
+**Best practice:** freeze **one** hero SKU for industrial design, docs, OTA policy, certification scope, and support. Treat all other variants as post-V1 programs unless they are required by a paying customer or research milestone.
+
 ### JetPack / L4T version strategy
-OrinCraw tracks NVIDIA releases in **phases** so early bring-up can start on a stable older stack and the product line moves forward deliberately.
+OrinClaw tracks NVIDIA releases in **phases** so early bring-up can start on a stable older stack and the product line moves forward deliberately.
 
 | Phase | JetPack target | Role |
 |-------|----------------|------|
 | **1 — Initial bring-up** | **5.1.2** | First flash, kernel, and baseline validation (audio, **NVMe** rootfs **512GB** default, Ethernet, early inference experiments). Pin **CUDA / cuDNN / TensorRT** to NVIDIA’s matrix for **5.1.2**. |
 | **2 — Production-aligned** | **6.2.1** | Planned upgrade for the main software line: rebuild **TensorRT/ONNX** engines on-device, rebuild **ESP-Hosted** host driver for the new **L4T kernel**, rebase **containers** to matching L4T base images, re-run OTA + rollback tests. |
-| **3 — Future** | **7.x** | Adopt **when NVIDIA officially supports** the OrinCraw **target module + carrier** on JetPack 7. Treat as a **major migration** (same rigor as 5 → 6: full regression, optional forced OTA channel). |
+| **3 — Future** | **7.x** | Adopt **when NVIDIA officially supports** the OrinClaw **target module + carrier** on JetPack 7. Treat as a **major migration** (same rigor as 5 → 6: full regression, optional forced OTA channel). |
 
 **Rules**
 - Record the **active JetPack** in release notes, factory config, and `/health` (or equivalent).
@@ -210,7 +265,7 @@ OrinCraw tracks NVIDIA releases in **phases** so early bring-up can start on a s
 
 ### Hardware phases (dev kit → custom PCB)
 - **Phase 1 — Software on dev kit**: Validate STT/LLM/TTS, OpenClaw, ESP-Hosted (SPI to C6 on a **breakout or interposer** if needed), audio pipeline, and OTA on the **Orin Nano Dev Kit**.
-- **Phase 2 — Ultimate product (required)**: **Custom carrier PCB** for **Jetson Orin Nano (or Orin NX) compute module** with only necessary circuits: module socket, **USB-C PD** controller and power path, **Ethernet PHY**, **M.2 NVMe** socket / holder (**512GB** default SKU), **I2S audio codec** + mic array interface + speaker amp, **ESP32-C6** (SPI for ESP-Hosted + optional UART for LED/buttons), **LED drivers** (ring or chain), **buttons/mute**, optional **battery + BMS**, **test points**, **ESD/EMI** per certification plan. **Remove** dev-kit-only blocks (unused USB stacks, debug, duplicate power) from the product BOM.
+- **Phase 2 — Ultimate product (required)**: **Custom carrier PCB** for **Jetson Orin Nano (or Orin NX) compute module** with only necessary circuits: module socket, **USB-C PD** controller and power path, **2× USB-A host + 1× USB-C host** (USB 2/3, **not Thunderbolt**), **Ethernet PHY**, **M.2 NVMe** socket / holder (**512GB** default SKU), **I2S audio codec** + mic array interface + speaker amp, **ESP32-C6** (SPI for ESP-Hosted + optional UART for LED/buttons), **LED drivers** (ring or chain), **buttons/mute**, optional **battery + BMS**, **test points**, **ESD/EMI** per certification plan. **Remove** dev-kit-only blocks (unused USB stacks, debug, duplicate power) from the product BOM.
 - **Optional SKU**: Second PCB revision or BOM variant for **Orin NX 16GB** if you need more unified memory for a larger local model—same mechanical envelope where possible.
 
 ### BOM for PCB (start in schematic, use for layout + fab later)
@@ -223,7 +278,7 @@ The **BOM (bill of materials)** is not a post-layout afterthought: maintain it *
 
 **Lifecycle**
 1. **Schematic capture** — assign **reference designators** (`R12`, `U3`, `J1`, …); one schematic symbol → one BOM line (except intentionally “do not place” / variant DNP).
-2. **BOM freeze per PCB revision** — e.g. `BOM_OrinCraw_R1A.csv` matches `PCB_R1A` Gerbers; any ECO updates **both** schematic and BOM.
+2. **BOM freeze per PCB revision** — e.g. `BOM_OrinClaw_R1A.csv` matches `PCB_R1A` Gerbers; any ECO updates **both** schematic and BOM.
 3. **Pick-and-place** — export from CAD (Centroid / XYRS) must agree with BOM **designators** and **rotation**.
 
 **Recommended columns (minimum for CM handoff)**
@@ -244,7 +299,7 @@ The **BOM (bill of materials)** is not a post-layout afterthought: maintain it *
 - **RoHS / REACH** (if required by market).
 - **Notes** — e.g. “1% or better”, “X7R only”, “low ESL for DCDC”, “matched length group for SPI”.
 
-**OrinCraw carrier — BOM blocks to budget early (non-exhaustive)**
+**OrinClaw carrier — BOM blocks to budget early (non-exhaustive)**
 - Jetson **compute module** + **socket** (if moduleized SKU)
 - **USB-C PD** controller + power path + protection
 - **M.2 NVMe** socket / holder (**512GB** default endurance-rated SSD) — match stackup, **2280** length, and **theft-hardening** plan (**§8**)
@@ -257,13 +312,15 @@ The **BOM (bill of materials)** is not a post-layout afterthought: maintain it *
 
 ### Key hardware design choices (what you optimize)
 - **Custom PCB vs dev kit**: Final product ships on **custom PCB**; dev kit is for **development only**. Route **ESP-Hosted SPI** per Espressif **length/matching** guidelines; keep **RF** (C6 antenna) and **audio** **analog** sections clean of noisy digital return paths.
-- **Storage (512GB NVMe, Jetson path)**: **OrinCraw ships NVMe** on the carrier (not eMMC for system storage in this program). A thief can **remove the M.2** in seconds—**encryption at rest is mandatory** for any unit that stores **BYOK**, WiFi credentials, or sensitive RAG (**§8**): **LUKS** (or **SED/Opal** if used) with **no volume key on the naked SSD**, **TPM/SE-backed** unwrap where feasible, **NVMe Sanitize** (or equivalent) on factory reset, and **mechanical** deterrence (RF shield over slot, **security screws**, tamper-evident label, optional adhesive). **Wear / I/O:** log rotation, OTA staging caps, **SMART** monitoring (**§9 R4**); avoid unbounded swap to NVMe under memory pressure.
+- **Storage (512GB NVMe, Jetson path)**: **OrinClaw ships NVMe** on the carrier (not eMMC for system storage in this program). A thief can **remove the M.2** in seconds—**encryption at rest is mandatory** for any unit that stores **BYOK**, WiFi credentials, or sensitive RAG (**§8**): **LUKS** (or **SED/Opal** if used) with **no volume key on the naked SSD**, **TPM/SE-backed** unwrap where feasible, **NVMe Sanitize** (or equivalent) on factory reset, and **mechanical** deterrence (RF shield over slot, **security screws**, tamper-evident label, optional adhesive). **Wear / I/O:** log rotation, OTA staging caps, **SMART** monitoring (**§9 R4**); avoid unbounded swap to NVMe under memory pressure.
 - **Audio I/O**: use I2S + codec (lower latency, better SNR) instead of USB audio dongles.
 - **Thermals**: design for **sustained** performance (avoid thermal throttling that ruins UX).
 - **Power integrity**: avoid brownouts during peak GPU load + speaker output.
 - **Physical UX**: hardware mute switch (mic cut), status LED ring, single “action” button. **Optional SKU** (§6): small **top-mounted** glanceable display (touch LCD, segment, or **e-paper**) for time / climate / battery—**not** a second smartphone; drive from **ESP32-C6** when possible to limit Jetson I/O and EMI risk.
 - **Own battery**: Optional **own battery design** for backup (UPS) or portable use; USB-C PD charging, BMS protection, power-path logic (see “Battery design” below).
 - **ESP32-C6 for wireless + IoT**: Use **ESP32-C6** (not M.2 WiFi on Jetson) for WiFi + BT/BLE to Linux via **[ESP-Hosted](https://github.com/espressif/esp-hosted)** on **SPI**; same chip also targets Thread, Zigbee, **Matter**, sensors, LED ring, and optional wake-path. Validate **coexistence** of ESP-Hosted (WiFi/BT) with Thread/Zigbee/Matter stacks using Espressif documentation and chip capacity.
+- **USB host (2× Type-A + 1× Type-C):** Expose **two USB-A** and **one USB-C** **downstream host** ports for **keyboard**, **mouse**, **FT232H-class dongle**, storage, etc. The **USB-C host** is **standard USB 2.0 / USB 3.x** only — **not Thunderbolt / USB4**. **USB-C PD** for **power input** is separate in intent (dedicated receptacle or mux — see hardware spec). Recommend **Bluetooth mouse** (BT via **ESP32-C6**) when you want a port free; use a **powered hub** only if you need **more than three** downstream devices. Details: [OrinClaw-Hardware-Design-Requirements.md](OrinClaw-Hardware-Design-Requirements.md) **§2.10**.
+- **USB FT232H developer kit (optional, software/OS only):** Do **not** put **FT232H** on the main carrier for this. Ship or document an **optional expansion kit** (commodity **USB FT232H** / FT2232-class module) that the user plugs into a **USB host** port for **I2C / SPI / UART / GPIO** lab workflows and **hardware-oriented OpenClaw skills**. **No carrier PCB change for FT232H** — L4T **`ftdi_sio`**, **`udev`**, optional **`pyftdi`**, Docker `/dev` passthrough, and user docs (**§2.9**, **§2.10**, [Developing-OpenClaw-Skills.md](Developing-OpenClaw-Skills.md)).
 
 ### ESP32-C6 (wireless + I/O co-processor)
 - **Chip**: ESP32-C6 module on carrier/shield; 2.4 GHz WiFi (802.11 b/g/n/ax per ESP-Hosted), Bluetooth/BLE; Thread, Zigbee for smart-home. **SPI** bus to Jetson for **ESP-Hosted** (dedicated pins per Espressif wiring guide); 3.3V; shared ground. Optional **second UART** (or I2C) for simple **DeviceService** traffic (LED/buttons) if you keep network off that link.
@@ -293,28 +350,28 @@ Use **[ESP-Hosted](https://github.com/espressif/esp-hosted)** so Linux on Jetson
 - **Monitoring and UX**: With ESP-Hosted-NG, read **RSSI** / link state from **`iw`**, **NetworkManager**, or **`/sys/class/net/...`** for `/health`; extend the **LED state table** for “weak WiFi” or “reconnecting” if useful. Voice prompt optional: “WiFi connection lost” when appropriate.
 - **Optional upgrade path**: If WiFi must match **laptop-grade** reliability and speed, add **M.2 E-key or USB WiFi on the Jetson** for primary WLAN and reserve ESP32-C6 for **Thread/Zigbee/Matter/BLE** only (higher BOM, best WiFi QoS).
 
-### Optional separate ESP32 smart-home controller (satellite; OrinCraw stays **no UI**)
+### Optional separate ESP32 smart-home controller (satellite; OrinClaw stays **no UI**)
 
-**Product intent:** Keep **OrinCraw** (OrinClaw-class box) **headless**—**no** built-in touch UI for smart-home control; voice, **LED**, and **LAN web UI** only. Add a **second product**, a small **ESP32-based** (e.g. **ESP32-C6** / **ESP32-H2** class) **smart-home controller** that lives on a **wall, shelf, or desk** and carries the **glanceable or touch UI** (rooms, scenes, commissioning), **not** the assistant cylinder.
+**Product intent:** Keep **OrinClaw** **headless**—**no** built-in touch UI for smart-home control; voice, **LED**, and **LAN web UI** only. Add a **second product**, a small **ESP32-based** (e.g. **ESP32-C6** / **ESP32-H2** class) **smart-home controller** that lives on a **wall, shelf, or desk** and carries the **glanceable or touch UI** (rooms, scenes, commissioning), **not** the assistant cylinder.
 
-**How it connects to OrinCraw** (prefer **standards** over a proprietary-only link):
+**How it connects to OrinClaw** (prefer **standards** over a proprietary-only link):
 
 | Transport | Role | When to use |
 |-----------|------|-------------|
-| **Matter** (preferred) | ESP32 as **Matter controller** / **commissioner** (per CSA scope) or **bridge**-adjacent device; OrinCraw participates via **OpenClaw skills + Home Assistant / Matter stack** on Jetson as your architecture allows | **Interoperable** accessories; user expectation of “works with Matter” |
+| **Matter** (preferred) | ESP32 as **Matter controller** / **commissioner** (per CSA scope) or **bridge**-adjacent device; OrinClaw participates via **OpenClaw skills + Home Assistant / Matter stack** on Jetson as your architecture allows | **Interoperable** accessories; user expectation of “works with Matter” |
 | **Thread** | Thread **border router** on ESP32; IP to LAN → reach Jetson | Thread end devices; pair with Matter where applicable |
-| **WiFi** | **MQTT**, **HTTP/REST**, or **WebSocket** to `orincraw.local` (or fixed IP) for automation + status | Always-on control plane; OTA for ESP32 firmware |
+| **WiFi** | **MQTT**, **HTTP/REST**, or **WebSocket** to `orinclaw.local` (or fixed IP) for automation + status | Always-on control plane; OTA for ESP32 firmware |
 | **BLE** | **Provisioning**, **NFC-style tap-to-pair**, or **low-duty** sensors; usually **not** sole backbone for whole-home control | First-time setup, battery accessories |
 
 **Logical split**
 
-- **OrinCraw (Jetson):** STT/LLM/TTS, OpenClaw Gateway, heavy skills, optional **Ethernet-first**; **no screen** on the cylinder (optional top glanceable SKU §6 remains separate and minimal).
+- **OrinClaw (Jetson):** STT/LLM/TTS, OpenClaw Gateway, heavy skills, optional **Ethernet-first**; **no screen** on the cylinder (optional top glanceable SKU §6 remains separate and minimal).
 - **ESP32 controller:** Room/scene **UI**, device tiles, **Matter commissioning** flows, status LEDs on the panel, maybe **IR blaster** or **buttons**—all the **“remote control”** metaphors users expect without putting a tablet on the speaker.
 
 **Topology notes**
 
-1. **Dual-radio coexistence** is easier when **OrinCraw** uses **Ethernet to the AP** and the **satellite** handles **WiFi + Thread + BLE** near where users interact—reduces **RF desense** inside the metal-heavy assistant enclosure.
-2. You may **omit on-board ESP-Hosted** on a **minimal OrinCraw SKU** and rely on **Ethernet + satellite** for WiFi path to cloud/OTA—document **SKU matrix** (integrated C6 vs satellite-only RF).
+1. **Dual-radio coexistence** is easier when **OrinClaw** uses **Ethernet to the AP** and the **satellite** handles **WiFi + Thread + BLE** near where users interact—reduces **RF desense** inside the metal-heavy assistant enclosure.
+2. You may **omit on-board ESP-Hosted** on a **minimal OrinClaw SKU** and rely on **Ethernet + satellite** for WiFi path to cloud/OTA—document **SKU matrix** (integrated C6 vs satellite-only RF).
 3. **Security:** TLS or pre-shared **device tokens** on the **LAN API** between ESP32 and Jetson; **no** admin MQTT without auth; align with **§8**.
 
 **Pros and cons**
@@ -322,9 +379,9 @@ Use **[ESP-Hosted](https://github.com/espressif/esp-hosted)** so Linux on Jetson
 | Pros | Cons |
 |------|------|
 | **Clear UX story** — speaker stays calm; **control lives on the wall** | **Second SKU** — BOM, packaging, firmware, certification |
-| **Better RF** — controller placed for **Thread/WiFi** range; OrinCraw where **audio** is best | **Pairing / ownership** flow must be **bulletproof** (user pairs two devices) |
+| **Better RF** — controller placed for **Thread/WiFi** range; OrinClaw where **audio** is best | **Pairing / ownership** flow must be **bulletproof** (user pairs two devices) |
 | **Matter-forward** — aligns with **§7** | **Latency** if every command is **cloud-shaped**; prefer **LAN-local** paths |
-| **OrinCraw truly no UI** as requested | Extra **power outlet** and **cable clutter** unless battery/solar niche |
+| **OrinClaw truly no UI** as requested | Extra **power outlet** and **cable clutter** unless battery/solar niche |
 
 ### Speaker design (Alexa-style)
 Design the **speaker subsystem** to product-grade level, similar to Alexa, Google Home, or similar voice assistants.
@@ -363,11 +420,54 @@ Design an **own/custom battery** for backup (UPS when AC fails) or portable oper
 
 ### OpenClaw as base platform
 - **What OpenClaw provides**: Gateway (control plane), multi-channel inbox (WhatsApp, Telegram, Slack, etc.), skills runtime, browser automation, onboarding CLI. Use it as the **orchestrator** for sessions, tools, and channels.
-- **What OrinCraw adds**: Local inference (STT, LLM, TTS) as services/tools; DeviceService (LED, buttons, mute, power/thermal); ESP32-C6 for wireless, Matter, and I/O (or **Ethernet-first** + **separate ESP32 controller** SKU §3); hardware UX (**no screen by default**, light-as-signal; optional glanceable top display SKU §6). **Optional satellite controller** (§3) carries **smart-home UI** so the cylinder stays **headless**.
+- **What OrinClaw adds**: Local inference (STT, LLM, TTS) as services/tools; DeviceService (LED, buttons, mute, power/thermal); ESP32-C6 for wireless, Matter, and I/O (or **Ethernet-first** + **separate ESP32 controller** SKU §3); hardware UX (**no screen by default**, light-as-signal; optional glanceable top display SKU §6). **Optional satellite controller** (§3) carries **smart-home UI** so the cylinder stays **headless**.
+- **Voice pipeline roles**: OpenClaw is the **orchestrator**—it routes sessions and tools; it does **not** replace dedicated **STT**, **LLM**, and **TTS** engines. **Local-first** means separate processes (or containers) for speech-to-text, **local LLM inference** (e.g. **llama.cpp** `llama-server`, **TensorRT-LLM**, **ONNX Runtime**—see §5), and text-to-speech; Gateway calls them via configured tools/APIs or a thin bridge.
+- **Local LLM requirement**: For offline assistant turns you need a **local inference endpoint** the Gateway can reach (typically **loopback**). Cloud-only models satisfy chat from a phone channel but **do not** meet §2 offline-first voice promises unless disabled by policy.
 - **Running OpenClaw on Jetson**: Node ≥22; install via `npm install -g openclaw@latest` or from source (`pnpm build`); run gateway with `openclaw gateway --port 18789`. Use `openclaw onboard --install-daemon` for a persistent service. Config and credentials: `~/.openclaw` and/or `/data/config` when deployed on the box.
 - **Dev workflow**: Build and test OpenClaw on a host (macOS/Linux/WSL); deploy the same binary or Docker image to Jetson. Local inference services (STT/LLM/TTS) run on Jetson and are called by OpenClaw as tools or via a small bridge service.
+- **NVIDIA NemoClaw** (optional upstream): [NVIDIA/NemoClaw](https://github.com/NVIDIA/NemoClaw) — open-source stack to run **OpenClaw** with **privacy/security controls** and **managed inference**, intended for **[NVIDIA OpenShell](https://github.com/NVIDIA/OpenShell)**. For **OrinClaw on Jetson Orin Nano 8GB**, validate **aarch64 / L4T** support, how inference is “managed” (endpoints, containers), and overlap with your own **§8** network and secrets posture before adopting.
+- **NVIDIA OpenShell** (optional upstream): [NVIDIA/OpenShell](https://github.com/NVIDIA/OpenShell) — **safe, private runtime** for autonomous agents: **sandboxed** containers, **declarative YAML** policies (filesystem, network, process, inference routing), gateway + policy hot-reload. Community flow includes `openshell sandbox create --from openclaw` (see [OpenShell-Community](https://github.com/NVIDIA/OpenShell-Community) sandboxes). Project is **alpha** (“single-player mode” per upstream); **GPU in sandbox** is **experimental**. Docs: [OpenShell documentation](https://docs.nvidia.com/openshell/latest/). For **OrinClaw**, treat as a **dev/host or future** hardening layer—compare overlap with your **§8** isolation (Compose, network policy, skill boundaries) and validate **Docker + Jetson** before production reliance.
 
-**Getting started checklist (Jetson):** [orincraw-deploy/Getting-started-Jetson.md](orincraw-deploy/Getting-started-Jetson.md)
+**Upstream capability summary** (product docs): multi-channel gateway, plugin channels, multi-agent routing, media (images/audio/docs), Web Control UI, mobile nodes (iOS/Android)—see [About-OpenClaw.md](About-OpenClaw.md) §1 and [openclaw.ai](https://openclaw.ai/).
+
+**Getting started checklist (Jetson):** [orinclaw-deploy/Getting-started-Jetson.md](orinclaw-deploy/Getting-started-Jetson.md)
+
+**What / why / tradeoffs (OpenClaw in general):** [About-OpenClaw.md](About-OpenClaw.md) — analysis with links to [openclaw.ai](https://openclaw.ai/) and the [showcase](https://openclaw.ai/showcase).
+
+### Headless multi-agent stack (community pattern vs OrinClaw)
+
+Public write-ups often describe a **personal AI infrastructure**: **always-on**, **headless** host, **OpenClaw** as the agent framework, **Node.js**, messaging (e.g. **Telegram**) as the control surface, **cloud LLM** routing (e.g. **OpenRouter**), and **multiple agents** with **delegated tasks**. The valuable part is **not** the meme (“buy a Mac”) but the **systems work**: **memory isolation** between agents (separate state/storage so contexts do not bleed), **process supervision** (fixing restart bugs, **watchdogs**), **network posture** (e.g. **DMZ / VLAN**), and **security** for skills and credentials—the same class of engineering as any **24/7 server**, with agents on top.
+
+| Layer | Typical community example (e.g. Mac-class) | OrinClaw (Jetson product) |
+|-------|-------------------------------------------|---------------------------|
+| **Hardware** | Desktop-class SoC, **16–24GB+** RAM, headless | **Orin Nano 8GB UMA**; **thermal** and **unified memory** are the hard constraints (**§5**) |
+| **Runtime** | **launchd** / host Node | **systemd** + **Docker Compose** (P1/P2 **§8**); same need for **auto-start** and **health** |
+| **LLM** | **OpenRouter** / BYOK cloud | **Local-first** endpoint (**§4**); cloud optional behind policy |
+| **UX** | **Telegram** (or similar) as primary | **Voice-first** + LED + LAN UI; channels **opt-in** (**§7**) |
+| **Multi-agent** | Delegation between agents | Same **orchestration** ideas; **isolate** workloads (**§8** *Community skills*, containers) |
+| **Memory isolation** | Per-agent storage / QMD-style separation | **Separate containers**, **`/data`** layout per role, **no shared secrets** for untrusted skills |
+| **Reliability** | Watchdog, restart policy | **`restart:` policies**, OTA **health gate**, **§9** observability—same **“works until it doesn’t”** discipline |
+
+**Takeaway for this capstone:** OrinClaw is the same **problem class**—**distributed personal system + AI agents**—with **embedded constraints** and a **stronger** default story on **local inference**, **appliance UX**, and **physical** I/O (audio, LED, optional Matter). The skill you are building is **systems engineering + AI**, not only prompt writing.
+
+### Minimal stack (ship target) vs. reference “full local AI” bundles
+
+**OrinClaw product target is intentionally minimal:** wake word → **STT** → **OpenClaw Gateway** → **local LLM** + tools/skills → **TTS**; plus **DeviceService** (LED, mute, power/thermal signals), **LAN web UI**, smart-home path (**MQTT / Home Assistant / Matter** per §3/§7), and **§8** OTA + security. Everything else is optional or belongs on another machine.
+
+**Not the ship target on Jetson Orin Nano 8 GB:** all-in-one desktop stacks that bundle many containers (e.g. full chat UI + workflow engine + image gen + RAG + many side services). Those are useful **on a PC for experiments**, but they fight **unified-memory budgets**, **ARM64 + L4T** image availability, and **attack surface** on the appliance.
+
+**Borrow engineering ideas, not the whole bundle** — example reference: [Dream Server](https://github.com/Light-Heart-Labs/DreamServer) (Apache-2.0) bundles Open WebUI, llama-server, Whisper/Kokoro-class voice, LiteLLM, n8n, Qdrant, ComfyUI, etc. For OrinClaw, treat it as **inspiration only**:
+
+| Idea worth stealing | OrinClaw application |
+|---------------------|----------------------|
+| **Modular installer / phases** | Factory + OTA bootstrap: detect hardware, staged first-boot, clear failure messages |
+| **Health + status dashboard** | Web UI `/health`, GPU/RAM/disk, service readiness (align with §8 verification) |
+| **Bootstrap model** | Ship a tiny model or fast path so first reply works while a larger model stages from NVMe/OTA |
+| **Resume-capable downloads** | Robust model/artifact fetch for OTA and `/data/models` |
+| **Optional “extensions” pattern** | Enable/disable **optional** features (e.g. RAG, extra skills) without bloating default image |
+| **API gateway concept** | If you unify LLM endpoints internally, keep it **loopback-only** + authenticated (see §8 *OpenClaw Gateway bind*) |
+
+**Rule of thumb:** prototype rich stacks on **x86 + discrete GPU**; **pin and shrink** what you prove on Jetson. Do **not** commit to porting an entire third-party compose monolith unless each service has an **ARM64/L4T** story and a **RAM line item** in §5.
 
 ### Phones, NPUs, and OpenClaw (iOS / Android)
 
@@ -382,7 +482,7 @@ Per the [OpenClaw README](https://github.com/openclaw/openclaw) and docs, the us
 | **Gateway** (Node.js control plane: channels, sessions, tools, Web UI) | **macOS, Linux, Windows (WSL2)** — often a **desktop or small server** | Orchestrates everything; can run **remote** (e.g. Linux SBC or VPS) while clients connect over Tailscale/SSH ([remote gateway](https://docs.openclaw.ai/gateway/remote)) |
 | **iOS / Android “nodes”** | **Phone or tablet** | **Companion apps**: pair over the Gateway WebSocket; expose **device-local** capabilities (e.g. Canvas, camera, screen capture, location, notifications). **Voice Wake** is documented for **macOS/iOS**; **Talk Mode** / continuous voice patterns differ by platform ([iOS](https://docs.openclaw.ai/platforms/ios), [Android](https://docs.openclaw.ai/platforms/android)) |
 
-So **yes, OpenClaw “supports” phones**—primarily as **paired nodes** and **clients**, not as the canonical place to run the **full Gateway + heavy local LLM** stack. Running a **production Gateway on-device on iOS/Android** is **not** the documented happy path (sandboxing, background limits, no stock Node server on iOS, battery/thermal policy). Practical pattern: **Gateway on OrinCraw (or Mac/Linux)** + **optional iOS/Android node** for mobile-specific tools.
+So **yes, OpenClaw “supports” phones**—primarily as **paired nodes** and **clients**, not as the canonical place to run the **full Gateway + heavy local LLM** stack. Running a **production Gateway on-device on iOS/Android** is **not** the documented happy path (sandboxing, background limits, no stock Node server on iOS, battery/thermal policy). Practical pattern: **Gateway on OrinClaw (or Mac/Linux)** + **optional iOS/Android node** for mobile-specific tools.
 
 #### Edge computing on iOS / Android (on-device inference) — pros and cons
 
@@ -394,9 +494,9 @@ So **yes, OpenClaw “supports” phones**—primarily as **paired nodes** and *
 | **No extra hardware purchase** for experimentation | **Ecosystem lock-in** — Core ML / NNAPI / vendor SDKs; harder **one** portable stack than Linux+Docker on a box |
 | Good for **personal** copilots, offline snippets, on-device STT | **Shared home / Matter / multi-user** — phone is personal; weak fit as **household** voice hub (§6) |
 
-#### Compared with **OrinCraw** (this capstone)
+#### Compared with **OrinClaw** (this capstone)
 
-| Dimension | Phone-centric edge | **OrinCraw** (Jetson box) |
+| Dimension | Phone-centric edge | **OrinClaw** (Jetson box) |
 |-----------|--------------------|---------------------------|
 | **Uptime** | Intermittent; pocket, sleep, OS kills | **Designed for 24/7** mains power |
 | **OpenClaw fit** | Node / client; Gateway elsewhere | **Gateway + local STT/LLM/TTS** on one appliance |
@@ -405,9 +505,9 @@ So **yes, OpenClaw “supports” phones**—primarily as **paired nodes** and *
 | **Inference headroom** | Bursts; thermal limited | **Sustained** workload + **512GB NVMe** model/cache library (§3, §5) |
 | **OTA** | App Store / OEM | **Layered OTA** you control (§8) |
 
-**Verdict:** Use **phones** for **mobile nodes**, **notifications**, and **on-device** experiments; use **OrinCraw** when the product promise is **always-on, home-scope, offline-first voice + automation** with a **stable** OpenClaw Gateway and **local** inference services.
+**Verdict:** Use **phones** for **mobile nodes**, **notifications**, and **on-device** experiments; use **OrinClaw** when the product promise is **always-on, home-scope, offline-first voice + automation** with a **stable** OpenClaw Gateway and **local** inference services.
 
-### End-to-end architecture (OrinCraw)
+### End-to-end architecture (OrinClaw)
 
 ```mermaid
 flowchart LR
@@ -438,14 +538,14 @@ flowchart LR
 
 WiFi/BT to Linux: **ESP-Hosted-NG** on **SPI**; LED/button traffic: optional **second UART or I2C** (§3).
 
-**Optional architecture — separate ESP32 smart-home controller (Matter-preferred, OrinCraw no UI):**
+**Optional architecture — separate ESP32 smart-home controller (Matter-preferred, OrinClaw no UI):**
 
 ```mermaid
 flowchart LR
   User((User))
-  User --> Mic[Mic on OrinCraw]
-  Mic --> OrinCraw[OrinCraw Jetson box]
-  OrinCraw -->|voice LED LAN web only| NoUI[No on-device smart-home UI]
+  User --> Mic[Mic on OrinClaw]
+  Mic --> OrinClaw[OrinClaw Jetson box]
+  OrinClaw -->|voice LED LAN web only| NoUI[No on-device smart-home UI]
   subgraph sat [ESP32 controller satellite]
     UI[Touch or glance UI]
     MAT[Matter / Thread / BLE]
@@ -453,14 +553,14 @@ flowchart LR
     UI --> MAT
     UI --> W
   end
-  W <-->|MQTT HTTP WS on LAN| OrinCraw
-  MAT -.->|IP via Thread BR or WiFi| OrinCraw
+  W <-->|MQTT HTTP WS on LAN| OrinClaw
+  MAT -.->|IP via Thread BR or WiFi| OrinClaw
 ```
 
 Use **LAN-local** APIs between satellite and Jetson; **Matter** for accessory ecosystem; **BLE** mainly for **setup**. Details and SKU tradeoffs: **§3** *Optional separate ESP32 smart-home controller*.
 
 ### Optional BYOK cloud AI (Claude / GPT / Gemini)
-OrinCraw remains **offline-first**; cloud LLM/API use is **opt-in** via **bring your own key** (BYOK), similar in spirit to ClawBox-style setups.
+OrinClaw remains **offline-first**; cloud LLM/API use is **opt-in** via **bring your own key** (BYOK), similar in spirit to ClawBox-style setups.
 
 - **Configuration**: API keys only under `/data/config` or OpenClaw’s secure config with strict permissions (**`0600`**); inject via environment at container runtime—never commit keys or bake them into images
 - **Routing policies** (choose one product policy and document it for users):
@@ -474,7 +574,7 @@ If **no keys** are configured, behavior is **strictly local**.
 
 ### Base OS and packaging
 - **OS / JetPack**: Follow **§3 JetPack / L4T version strategy** (start **5.1.2**, upgrade to **6.2.1**, then **7** when officially supported). **Ubuntu rootfs, CUDA, TensorRT, and system libraries** are defined by the **flashed JetPack**—use NVIDIA release notes for the exact versions per line (they differ between 5.1.2 and 6.2.1). Optimize L4T for fast boot and **NVMe** (trim/discard, scheduler, **FDE** overhead measurement—see “L4T Linux optimization” below).
-- **App packaging**: Docker Compose (OTA-friendly), with host-level udev and minimal services. **Template:** [orincraw-deploy/docker-compose.yml](orincraw-deploy/docker-compose.yml) — replace image names/build contexts with your built L4T-compatible images. **Update cadence**: ship the OpenClaw-facing stack as **container images + signed compose/manifest** so you can track upstream **without reflashing L4T** for most releases—see **§8 Layered OTA** (OpenClaw sync).
+- **App packaging**: Docker Compose (OTA-friendly), with host-level udev and minimal services. **Template:** [orinclaw-deploy/docker-compose.yml](orinclaw-deploy/docker-compose.yml) — replace image names/build contexts with your built L4T-compatible images. **Update cadence**: ship the OpenClaw-facing stack as **container images + signed compose/manifest** so you can track upstream **without reflashing L4T** for most releases—see **§8 Layered OTA** (OpenClaw sync).
 - **Data layout** (bind-mount or named volumes on Jetson):
   - `/data/models` (persistent model cache)
   - `/data/skills` (plugins)
@@ -488,6 +588,63 @@ If **no keys** are configured, behavior is **strictly local**.
 - **Storage-friendly**: Minimize unnecessary writes to **NVMe** (logs to tmpfs or aggressive rotate; OTA staging with care; monitor **SMART**); consider read-only or mostly-static rootfs with overlay for configs and app data.
 - **Memory footprint**: Free RAM for model residency by reducing kernel/CMA carveouts only if safe; avoid unnecessary background processes.
 - **Checklist**: Document a concrete list (services to disable, kernel/device-tree options, filesystem mounts) in the project repo or guide. **Security-oriented** sysctl, firewall, and boot policy belong in **§8** (test together—some hardening can affect audio, Docker, or GPU).
+
+### Jetson host notes (OrinClaw scope)
+
+OrinClaw is an **always-on home assistant appliance** (voice, OpenClaw, smart-home), not an autonomy ECU. This subsection keeps **embedded Linux concepts that apply here**: Jetson bring-up, **I²S/audio** and **ESP-Hosted** paths, OTA/onboarding, and sane **systemd/network/udev** hygiene. **Detailed security, signing, and layered OTA** stay in **§8**.
+
+#### Development host vs appliance OS (macOS vs Linux on Jetson)
+
+**macOS** (e.g. on a **Mac Mini** used for OpenClaw experiments) is **closed source** at the **kernel and core platform** layer: you ship **apps** and **containers**, not a **custom OS image** or **vendor kernel**. That is fine for a **development machine**—**Homebrew**, **Node**, **Docker**, **launchd** services, good tooling—but it is **not** where OrinClaw product integration lives.
+
+**OrinClaw** runs **Linux** on the Jetson via **NVIDIA JetPack / L4T** (Ubuntu-based rootfs plus NVIDIA BSP). At this layer the stack is **practically open for product engineering**: **device tree** and **pinmux** for your carrier, **out-of-tree** drivers such as **ESP-Hosted**, **kernel** and **sysctl** tuning within NVIDIA’s support envelope, **headless** `systemd` services, **immutable `/` + `/data`** patterns, and—if the program ever needs it—a **Yocto** or **custom rootfs** path (see Phase 1 OS lectures linked below). You **cannot** run macOS on Jetson; the **appliance** is a **Linux embedded server with GPU**, not a desktop clone.
+
+| Concern | macOS dev host | OrinClaw (L4T / Linux on Jetson) |
+|---------|----------------|----------------------------------|
+| **Kernel / DT** | Apple-controlled, not yours | **Your** carrier **DTB**, NVIDIA **L4T kernel** policy you validate |
+| **Always-on agents** | **launchd** + user space | **systemd** + **Compose** + **§8** hardening |
+| **Embedded I/O** | No native Jetson **SPI/I²S/RGMII** | Native path for **C6**, audio, Ethernet, USB host |
+| **Factory / OTA image** | N/A for product | **Signed** rootfs + **P0/P2** strategy (**§8**) |
+
+**Phase 1** (optional revision): [Final-Test-Problems.md](../../Phase%201%20-%20Foundational%20Knowledge/4.%20Operating%20Systems/Final-Test-Problems.md); [Lecture 5 — Boot & device tree](../../Phase%201%20-%20Foundational%20Knowledge/4.%20Operating%20Systems/Lectures/Lecture-05.md); [Lecture 25 — Yocto / factory images](../../Phase%201%20-%20Foundational%20Knowledge/4.%20Operating%20Systems/Lectures/Lecture-25.md) (only if you pursue custom images); [Lecture 26 — eBPF](../../Phase%201%20-%20Foundational%20Knowledge/4.%20Operating%20Systems/Lectures/Lecture-26.md) for **low-overhead** latency debugging if you need it. [Lecture 7 — PREEMPT_RT](../../Phase%201%20-%20Foundational%20Knowledge/4.%20Operating%20Systems/Lectures/Lecture-07.md) is **optional background**—most OrinClaw builds stay on the **vendor L4T kernel** unless you measure a concrete audio/scheduling problem.
+
+#### Stack layers (what to version on Jetson)
+
+| Layer | What you track | OrinClaw touchpoints |
+|-------|----------------|---------------------|
+| **Boot / flash** | Recovery path, slot strategy if you use **A/B** (**§8** P0) | **§3** JetPack strategy; **§8** |
+| **Kernel + DT** | NVIDIA BSP + carrier **DT** (NVMe, I²S, **ESP-Hosted SPI**) | Custom carrier **§3**; ESP-Hosted **§8** R2 |
+| **Rootfs** | JetPack Ubuntu + L4T; optional later: **immutable `/`** + **`/data`** | **§4** layout; **§8** |
+| **Userspace** | **systemd**, **udev**, Docker, pinned CUDA/TRT | Compose **§4**; P1 **§8** |
+| **Releases** | P2 manifest **`min_l4t`**, image digests | **§8** |
+
+**Bring-up checklist (story for this product):** power + straps → flash **pinned JetPack** → console + **Ethernet** + **NVMe** → **I²S/mic** and speaker → **`wlan0` via ESP-Hosted** → OpenClaw + inference smoke → OTA/health wiring. Document repeats so **multiple units** match; on-ramp: [Getting-started-Jetson.md](orinclaw-deploy/Getting-started-Jetson.md), formal list **§10**.
+
+#### Optional camera / vision (skills only; not the default SKU)
+
+Some OpenClaw skills may use a **USB webcam** or a future **CSI** module. Prefer **V4L2** capture setups (**mmap** queues, dmabuf-style export to GPU when available) that **reduce copies**; tune queue depth **shallow** for interaction latency vs **deeper** if you prioritize fewer drops—see **§5** budgets. **Autonomy-style sensors (LiDAR fleets, PTP fusion, mixed-criticality vehicle stacks) are out of scope** unless you explicitly change the product definition.
+
+#### Updates, onboarding, diagnostics, health (single-device framing)
+
+| Concern | Practice | OrinClaw detail |
+|---------|----------|-----------------|
+| **OTA** | Verify artifacts → apply → **health gate** → rollback | **§8** P0–P3, **§6** LED |
+| **Provisioning** | First-boot WiFi, secrets under **`/data/config`**, **0700** | **§2**, **§8** |
+| **Diagnostics** | **Opt-in** only per product promise; bounded logs | **§2** privacy; **`/data/logs`** **§4** |
+| **Health** | `systemd` restarts, **`/health`**, **`tegrastats`** / thermals | **§6**, **§10** |
+
+Prefer **small, versioned** updater/daemon code paths over one-off SSH edits on shipped units.
+
+#### Userspace configuration (devices, network, processes, time)
+
+- **udev** — stable names/permissions for **audio**, **NVMe**, and any **video** node you add.
+- **Network** — pick **NetworkManager** vs **systemd-networkd** deliberately for **ESP-Hosted `wlan0`** (**§3**); use **`network-online.target`** only where services truly need it.
+- **Processes** — **`systemd` + cgroups** to cap **browser/skills** so wake + **I²S** path keeps CPU/RAM headroom (**§5**).
+- **Time** — **`chrony`** or **`systemd-timesyncd`** for TLS and log timestamps (**§8**); **PTP** is unnecessary for the default voice product.
+
+#### Voice latency, load, and hardening (without autonomy framing)
+
+The competing consumers are **unified memory** and **background CPU**, not vehicle **safety partitions**: profile **wake → STT → LLM → TTS** under load (**§5**), avoid **swap** on NVMe, and use **`systemd` resource limits** before reaching for **RT kernel** patches. **Kernel sysctl, LSM, firewall, containers** follow **§8**—re-test **audio, Docker, GPU, and ESP-Hosted** after each change.
 
 ### Core services (separate processes/containers)
 - **Wake word**: low-power always-on (CPU/DSP-friendly)
@@ -539,6 +696,9 @@ Jetson Orin Nano is **not** the same memory model as a typical laptop or small s
   - `trtexec` for baseline throughput/latency
   - Nsight Systems for end-to-end (audio→STT→LLM→TTS)
   - `tegrastats` for thermal/power + throttling detection
+
+### NVIDIA Model Optimizer (optional upstream)
+When you want a **repeatable** path from **Hugging Face / PyTorch / ONNX** → compressed checkpoints → **TensorRT-LLM**, **TensorRT**, **vLLM**, **SGLang**, etc., use **[NVIDIA Model Optimizer](https://github.com/NVIDIA/Model-Optimizer)** (ModelOpt): PTQ and QAT, plus pruning, distillation, speculative decoding, and sparsity workflows documented in the repo. Install: `pip install -U nvidia-modelopt[all]`; full docs: [Model Optimizer guides](https://nvidia.github.io/Model-Optimizer/). Run optimization in **CI, factory, or a dev GPU** that matches your export story, then **build engines on a pinned Jetson** image and profile under **full-stack** UMA load—**precisions and layer support** differ by GPU and JetPack line; treat the upstream **support matrix** as authoritative before locking a recipe.
 
 ### Model and disk optimization for 512GB NVMe (default setup)
 - **Single default stack (baseline)**: One small/medium LLM (e.g. Q4 quantized), one STT, one TTS that comfortably fit **512GB NVMe** alongside rootfs, Docker layers, logs, and OTA staging.
@@ -593,13 +753,13 @@ Adjust to your measurements; log p50/p95/p99 in the benchmark report.
 The device has **no screen**. Design a **specific, better default UI** for **smart-home control** as the primary experience.
 
 - **Primary control**: **Voice** (wake word + commands) and **web UI** (from phone/tablet at e.g. `http://<device>.local`) for setup, rooms, devices, scenes, automations.
-- **Optional separate ESP32 smart-home controller (§3):** A **second device** (wall/shelf) can own **touch or glance UI**, **Matter** (preferred), **Thread**, **WiFi**, and **BLE** (provisioning)—so **OrinCraw stays headless** (no on-cylinder smart-home screen). Control path is **LAN-local** (e.g. MQTT/HTTP/WS) plus standard IoT radios; see §3 *Optional separate ESP32 smart-home controller* and §4 diagram.
+- **Optional separate ESP32 smart-home controller (§3):** A **second device** (wall/shelf) can own **touch or glance UI**, **Matter** (preferred), **Thread**, **WiFi**, and **BLE** (provisioning)—so **OrinClaw stays headless** (no on-cylinder smart-home screen). Control path is **LAN-local** (e.g. MQTT/HTTP/WS) plus standard IoT radios; see §3 *Optional separate ESP32 smart-home controller* and §4 diagram.
 - **Smart-home first**: Default flows: list/control rooms and devices, run scenes, set automations, pair **Matter** and Zigbee/Thread devices. Integrate Home Assistant / MQTT / **Matter**; keep web UI focused for “turn off kitchen,” “run evening scene,” “add device,” and Matter commissioning.
-- **Mobile app (OrinCraw-branded)**: Planned for **later development**; not in initial release. **Upstream OpenClaw** already ships **iOS/Android node** apps (pair to Gateway; see §4 *Phones, NPUs, and OpenClaw*). Until a dedicated OrinCraw app exists, default is **voice + web UI** (`http://<device>.local`) + light signals; optional **OpenClaw mobile node** + browser for power users.
+- **Mobile app (OrinClaw-branded)**: Planned for **later development**; not in initial release. **Upstream OpenClaw** already ships **iOS/Android node** apps (pair to Gateway; see §4 *Phones, NPUs, and OpenClaw*). Until a dedicated OrinClaw app exists, default is **voice + web UI** (`http://<device>.local`) + light signals; optional **OpenClaw mobile node** + browser for power users.
 
 ### Optional top display (SKU): glanceable info vs “no screen” baseline
 
-The **default OrinCraw** remains **voice-first + LED + web UI**—no general-purpose screen (§1 renders, §6 default UI). **Product fork:** either add a **small top-mounted glanceable panel** (below) **or** put **all** pixel UI on the **§3 ESP32 satellite controller** and keep the cylinder **strictly** non-display—do not assume both unless you explicitly want two optional SKUs.
+The **default OrinClaw** remains **voice-first + LED + web UI**—no general-purpose screen (§1 renders, §6 default UI). **Product fork:** either add a **small top-mounted glanceable panel** (below) **or** put **all** pixel UI on the **§3 ESP32 satellite controller** and keep the cylinder **strictly** non-display—do not assume both unless you explicitly want two optional SKUs.
 
 **Plausible hardware options** (pick one philosophy per SKU)
 
@@ -664,7 +824,7 @@ Use the **LED ring** (or status LED) as the main **out-of-band signal** so users
 | No network | Red  | Slow blink     | WiFi down |
 
 ### Setup UX (no-terminal, under 5 minutes)
-- Captive portal or local web UI at `http://orincraw.local` (or your chosen hostname)—style mDNS name
+- Captive portal or local web UI at `http://orinclaw.local` (or your chosen hostname)—style mDNS name
 - WiFi onboarding + optional Ethernet-first flow
 - “Voice calibration” wizard (mic gain, noise profile, wake word sensitivity)
 - One-click update and rollback
@@ -689,6 +849,16 @@ Use the **LED ring** (or status LED) as the main **out-of-band signal** so users
 - **OTA failure**: Rollback per OTA strategy; LED indicates "update failed."
 - **Web UI health**: Expose a simple **health page** (e.g. `/health`) with status of Gateway, STT, LLM, TTS, **WiFi interface (ESP-Hosted)**, optional **ESP32 side-channel** (LED/buttons), and battery (if present).
 
+### Privacy and data lifecycle (product policy)
+
+For a privacy-first assistant, the **data policy** must be part of the product design, not an afterthought.
+
+- **Default local**: audio, transcripts, and device actions stay local unless the user explicitly enables a cloud connector.
+- **Minimal retention**: keep only what is necessary for operation, debugging, and user-requested history; define retention windows for logs, transcripts, and analytics.
+- **Visible cloud boundary**: when a request leaves the device, make that obvious in UI/settings and document exactly what is sent.
+- **Household consent**: features like **occupancy**, **camera**, or **person-aware routing** must be **opt-in**, clearly labeled, and reversible.
+- **Resetability**: factory reset must remove user accounts, pairings, WiFi credentials, cloud keys, and local history per policy.
+
 ---
 
 ## 7) Compatibility goals (what “better compatibility” means)
@@ -707,7 +877,7 @@ If targeting sale or distribution, plan for: **FCC/CE** (RF from **each** intent
 
 ## 8) Security + OTA (production-grade, not hobby)
 
-### Threat model (OrinCraw + OpenClaw)
+### Threat model (OrinClaw + OpenClaw)
 
 Design against at least:
 
@@ -719,25 +889,38 @@ Design against at least:
 | **Stolen device** (physical) | **Remove 512GB NVMe**, mount on another PC, image offline | **§8** *Physical theft & storage* — **mandatory** FDE + keys **off** drive; **NVMe Sanitize** on reset; mechanical hardening; **drive-extraction** QA |
 | **Supply chain** | Bad image / manifest | Signed P2 manifests, image digests, signed P0 slot images |
 
+#### Community skills = untrusted code (treat like random GitHub)
+
+OpenClaw-style **skills** (ClawHub, community repos, copy-paste snippets) are **arbitrary code** in your agent’s trust boundary. Independent write-ups in the ecosystem have warned that a **large minority** of community skills can be **malicious or unsafe** (order-of-magnitude **~17–20%** has appeared in commentary—**not** a verified OrinClaw statistic; use it only as a **mindset**, not a guarantee). **Assume any skill you did not author and audit is hostile until proven otherwise.**
+
+**OrinClaw product posture (aligns with “isolate / minimize / segment”):**
+
+| Practice | OrinClaw application |
+|----------|----------------------|
+| **Isolate agents / workloads** | Run Gateway, inference, and **untrusted skills** in **separate containers** with **least privilege**, **read-only** roots where possible, **no** blanket `/data/config` or Docker socket access; separate **UID/GID** per role (**§8** table — *Malicious skill / container*). |
+| **Avoid feeding personal data** | Default skills and RAG paths should **not** ingest full message history, credentials, or financial accounts without **explicit** user policy; prefer **minimal context** to tools; document what leaves the box (**§6** *Visible cloud boundary*). |
+| **Network isolation (“DMZ”)** | Place the appliance on a **guest / IoT VLAN** or **router firewall rules** that **deny** OrinClaw → **LAN targets** (NAS, PCs, printers) except **allowlisted** ports/hosts (e.g. Home Assistant only). Optional **second NIC** or **policy router** for stricter separation; **Tailscale** with **ACLs** if remote—**deny by default** (**§8** *Internet attacker*). |
+| **Curation** | **Ship** a **vetted default skill set**; treat **third-party install** as **advanced** with a **warning** UI and **checksum/signature** policy when you have one. |
+
 **Out of scope for “strict OS” alone:** nation-state with physical chip access; mitigate with separate product security program.
 
 ### OS and kernel-level security design (L4T / Jetson)
 
-These rules target **Ubuntu + NVIDIA L4T** on OrinCraw. **Validate every toggle on your exact JetPack**—NVIDIA’s kernel, GPU stack, and out-of-tree drivers (e.g. **ESP-Hosted**) can **break** under aggressive hardening (e.g. full **LOCKDOWN**). Treat this as a **checklist to implement and regression-test**, not blind copy-paste.
+These rules target **Ubuntu + NVIDIA L4T** on OrinClaw. **Validate every toggle on your exact JetPack**—NVIDIA’s kernel, GPU stack, and out-of-tree drivers (e.g. **ESP-Hosted**) can **break** under aggressive hardening (e.g. full **LOCKDOWN**). Treat this as a **checklist to implement and regression-test**, not blind copy-paste.
 
 #### Boot integrity and rootfs (P0)
 
 - **Secure Boot / verified boot**: Use NVIDIA’s **Jetson secure boot** flow when your module + production process support it; fuse and key management are **irreversible**—follow NVIDIA docs and legal/process review. Goal: only **signed** boot firmware + kernel + DTB chain.
 - **A/B slots** (see §8 OTA): pair integrity with **rollback**; failed boot promotes previous slot.
 - **Rootfs strategy** (choose one product line and test):
-  - **Immutable `/` + writable `/data`**: `/` from verified image or read-only mount; configuration and secrets only under **`/data`** (already OrinCraw layout §4). Reduces persistence for most malware.
+  - **Immutable `/` + writable `/data`**: `/` from verified image or read-only mount; configuration and secrets only under **`/data`** (already OrinClaw layout §4). Reduces persistence for most malware.
   - **`dm-verity` / equivalent** on read-only system partition where tooling supports it on your L4T generation—again, test with NVIDIA stack.
 - **UART / recovery**: **Disable production UART console** or gate behind **factory** image only; document **USB/recovery** path for support without leaving a **root shell** on exposed pins.
 
 #### Kernel attack surface
 
 - **Stay on supported JetPack**: security fixes ship in **L4T**; pinning is good for stability but **schedule** CVE review and P0 updates (§3 JetPack strategy).
-- **Disable loadable modules in production** only if **no** out-of-tree driver is required. **OrinCraw caveat:** **ESP-Hosted** typically needs a **host driver** built for your kernel—often **DKMS** or a shipped **`.ko`**. If modules must load:
+- **Disable loadable modules in production** only if **no** out-of-tree driver is required. **OrinClaw caveat:** **ESP-Hosted** typically needs a **host driver** built for your kernel—often **DKMS** or a shipped **`.ko`**. If modules must load:
   - Restrict **who** can load modules (`sysctl kernel.modules_disabled` is all-or-nothing—usually **incompatible** with ESP-Hosted).
   - Prefer **pre-built, signed-in-manifest** modules installed at image build time over ad-hoc `insmod` on device.
 - **Sysctl hardening** (common patterns—confirm no regression for audio, Docker, NVIDIA):
@@ -758,9 +941,9 @@ These rules target **Ubuntu + NVIDIA L4T** on OrinCraw. **Validate every toggle 
 - **`/data` permissions**: dedicated group for services; **`/data/config` 0700** for secrets tree; no world-readable keys.
 - **Encryption at rest**: **Mandatory** for production **512GB NVMe** units that store **BYOK**, WiFi credentials, or sensitive RAG—**removable M.2** is a **high-likelihood** theft path. See **Physical theft & storage** below; “no encryption” is **not** an acceptable ship configuration for those SKUs.
 
-#### Physical theft and storage extraction (512GB NVMe — default OrinCraw)
+#### Physical theft and storage extraction (512GB NVMe — default OrinClaw)
 
-OrinCraw uses **socketed M.2 NVMe** (**2280**, **512GB** default). A thief can open the enclosure and **remove the SSD in seconds**, then mount it in a USB enclosure or desktop PC. **Unix permissions do not protect** that scenario—only **cryptography** (and optionally **SED hardware**) does.
+OrinClaw uses **socketed M.2 NVMe** (**2280**, **512GB** default). A thief can open the enclosure and **remove the SSD in seconds**, then mount it in a USB enclosure or desktop PC. **Unix permissions do not protect** that scenario—only **cryptography** (and optionally **SED hardware**) does.
 
 **Non-negotiable production requirements (stolen hardware / drive extraction)**
 
@@ -774,7 +957,7 @@ OrinCraw uses **socketed M.2 NVMe** (**2280**, **512GB** default). A thief can o
 
 ##### What you cannot fully prevent
 
-A **determined lab** (invasive probing, cold boot, firmware attacks on the SSD) is not fully covered here. OrinCraw must defeat **opportunistic theft** and **casual imaging** of the removed NVMe—no readable **`/data/config`**, BYOK material, WiFi PSKs, or sensitive RAG.
+A **determined lab** (invasive probing, cold boot, firmware attacks on the SSD) is not fully covered here. OrinClaw must defeat **opportunistic theft** and **casual imaging** of the removed NVMe—no readable **`/data/config`**, BYOK material, WiFi PSKs, or sensitive RAG.
 
 ##### Logical controls (OS / crypto) — primary defense
 
@@ -813,7 +996,23 @@ Use **with** FDE; alone they do not provide confidentiality.
 
 - **Default-deny firewall** (`nftables` or `ufw`): allow **only** what you ship (e.g. **22/tcp** from admin VLAN if SSH enabled; **80/443** to `127.0.0.1` if a local proxy fronts UI; **mDNS** if you need `.local` discovery—scope to LAN).
 - **OpenClaw Gateway bind**: follow upstream guidance—when using Tailscale Serve/Funnel, **`gateway.bind` loopback** patterns exist for a reason ([README](https://github.com/openclaw/openclaw)); do not expose raw Gateway WS to `0.0.0.0` without **auth**.
-- **Segmentation**: if the product has a **guest** WiFi or untrusted LAN, **do not** put OrinCraw on that SSID; prefer **trusted LAN + Ethernet** for OTA-heavy paths.
+- **Segmentation**: if the product has a **guest** WiFi or untrusted LAN, **do not** put OrinClaw on that SSID; prefer **trusted LAN + Ethernet** for OTA-heavy paths.
+
+##### Office remote access (private) via Tailscale
+
+Use Tailscale when office users need access to a **local/private OrinClaw** without opening router ports.
+
+- **Topology**: OrinClaw joins your tailnet as a private node; office laptop/phone joins the same tailnet; access OrinClaw by MagicDNS hostname.
+- **Exposure model**: keep OrinClaw services on **LAN + tailnet only**; no public WAN listener for Gateway/Web UI.
+- **AuthN/AuthZ**: require SSO + MFA for tailnet login; apply ACLs/tag owners so only approved users/devices can reach OrinClaw ports.
+- **Gateway posture**: bind OpenClaw Gateway to loopback/local proxy as documented; never publish raw unauthenticated control endpoints.
+- **Ops controls**: disable or revoke lost office devices quickly (tailnet admin), rotate keys/tokens on role change, and review access logs.
+
+**Remote-use verification (office scenario)**
+- [ ] Office device on tailnet reaches OrinClaw by MagicDNS and cannot reach non-approved ports.
+- [ ] WAN port scan on home/office router shows no direct OrinClaw service exposure.
+- [ ] Revoked test device loses access immediately (or within tailnet policy window).
+- [ ] WAN down but VPN path up: expected local-private behaviors remain consistent with §2 policy.
 
 #### Docker / container isolation (OpenClaw stack)
 
@@ -871,7 +1070,7 @@ Gateway and inference services should **not** run as root inside containers unle
 
 ### OpenClaw sync strategy (fast upstream, controlled device)
 
-**Production posture:** Pin **image digests** in the manifest you ship; avoid `latest` on device. CI publishes e.g. `orincraw-app-2025.03.2` with immutable digests per service.
+**Production posture:** Pin **image digests** in the manifest you ship; avoid `latest` on device. CI publishes e.g. `orinclaw-app-2025.03.2` with immutable digests per service.
 
 **Recommended manifest contents** (machine-readable JSON or YAML alongside compose):
 - **`target_jetpack` / `min_l4t`** — refuse apply if `uname` / L4T version mismatch (prevents pulling JP6-built CUDA images onto JP5).
@@ -881,7 +1080,7 @@ Gateway and inference services should **not** run as root inside containers unle
 - **`artifacts_sha256`** — manifest itself + any bundled config templates.
 
 **Apply pipeline (P2, no rootfs flash)**
-1. **Download** manifest + signature to staging (e.g. `/var/lib/orincraw/ota-staging/` or under `/data/ota/` with size quotas).
+1. **Download** manifest + signature to staging (e.g. `/var/lib/orinclaw/ota-staging/` or under `/data/ota/` with size quotas).
 2. **Verify** publisher signature + **per-image digest** before `docker pull` (or pull-by-digest only).
 3. **Stage compose**: write `docker-compose.yml.next` + `.env.next` from template; do not touch the running stack yet.
 4. **Pre-pull** images in background (bandwidth-aware); **Ethernet preferred** for large layers (§3 WiFi note).
@@ -892,14 +1091,14 @@ Gateway and inference services should **not** run as root inside containers unle
 
 **Per-service updates (optional refinement):** If OpenClaw gateway changes often but inference images are stable, split manifests so the **gateway** image updates independently **only when** API between gateway and local tools is backward-compatible; otherwise ship **bundle** releases to avoid split-brain.
 
-**Developer / beta channel:** Offer `orincraw-beta` manifest channel with shorter soak; **stable** channel lags by N days or until smoke tests pass on **reference hardware** (dev kit + one custom carrier SKU).
+**Developer / beta channel:** Offer `orinclaw-beta` manifest channel with shorter soak; **stable** channel lags by N days or until smoke tests pass on **reference hardware** (dev kit + one custom carrier SKU).
 
 ### OTA strategy (foundation, all planes)
 
 - **Staged update**: Download new image/artifact to **staging** (not the active rootfs for P0; not the active compose for P2 until verified); verify **signature** and **integrity** (SHA256 / digest match) before switch.
 - **Verify-then-switch**: For **P0**, health-check after booting new slot; for **P2**, health-check after `compose up` with new manifest. **Never** promote without verification.
 - **Rollback**: **P0** — boot counter / A/B fallback slot. **P2** — keep **last-known-good manifest + digests** on disk (N−1 release); automatic revert on health timeout. **P3** — non-destructive swap of model dirs or symlinks.
-- **Channels**: **Stable / beta** for **P2 manifests**; separate, conservative channel for **P0** (e.g. `orincraw-os-stable`) so OS jumps are never mixed with daily app experiments.
+- **Channels**: **Stable / beta** for **P2 manifests**; separate, conservative channel for **P0** (e.g. `orinclaw-os-stable`) so OS jumps are never mixed with daily app experiments.
 - **User-visible**: “Update available,” **in-progress** LED (§6), clear **failure** state; warn not to power-cycle during P0 apply; P2 is shorter but still show activity.
 - **Offline / WAN down**: Already required in §2—show **update unavailable**; optional **LAN-only** mirror for enterprise (pull manifest from local server).
 - **NVMe wear (512GB default)**: P2 pulls write layers—cap staging, retries, and OTA logs; monitor **SMART** (**R4**).
@@ -915,7 +1114,7 @@ After any P0 change, rebuild **P1** host pieces and **rebuild or re-pull** all *
 
 ---
 
-## 9) Risk analysis (OrinCraw)
+## 9) Risk analysis (OrinClaw)
 
 Use this as a living **risk register**: review at each milestone (especially before **custom PCB tape-out**, **ESP-Hosted** integration freeze, and **OTA** go-live). Scale *Likelihood* and *Impact* as **L/M/H** (Low / Medium / High) for your program.
 
@@ -949,19 +1148,39 @@ Use this as a living **risk register**: review at each milestone (especially bef
 ## 10) Deliverables (what you must ship)
 
 ### Hardware deliverables
+- **Hardware design requirements (scope + resolved open questions):** [OrinClaw-Hardware-Design-Requirements.md](OrinClaw-Hardware-Design-Requirements.md) — carrier subsystems, power/PD, battery SKU policy, LED/audio/BSP/layout decisions, power budget template; **§2.9** optional **USB FT232H kit** (OS/docs only, no on-board FT232H); **§2.10** **2× USB-A + 1× USB-C host** (no Thunderbolt), **VBUS** budget.
+- **Pinmux (source of truth):** NVIDIA **Orin Nano / Orin NX** pinmux **`.xlsm`/`.xlsx`** customized for the **OrinClaw carrier**, **JetPack-aligned**, and **ready to generate** device-tree fragments (`*pinmux*.dtsi`, pad/GPIO defaults per NVIDIA flow)—plus **ball ↔ net ↔ sheet** cross-reference (contractor SOW: [Job-Post-PCB-Contractor-1wk.md](Job-Post-PCB-Contractor-1wk.md)).
 - **Custom PCB package**: schematics, PCB layout (source + release gerbers), stackup, BOM (optimized: **no unnecessary parts**, **all necessary parts** documented), assembly drawing, pick-and-place, **DFM/DFA** checklist, revision history.
 - **Module carrier bring-up**: document power sequencing, strap options, first-boot test procedure, and comparison to dev-kit behavior.
 - Thermal plan (target sustained mode, no throttle in a 30-minute stress test) **on the shipping mechanical + PCB**
 - Audio subsystem plan (mic array placement, echo cancellation strategy) **integrated in enclosure + PCB**
 
 ### Software deliverables
-- **Compose template**: [orincraw-deploy/docker-compose.yml](orincraw-deploy/docker-compose.yml) (adapt images/builds for your JetPack)
+- **Compose template**: [orinclaw-deploy/docker-compose.yml](orinclaw-deploy/docker-compose.yml) (adapt images/builds for your JetPack)
+- **Jetson host notes**: keep **§4** *Jetson host notes (OrinClaw scope)* updated with your **actual** carrier, JetPack pin, and OTA agent—aligned with **§8**, not vehicle/autonomy patterns
 - **Layered OTA**: documented **P2 manifest** schema, signing key practice, apply/rollback procedure, and health gates per **§8** (implementation: small updater service or documented `systemd` + script—your choice, behavior per guide)
 - **Host security profile**: versioned artifact (script or doc) listing **firewall rules**, **sysctl** values, **SSH** policy, and **container** hardening flags that passed **§8 Verification** on pinned JetPack
 - **512GB NVMe + FDE**: documented **LUKS/Opal** choice, **key custody** (TPM/SE/passphrase), **factory-reset sanitize** procedure, and **offline drive-extraction** QA results (**§8** non-negotiable list)
-- **Bring-up checklist**: [orincraw-deploy/Getting-started-Jetson.md](orincraw-deploy/Getting-started-Jetson.md)
-- On-device setup UI (OrinCraw branding)
+- **Bring-up checklist**: [orinclaw-deploy/Getting-started-Jetson.md](orinclaw-deploy/Getting-started-Jetson.md)
+- On-device setup UI (OrinClaw branding)
 - Benchmark report (see checklist below)
+
+### Serviceability, manufacturing, and support deliverables
+- **Factory provisioning flow**: serial number, device identity, key enrollment, burn-in, and first-boot validation procedure.
+- **Service manual**: safe enclosure opening, SSD replacement policy, tamper policy, and post-repair verification checklist.
+- **Support package**: recovery image path, known-good rollback instructions, LED error reference, and `/health` interpretation guide.
+- **SKU matrix**: one maintained table listing what is present on each product variant (display, battery, satellite support, radio configuration).
+- **Release checklist**: sign-off for hardware, software, security, OTA, docs, and user-facing privacy disclosures before shipment.
+
+### Ship / no-ship gate
+
+Do not treat milestone completion alone as approval to ship. A release candidate is **ship-ready** only when all of the following are true:
+
+- **Product**: V1 scope is met without depending on roadmap-only features.
+- **Reliability**: benchmark and soak tests in **§10** pass on representative hardware.
+- **Security**: **§8 Verification** and **drive-extraction** tests pass on the actual SKU.
+- **Operations**: OTA rollback and factory reset are demonstrated end-to-end.
+- **Supportability**: a non-developer can follow the setup, recovery, and reset documentation.
 
 ### Benchmark & demo checklist (reproducible)
 Run on **final** or representative hardware (dev kit or custom PCB), JetPack version pinned, after L4T trim.
@@ -1000,10 +1219,11 @@ Run on **final** or representative hardware (dev kit or custom PCB), JetPack ver
 - “Summarize this PDF” (local RAG optional)
 - “Open website, sign in, do task” (browser automation)
 - “Offline mode” demo (unplug network and keep core features working)
+- **Remote office (optional):** laptop on **Tailscale** reaches OrinClaw **Web UI / Gateway** with **no** public port forward; verify ACLs and revoke path (**§8**)
 
 ---
 
-## 11) Suggested milestone plan (9 milestones)
+## 11) Suggested milestone plan (10 milestones)
 
 1. **Bring-up**: **JetPack 5.1.2** + **512GB NVMe** (default per §3) + `tegrastats` monitoring; plan **FDE** validation on real hardware early (**§8**); plan **JetPack 6.2.1** upgrade + full regression; adopt **JetPack 7** only when NVIDIA officially supports target hardware
 2. **Audio I/O**: microphone + speaker pipeline, echo control baseline
@@ -1014,6 +1234,15 @@ Run on **final** or representative hardware (dev kit or custom PCB), JetPack ver
 7. **Skills**: MQTT + browser automation + optional BYOK cloud connector
 8. **OTA + hardening**: signed updates + rollback + attack-surface audit
 9. **Custom PCB + product bring-up**: carrier schematic/layout, fab, assembly, module bring-up, regression vs dev-kit software stack, **BOM freeze** for production
+10. **Multi-room social assistant + media hub**: OrinClaw as **central hub**—media/control plane for the home; **optional** room endpoints over **Wi-Fi** (preferred for sync, quality, range) and/or **BLE** (simpler/low-power cases); **mobile** can register as a **speaker/mic** node when paired. **Occupancy-aware** activation: wake only or prioritize audio paths where people are present to **save power and reduce noise**. **Optional ESP-CAM** (or similar) on satellites for **person-aware routing** (e.g. directed family message: user speaks in kitchen → hub resolves **named recipient** → plays TTS only in the room where that person is **currently detected**—requires explicit **household consent**, clear **privacy policy**, and **opt-in** per feature). Engineering: time sync for multi-room audio, authenticated pairing, encrypted LAN (or tailnet) transport—treat as **milestone 10** R&D after core single-room voice is stable.
 
-**Implementation order**: Bring-up and Audio I/O first; Wake word and STT next; then LLM and TTS; then skills and Matter; OTA and hardening; **custom PCB** can overlap late (layout/fab in parallel with software) but **module bring-up** (milestone 9) must follow a stable software baseline. DeviceService and LED can be stubbed after bring-up so the web UI and ESP32-C6 firmware can be developed in parallel.
+**Implementation order**: Bring-up and Audio I/O first; Wake word and STT next; then LLM and TTS; then skills and Matter; OTA and hardening; **custom PCB** can overlap late (layout/fab in parallel with software) but **module bring-up** (milestone 9) must follow a stable software baseline; then complete **multi-room + media hub** functions (milestone 10) after core voice reliability is stable. DeviceService and LED can be stubbed after bring-up so the web UI and ESP32-C6 firmware can be developed in parallel.
+
+---
+
+## 12) Product, market, and business planning
+
+For **IDEA**, market sizing, business/program risk, investment phasing, GTM, revenue and margin *structure*, supply chain, and team roles—see **[OrinClaw-Product-Business-Plan.md](OrinClaw-Product-Business-Plan.md)**. It complements this technical guide; replace illustrative numbers with your own BOM, quotes, and channel economics before funding or pricing decisions.
+
+For **two × 7-day narrative user scenarios** (smart home + homelab / custom skills) aligned with V1 scope and [.kiro/specs/orinclaw/requirements.md](.kiro/specs/orinclaw/requirements.md), see **[OrinClaw-User-Scenario-Jasmin-7-Days.md](OrinClaw-User-Scenario-Jasmin-7-Days.md)** (Jasmin + Marcus, OpenClaw on OrinClaw).
 

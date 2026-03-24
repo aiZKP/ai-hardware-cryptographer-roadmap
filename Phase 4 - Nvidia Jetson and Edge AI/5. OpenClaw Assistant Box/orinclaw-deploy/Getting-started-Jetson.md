@@ -1,13 +1,13 @@
-# OrinCraw — getting started on Jetson
+# OrinClaw — getting started on Jetson
 
-Checklist for bringing up **OrinCraw** on **Jetson Orin Nano 8GB** (dev kit first, custom PCB later). Full spec: [../Guide.md](../Guide.md).
+Checklist for bringing up **OrinClaw** on **Jetson Orin Nano 8GB** (dev kit first, custom PCB later). Full spec: [../Guide.md](../Guide.md).
 
 ## 1. Base system
 
-- [ ] Flash **JetPack 5.1.2** (L4T) to **512GB NVMe** (OrinCraw **default** storage per Guide §3: boot + rootfs + models + logs/OTA). Plan **full-disk encryption (FDE)** and **key custody** early—**§8** treats **removable NVMe** as a **mandatory** theft scenario for production.
+- [ ] Flash **JetPack 5.1.2** (L4T) to **512GB NVMe** (OrinClaw **default** storage per Guide §3: boot + rootfs + models + logs/OTA). Plan **full-disk encryption (FDE)** and **key custody** early—**§8** treats **removable NVMe** as a **mandatory** theft scenario for production.
 - [ ] Plan upgrade to **JetPack 6.2.1** for the production-aligned stack; rebuild inference engines, ESP-Hosted host driver, and containers for the new kernel/L4T (see Guide §3 *JetPack / L4T version strategy*)
 - [ ] Track **JetPack 7.x** for when NVIDIA **officially supports** your target module/carrier; treat as a major migration with full regression
-- [ ] First boot: create user, set hostname to **`orincraw`** (or `orincraw-<room>`)
+- [ ] First boot: create user, set hostname to **`orinclaw`** (or `orinclaw-<room>`)
 - [ ] Enable **SSH** (keys only for production), apply updates
 - [ ] Install **NVIDIA Container Toolkit** if using Docker for inference
 - [ ] Reserve **`/data`** layout:
@@ -46,7 +46,7 @@ Checklist for bringing up **OrinCraw** on **Jetson Orin Nano 8GB** (dev kit firs
 
 ## 6. Web UI & mDNS
 
-- [ ] Confirm **`http://orincraw.local`** (or your hostname) resolves on LAN
+- [ ] Confirm **`http://orinclaw.local`** (or your hostname) resolves on LAN
 - [ ] Complete setup wizard: WiFi (if used), privacy, optional **BYOK** keys in `/data/config`
 
 ## 7. OTA & security (before field use)

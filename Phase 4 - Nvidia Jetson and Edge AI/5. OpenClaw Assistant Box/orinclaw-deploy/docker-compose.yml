@@ -1,9 +1,9 @@
-# OrinCraw — template Docker Compose for Jetson (L4T)
+# OrinClaw — template Docker Compose for Jetson (L4T)
 # JetPack lifecycle: 5.1.2 (initial) → 6.2.1 (production-aligned) → 7.x when officially supported.
 # Tag images for your L4T line (e.g. r35.x vs r36.x)—do not mix across JetPack upgrades.
 #
 # Uncomment and fill in services after you have L4T-compatible images.
-# Copy to e.g. /opt/orincraw/ on the device; bind-mount /data/* per Guide.md.
+# Copy to e.g. /opt/orinclaw/ on the device; bind-mount /data/* per Guide.md.
 # Storage: 512GB NVMe default—pin image digests; FDE on host per Guide §8 (stolen-drive requirements).
 #
 # Prerequisites: nvidia-container-toolkit, Docker Compose v2.
@@ -12,13 +12,13 @@
 #   sudo mkdir -p /data/{models,skills,logs,config} && sudo chown -R "$USER:$USER" /data
 #   chmod 700 /data/config
 
-name: orincraw
+name: orinclaw
 
 services:
   # --- Uncomment one block at a time and set image/build ---
   #
   # openclaw-gateway:
-  #   image: your-registry/orincraw-openclaw:l4t-r36.x
+  #   image: your-registry/orinclaw-openclaw:l4t-r36.x
   #   restart: unless-stopped
   #   network_mode: host
   #   volumes:
@@ -29,14 +29,14 @@ services:
   #     - NODE_ENV=production
   #
   # stt:
-  #   image: your-registry/orincraw-stt:l4t-r36.x
+  #   image: your-registry/orinclaw-stt:l4t-r36.x
   #   restart: unless-stopped
   #   runtime: nvidia
   #   volumes:
   #     - /data/models:/data/models:ro
   #
   # llm:
-  #   image: your-registry/orincraw-llm:l4t-r36.x
+  #   image: your-registry/orinclaw-llm:l4t-r36.x
   #   restart: unless-stopped
   #   runtime: nvidia
   #   volumes:
@@ -44,14 +44,14 @@ services:
   #     - /data/config:/data/config:ro
   #
   # tts:
-  #   image: your-registry/orincraw-tts:l4t-r36.x
+  #   image: your-registry/orinclaw-tts:l4t-r36.x
   #   restart: unless-stopped
   #   runtime: nvidia
   #   volumes:
   #     - /data/models:/data/models:ro
 
   # Minimal no-op so `docker compose config` validates before you add real images.
-  orincraw-compose-ok:
+  orinclaw-compose-ok:
     image: alpine:3.20
     command: ["true"]
     profiles:
@@ -59,4 +59,4 @@ services:
 
 networks:
   default:
-    name: orincraw_default
+    name: orinclaw_default
