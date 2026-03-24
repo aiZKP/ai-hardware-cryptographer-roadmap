@@ -7,7 +7,7 @@
  * - how memory locking and pre-faulting reduce surprise page faults
  * - how threads coordinate with mutexes, rwlocks, and condition variables
  *
- * Build: make
+ * Build: make (from this directory)
  * Run:   ./rt_demo [--rt] [--lock-memory] [--cpu 2,3] [--no-rt]
  *        sudo ./rt_demo --rt --lock-memory --cpu 1   # full RT setup
  */

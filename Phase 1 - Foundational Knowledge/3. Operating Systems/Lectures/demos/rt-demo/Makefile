@@ -1,4 +1,4 @@
-# User plan example: Lectures 1–9 (OS)
+# User-space demo for OS Lectures 1–9 (see README.md)
 CFLAGS ?= -Wall -Wextra -O2 -pthread
 LDFLAGS ?= -pthread
 
