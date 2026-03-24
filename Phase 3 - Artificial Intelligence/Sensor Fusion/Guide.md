@@ -1,3 +1,11 @@
+# Sensor Fusion
+
+**Phase 3 — Artificial Intelligence.** Multi-sensor calibration, filtering, and fusion (Kalibr, BEVFusion, multi-object tracking). Complements **[Computer Vision](../Computer%20Vision/Guide.md)** and **[Neural Networks](../Neural%20Networks/Guide.md)**. Sub-guides that mention Jetson, TensorRT, or ROS2 assume you are also following **Phase 4 Track B** ([Jetson](../../Phase 4 - Track B - Nvidia Jetson and Edge AI/1. Nvidia Jetson Platform/Guide.md), [ROS2](../../Phase 4 - Track B - Nvidia Jetson and Edge AI/3. ROS2/Guide.md)).
+
+**Hub:** [Phase 3 — Artificial Intelligence](../Guide.md)
+
+---
+
 **Phase 1 (Supercharged): Sensor Fusion (18-36 Months)**
 
 **1. Sensor Integration (Beyond the Basics)**

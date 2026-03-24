@@ -2194,7 +2194,7 @@ Start from a fresh Jetson install. Apply all items in the Security Audit Checkli
 ### Project 8: OrinClaw — End-to-End Product Capstone (OpenClaw-based)
 Design **OrinClaw**, a custom “AI assistant box” optimized from **hardware level → inference level → UX**, with offline-first privacy, streaming voice, robust OTA, and Home Assistant/browser automation integration (OpenClaw gateway + local inference).
 
-**Guide:** [OrinClaw (OpenClaw Assistant Box folder) →](../5. OpenClaw Assistant Box/Guide.md)
+**Guide:** [OrinClaw (OpenClaw Assistant Box folder) →](../4. OpenClaw Assistant Box/Guide.md)
 
 ---
 
