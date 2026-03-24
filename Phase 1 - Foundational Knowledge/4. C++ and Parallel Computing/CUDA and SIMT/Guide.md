@@ -57,4 +57,4 @@ Use one folder or repo with CMake or `nvcc` + script; **keep CPU goldens** for e
 
 ## Then Phase 3
 
-**[Neural Networks and Edge AI](../../Phase%203%20-%20Artificial%20Intelligence/Neural%20Networks%20and%20Edge%20AI/Guide.md)**
+**[Neural Networks](../../Phase%203%20-%20Artificial%20Intelligence/Neural%20Networks/Guide.md)** · **[Edge AI](../../Phase%203%20-%20Artificial%20Intelligence/Edge%20AI/Guide.md)**

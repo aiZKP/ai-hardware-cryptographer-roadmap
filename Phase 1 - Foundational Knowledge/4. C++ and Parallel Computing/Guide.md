@@ -26,4 +26,4 @@ Prerequisites: C from OS work; Phase 1 section 3 helps for threads and VM.
 
 ## Next phase
 
-[Phase 3 Neural Networks and Edge AI](../../Phase 3 - Artificial Intelligence/Neural Networks and Edge AI/Guide.md)
+[Phase 3 — Neural Networks](../../Phase 3 - Artificial Intelligence/Neural Networks/Guide.md)

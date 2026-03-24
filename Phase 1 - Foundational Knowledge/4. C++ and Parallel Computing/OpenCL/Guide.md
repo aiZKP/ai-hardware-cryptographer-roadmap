@@ -149,4 +149,4 @@ Portable parallel kernels: one programming model for **CPU, GPU**, and (where ve
 
 ## Next phase
 
-[Phase 3 — Neural Networks and Edge AI](../../Phase%203%20-%20Artificial%20Intelligence/Neural%20Networks%20and%20Edge%20AI/Guide.md)
+[Phase 3 — Neural Networks](../../Phase%203%20-%20Artificial%20Intelligence/Neural%20Networks/Guide.md), [Edge AI](../../Phase%203%20-%20Artificial%20Intelligence/Edge%20AI/Guide.md)

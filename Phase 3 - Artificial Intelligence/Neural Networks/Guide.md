@@ -1,14 +1,16 @@
-# AI Fundamentals: Neural Networks and Edge AI
+# Neural Networks
 
 **Phase 3 — Artificial Intelligence** (after **[Phase 1 §4 — C++ and Parallel Computing](../../Phase 1 - Foundational Knowledge/4. C++ and Parallel Computing/Guide.md)**). *Optional after Phase 2 if you prefer embedded first.*
 
-> **Goal:** Build a 100% concrete, ground-up understanding of what AI is, what artificial neural networks are, how they learn, and how to implement everything hands-on using **tinygrad** — the minimal ML framework that exposes every fundamental operation.
+> **Goal:** Build a concrete, ground-up understanding of what AI is, what artificial neural networks are, how they learn, and how to implement everything hands-on using **tinygrad** — the minimal ML framework that exposes every fundamental operation.
+
+**Related (separate topic):** **[Edge AI](../Edge%20AI/Guide.md)** — where models run on-device, latency/privacy tiers, train → optimize → deploy.
 
 ---
 
 ## Table of Contents
 
-1. [What is Edge AI?](#1-what-is-edge-ai)
+1. [Training vs the edge](#1-training-vs-the-edge)
 2. [What is Artificial Intelligence?](#2-what-is-artificial-intelligence)
 3. [What is a Neural Network?](#3-what-is-a-neural-network)
 4. [The Neuron: Building Block](#4-the-neuron-building-block)
@@ -33,70 +35,9 @@
 
 ---
 
-## 1. What is Edge AI?
+## 1. Training vs the edge
 
-### Definition
-
-**Edge AI** = running AI algorithms **locally on a device** (the "edge") instead of sending data to a remote cloud server.
-
-```
-Traditional Cloud AI:
-  Device → [internet] → Cloud Server (GPU farm) → [internet] → Result
-  Latency: 50–300ms   Privacy risk   Needs connectivity
-
-Edge AI:
-  Device → Local Chip (CPU/GPU/NPU/FPGA) → Result
-  Latency: <1ms       Data stays local   Works offline
-```
-
-### Why Edge AI Exists
-
-| Problem with Cloud AI        | Edge AI Solution                        |
-|------------------------------|-----------------------------------------|
-| Network latency (~100ms)     | Sub-millisecond local inference         |
-| Bandwidth cost (video data)  | Only send results, not raw data         |
-| Privacy (face/voice/medical) | Data never leaves the device            |
-| Reliability (no internet)    | Works fully offline                     |
-| Cloud cost at scale          | One-time hardware cost                  |
-
-### Where Edge AI Runs
-
-```
-Tier 1 — Microcontrollers (MCU):
-  STM32, Arduino, RP2040
-  RAM: 256KB–512KB
-  Power: <1W
-  Use: keyword spotting, gesture detection
-
-Tier 2 — Embedded Linux SBCs:
-  Raspberry Pi, BeagleBone
-  RAM: 1–8GB
-  Power: 2–10W
-  Use: image classification, object detection
-
-Tier 3 — AI Accelerator SoCs:
-  Nvidia Jetson, Google Coral (TPU), Apple Neural Engine
-  RAM: 4–64GB
-  Power: 5–30W
-  Use: real-time video inference, NLP, robotics
-
-Tier 4 — Edge Servers:
-  FPGA + GPU combinations, industrial PCs
-  Power: 50–300W
-  Use: factory automation, autonomous vehicles
-```
-
-### The Edge AI Pipeline
-
-```
-1. Train model on a powerful workstation/cloud (large data, many epochs)
-2. Optimize model for edge (quantization, pruning, distillation)
-3. Convert model to edge runtime format (ONNX, TensorRT, TFLite)
-4. Deploy to edge device
-5. Run inference locally in real-time
-```
-
-Edge AI is the **destination** of everything in this roadmap. Understanding the AI fundamentals below is what makes edge deployment possible.
+This guide focuses on **training and inference math** (usually on a workstation or cloud with enough RAM and FLOPs). **On-device constraints**—MCU vs SBC vs Jetson, latency, privacy, and the full train → quantize → deploy loop—live in **[Edge AI](../Edge%20AI/Guide.md)**. You can read that track after the sections below, or skim it first for motivation.
 
 ---
 
@@ -1266,4 +1207,4 @@ tinygrad   →  you see what frameworks hide, control the scheduler
 
 ---
 
-*Next: [3. Edge AI Optimization](../3. Edge AI Optimization/Guide.md) — quantization, pruning, TensorRT, TFLite*
+*Next (Phase 4 Track B): [Edge AI Optimization](../../Phase 4 - Track B - Nvidia Jetson and Edge AI/2. Edge AI Optimization/Guide.md) — quantization, pruning, TensorRT, TFLite*

@@ -359,7 +359,8 @@ For learners following the **AI Hardware Engineer Roadmap**, here is how CMU’s
 | Roadmap Phase | CMU Course(s) | Overlap |
 |---------------|---------------|---------|
 | **Phase 3: Computer Vision** | **15-463** (Computational Photography) → 16-385 (Computer Vision) | Imaging physics, camera pipelines, then detection/recognition |
-| **Phase 3: Neural Networks & Edge AI** | 07-280 (Neural Nets, AlexNet, PyTorch) | Graphs, training, deployment concepts before Phase 4 Track A/B hardware |
+| **Phase 3: Neural Networks** | 07-280 (Neural Nets, AlexNet, PyTorch) | Graphs, training, autodiff before Phase 4 Track A/B hardware |
+| **Phase 3: Edge AI** | 07-280 (deployment themes), Jetson-adjacent labs | On-device pipeline, latency/privacy context; pairs with Phase 4 Track B |
 | **Phase 4 Track B (Jetson): Edge AI / vision deployment** | 07-280, 16-385, Jetson/Holoscan labs | Models on device, pipelines, latency |
 | **Phase 4 Track B (Jetson): Sensor Fusion** | 16-299 (Control), 15-463 (imaging), 16-385 (Vision) | Kalman filtering, multi-sensor perception |
 | **Phase 4 Track B (Jetson): ROS2** | 16-280 (ROS), 16-220 (Robot Building) | ROS 2, embedded robot software |
