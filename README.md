@@ -91,9 +91,9 @@ graph LR
 | [**Digital Design and Hardware Description Languages**](Phase%201%20-%20Foundational%20Knowledge/1.%20Digital%20Design%20and%20Hardware%20Description%20Languages/Guide.md) | Number systems, logic, memory basics; Verilog, testbenches, synthesis | *From gates to RTL — the vocabulary of AI accelerator datapaths* |
 | [**Computer Architecture and Hardware**](Phase%201%20-%20Foundational%20Knowledge/2.%20Computer%20Architecture%20and%20Hardware/Guide.md) | ISA through microarchitecture (pipelines, caches, OoO, coherence); labs; modern CPUs/GPUs/memory/storage/I/O | *Same limits (bandwidth, latency, power) govern TinyML through data-center GPUs* |
 | [**Operating Systems**](Phase%201%20-%20Foundational%20Knowledge/3.%20Operating%20Systems/Guide.md) | Processes, threads, scheduling, memory management, synchronization, drivers, filesystems | *OS underpins Linux, RTOS, and all deployment targets; 24-lecture Linux internals* |
-| [**C++ and Parallel Computing**](Phase%201%20-%20Foundational%20Knowledge/4.%20C%2B%2B%20and%20Parallel%20Computing/Guide.md) | Modern C++, CPU threading, CUDA model, streams; vector/matmul/reduction projects | *Host + kernel skills before Phase 3 NN math* |
+| [**C++ and Parallel Computing**](Phase%201%20-%20Foundational%20Knowledge/4.%20C%2B%2B%20and%20Parallel%20Computing/Guide.md) | Four sub-tracks: **C++ & SIMD**, **OpenMP & OneTBB**, **CUDA & SIMT**, **OpenCL** (see hub) | *CPU vectors through portable kernels before Phase 3 NN math* |
 
-**Projects:** Calculator on breadboard, FPGA digital clock, traffic light controller, UART module, basic RISC-V core, CUDA vector/SAXPY/matmul + CPU reference checks
+**Projects:** Calculator on breadboard, FPGA digital clock, traffic light controller, UART module, basic RISC-V core; SIMD/OpenMP exercises; CUDA vector/SAXPY/matmul + CPU goldens; optional OpenCL vector add
 
 ---
 
@@ -133,9 +133,8 @@ Pick **Track A (Xilinx)**, **Track B (Jetson)**, or both (typical for accelerato
 | [**Zynq UltraScale+ MPSoC**](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/2.%20Zynq%20UltraScale%2B%20MPSoC/Guide.md) | PS/PL, Linux on Zynq | *CPU + accelerator SoC template* |
 | [**Advanced FPGA Design**](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/3.%20Advanced%20FPGA%20Design/Guide.md) | CDC, floorplanning, power, PR | *Production FPGA AI* |
 | [**HLS**](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/4.%20High-Level%20Synthesis%20%28HLS%29/Guide.md) | C→RTL, dataflow, pipelining | *Conv/matmul accelerators* |
-| [**OpenCL**](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/5.%20OpenCL/Guide.md) | Kernels, heterogeneous CPU/GPU/FPGA | *Portable parallel model* |
 
-**Projects:** Matmul/conv accelerators, image pipeline, NN on FPGA, CPU vs GPU vs FPGA benchmarks
+**Projects:** Matmul/conv accelerators, image pipeline, NN on FPGA; *OpenCL (portable kernels) lives in [Phase 1 — C++ and Parallel Computing / OpenCL](Phase%201%20-%20Foundational%20Knowledge/4.%20C%2B%2B%20and%20Parallel%20Computing/OpenCL/Guide.md)*
 
 #### Phase 4 Track B — Nvidia Jetson & Edge AI
 

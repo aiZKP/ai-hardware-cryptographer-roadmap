@@ -1,6 +1,14 @@
-﻿**Phase1: OpenCL (9-18 months)**
+# OpenCL
 
-**1. OpenCL Programming Model (Deep Dive)**
+Part of [Phase 1 section 4 hub](../Guide.md).
+
+Portable parallel kernels: one programming model for **CPU, GPU**, and (where vendors support it) **FPGA**. Use this track after **CUDA and SIMT** so you can compare SIMT with OpenCL work-items and memory spaces. For **Xilinx-centric FPGA acceleration**, prefer **Phase 4 Track A — HLS and RTL**; vendor OpenCL-to-FPGA flows are referenced here as optional depth, not a separate roadmap module.
+
+---
+
+## Curriculum: OpenCL programming model (deep dive)
+
+**1. OpenCL programming model (deep dive)**
 
 * **Platform Model:**
     * **Understanding the OpenCL Ecosystem:**  Explore the OpenCL ecosystem, including platforms, devices, contexts, and command queues. Learn how to query platform information, discover devices, and manage contexts for executing OpenCL programs.
@@ -136,3 +144,9 @@
 * **Develop a Power-Aware OpenCL Application for an Embedded System:**  Create an OpenCL application for an embedded device that optimizes for power consumption while meeting performance requirements.
 * **Implement a High-Performance Computing Application with OpenCL:**  Develop an HPC application that leverages OpenCL to distribute computations across multiple devices and achieve high performance.
 * **Accelerate a Machine Learning Algorithm on an FPGA using OpenCL:**  Use OpenCL and HLS tools to implement and accelerate a machine learning algorithm on an FPGA.
+
+---
+
+## Next phase
+
+[Phase 3 — Neural Networks and Edge AI](../../Phase%203%20-%20Artificial%20Intelligence/Neural%20Networks%20and%20Edge%20AI/Guide.md)
