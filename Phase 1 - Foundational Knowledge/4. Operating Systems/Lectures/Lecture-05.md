@@ -372,4 +372,4 @@ Lecture-05 topics (boot, Device Tree, kernel modules, kernel cmdline) live in th
 | **Boot chain / secure boot** | On comma hardware, Agnos implements the verified boot chain; on Jetson, L4T/CBoot do. openpilot assumes a correctly booted kernel and rootfs. |
 | **Kernel modules** | Camera, CAN, and GPU drivers are loaded by the platform (udev/modprobe from the OS image). openpilot does not ship kernel modules. |
 
-For concrete examples of DTB, `extlinux.conf`, and `isolcpus` on a Jetson-style stack, see the Phase 4 Jetson/Orin guides (e.g. Orin-Nano-Real-Time-Inference, Orin-Nano-Security, Orin-Nano-Yocto-BSP-Production). For the matching userspace scheduling and affinity code, see **Lecture-06** and **`openpilot/common/util.cc`** (`set_realtime_priority`, `set_core_affinity`).
+For concrete examples of DTB, `extlinux.conf`, and `isolcpus` on a Jetson-style stack, see the Phase 4 Track B (Jetson/Orin) guides (e.g. Orin-Nano-Real-Time-Inference, Orin-Nano-Security, Orin-Nano-Yocto-BSP-Production). For the matching userspace scheduling and affinity code, see **Lecture-06** and **`openpilot/common/util.cc`** (`set_realtime_priority`, `set_core_affinity`).

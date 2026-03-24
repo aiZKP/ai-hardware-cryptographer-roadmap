@@ -493,7 +493,7 @@ Book-length depth (optional):
 
 - *Embedded Linux Systems with the Yocto Project* — practical, widely used as a second pass after your first build.
 
-Related roadmap note: for **Jetson-specific** production BSP practice, see the Jetson platform module *Orin-Nano-Yocto-BSP-Production* in Phase 4; this course is intentionally **vendor-neutral**.
+Related roadmap note: for **Jetson-specific** production BSP practice, see the Jetson platform module *Orin-Nano-Yocto-BSP-Production* in **Phase 4 Track B**; this course is intentionally **vendor-neutral**.
 
 ---
 

@@ -13,7 +13,7 @@
 
 **What this track covers:**
 
-* **Single GPU ? many GPUs** ? From one GPU (e.g. Jetson, which you saw in Phase 4) to **multi-GPU nodes** and **multi-node clusters**. You need to understand how jobs are placed, how data and gradients move, and how to avoid communication becoming the bottleneck.
+* **Single GPU ? many GPUs** ? From one GPU (e.g. Jetson, which you saw in Phase 4 Track B) to **multi-GPU nodes** and **multi-node clusters**. You need to understand how jobs are placed, how data and gradients move, and how to avoid communication becoming the bottleneck.
 * **Two main workloads:**
     * **Training** ? One big model, one big dataset; you split work across GPUs (data parallelism, model parallelism, pipeline parallelism). Performance is about throughput (samples/sec) and scaling to hundreds or thousands of GPUs.
     * **Inference** ? Many requests, one (or many) deployed model; you care about latency and throughput under load. At scale this means batching, KV-cache, and often multi-GPU or multi-node serving (e.g. TensorRT-LLM, vLLM).
@@ -61,4 +61,4 @@ Together they cover both **infrastructure** (getting the cluster and the workloa
 1. **Start with [HPC Setup](./HPC%20Setup/Guide.md)** ? Covers Nvidia GPU HPC fundamentals, virtualization (vGPU, KVM), interconnects and storage (InfiniBand, GDS, Slurm, Kubernetes), and Phase 2 advanced topics (advanced CUDA, distributed training, performance modeling). Use the deep dives (8x H200, L40S, NCCL, CUDA Advanced, GDS) for your target hardware and stack.
 2. **Add [DL Inference Optimization](./DL%20Inference%20Optimization/Guide.md)** ? For kernel/inference optimization (e.g. MTS Kernels, DL Inference Optimization Engineer), work through the six units in order: graph/ops ? kernels ? compiler ? quantization ? runtimes ? tinygrad.
 
-**Prerequisite:** Phase 4 (Jetson, TensorRT, CUDA) is assumed for both parts.
+**Prerequisite:** Phase 4 Track B (Jetson, TensorRT, CUDA) is assumed for both parts.

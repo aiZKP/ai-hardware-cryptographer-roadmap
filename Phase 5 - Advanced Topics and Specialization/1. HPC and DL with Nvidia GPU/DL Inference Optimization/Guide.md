@@ -4,7 +4,7 @@
 
 **Also aligns with:** Kernel-focused roles such as **Member of Technical Staff, Kernels** (e.g. AGI/LLM companies): designing and implementing high-performance kernels for training and inference, long-context optimization, and production deployment on NVIDIA GPUs and alternative accelerators (TPU, etc.).
 
-**Prerequisite:** Phases 1–2, Phase 4 (Jetson, TensorRT, Edge AI Optimization).
+**Prerequisite:** Phases 1–2, Phase 4 Track B (Jetson, TensorRT, Edge AI Optimization).
 
 ---
 
