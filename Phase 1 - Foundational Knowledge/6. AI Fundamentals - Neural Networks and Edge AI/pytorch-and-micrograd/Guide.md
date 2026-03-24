@@ -1273,4 +1273,4 @@ back       = gpu_tensor.cpu()    # copy: GPU → CPU
 ---
 
 *Parent: [AI Fundamentals Guide](../Guide.md)*
-*Next: [tinygrad deep dive](../../Phase 5 - Advanced Topics and Specialization/4. Autonomous Driving/tinygrad/Guide.md)*
+*Next: [tinygrad deep dive](../../Phase 4 - Advanced Topics and Specialization/4. Autonomous Driving/tinygrad/Guide.md)*

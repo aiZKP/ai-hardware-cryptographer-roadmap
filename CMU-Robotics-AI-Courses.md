@@ -358,14 +358,14 @@ For learners following the **AI Hardware Engineer Roadmap**, here is how CMU’s
 
 | Roadmap Phase | CMU Course(s) | Overlap |
 |---------------|---------------|---------|
-| **Phase 3: Computer Vision** | **15-463** (Computational Photography) → 16-385 (Computer Vision) | Imaging physics, camera pipelines, then detection/recognition |
-| **Phase 4: Jetson Edge AI** | 07-280 (Neural Nets, AlexNet, PyTorch), 16-385 (Computer Vision) | Neural networks, computer vision, edge deployment |
-| **Phase 4: Sensor Fusion** | 16-299 (Control), 15-463 (imaging), 16-385 (Vision) | Kalman filtering, sensor fusion concepts |
-| **Phase 4: ROS2** | 16-280 (ROS), 16-220 (Robot Building) | ROS, embedded systems, robot software |
-| **Phase 5: Robotics** | 16-220, 16-280, 16-384, 16-450, 16-474 | Full robotics stack: mechanics, control, planning |
-| **Phase 5: Autonomous Driving** | 16-663 (F1Tenth), 16-664 (Self-Driving Cars) | Perception, planning, control for autonomy |
-| **Phase 5: Real Time Edge AI with Nvidia Jetson** | 07-280 (Neural Nets), 16-385 (Vision), Jetson/Holoscan | Real-time edge inference, efficient models, NVIDIA Jetson Holoscan streaming |
-| **Phase 5: AI Chip Design** | 07-280 (optimization, GPU/parallel), 16-211 (math) | Optimization, linear algebra, parallel compute |
+| **Phase 3 · Track A: Computer Vision** | **15-463** (Computational Photography) → 16-385 (Computer Vision) | Imaging physics, camera pipelines, then detection/recognition |
+| **Phase 3 · Track B: Jetson Edge AI** | 07-280 (Neural Nets, AlexNet, PyTorch), 16-385 (Computer Vision) | Neural networks, computer vision, edge deployment |
+| **Phase 3 · Track B: Sensor Fusion** | 16-299 (Control), 15-463 (imaging), 16-385 (Vision) | Kalman filtering, sensor fusion concepts |
+| **Phase 3 · Track B: ROS2** | 16-280 (ROS), 16-220 (Robot Building) | ROS, embedded systems, robot software |
+| **Phase 4: Robotics** (specialization) | 16-220, 16-280, 16-384, 16-450, 16-474 | Full robotics stack: mechanics, control, planning |
+| **Phase 4: Autonomous Driving** (specialization) | 16-663 (F1Tenth), 16-664 (Self-Driving Cars) | Perception, planning, control for autonomy |
+| **Phase 4: Real Time Edge AI with Nvidia Jetson** (specialization) | 07-280 (Neural Nets), 16-385 (Vision), Jetson/Holoscan | Real-time edge inference, efficient models, NVIDIA Jetson Holoscan streaming |
+| **Phase 4: AI Chip Design** (specialization) | 07-280 (optimization, GPU/parallel), 16-211 (math) | Optimization, linear algebra, parallel compute |
 
 ### Suggested Self-Study Order (CMU-Inspired)
 

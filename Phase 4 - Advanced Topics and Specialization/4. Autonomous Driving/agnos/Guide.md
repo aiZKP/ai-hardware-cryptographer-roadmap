@@ -55,7 +55,7 @@ The [agnos-kernel-sdm845](https://github.com/commaai/agnos-kernel-sdm845) repo w
 ### One-time clone (if not already present)
 
 ```bash
-cd "Phase 5 - Advanced Topics and Specialization/4. Autonomous Driving"
+cd "Phase 4 - Advanced Topics and Specialization/4. Autonomous Driving"
 
 # Kernel (large history; shallow clone recommended)
 git clone --depth 1 https://github.com/commaai/agnos-kernel-sdm845.git

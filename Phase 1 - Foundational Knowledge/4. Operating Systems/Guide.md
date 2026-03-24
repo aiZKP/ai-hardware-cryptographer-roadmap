@@ -77,7 +77,7 @@ This guide provides a structured, in-depth treatment of operating systems concep
 - **Textbook:** *Operating System Concepts* (Silberschatz, Galvin, Gagne) — "Dinosaur Book"
 - **Projects:** [Pintos](https://web.stanford.edu/class/cs140/projects/pintos/) — Stanford OS teaching kernel
 - **Linux Kernel:** [Linux Insides](https://0xax.gitbooks.io/linux-insides/) — kernel internals
-- **Real platform (AGNOS):** [agnos-kernel-sdm845](https://github.com/commaai/agnos-kernel-sdm845) and [agnos-builder](https://github.com/commaai/agnos-builder) — **forked and custom-modified Linux** for comma 3X/four, built for **openpilot on the road**. [**AGNOS Guide**](../../../Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Driving/agnos/Guide.md) maps **all 26 OS lectures** to both kernel/builder paths and to the **development changes** in the fork (boot, device tree, camera/CAN drivers, scheduler/RT tuning, etc.).
+- **Real platform (AGNOS):** [agnos-kernel-sdm845](https://github.com/commaai/agnos-kernel-sdm845) and [agnos-builder](https://github.com/commaai/agnos-builder) — **forked and custom-modified Linux** for comma 3X/four, built for **openpilot on the road**. [**AGNOS Guide**](../../../Phase%204%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Driving/agnos/Guide.md) maps **all 26 OS lectures** to both kernel/builder paths and to the **development changes** in the fork (boot, device tree, camera/CAN drivers, scheduler/RT tuning, etc.).
 
 ---
 

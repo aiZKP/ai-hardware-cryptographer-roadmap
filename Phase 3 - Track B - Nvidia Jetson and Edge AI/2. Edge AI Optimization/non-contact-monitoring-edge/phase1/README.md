@@ -12,7 +12,7 @@ Pipeline for the non-contact monitoring project using **camera01** from the [Fre
 ## Setup
 
 ```bash
-cd "Phase 4 - Nvidia Jetson and Edge AI/2. Edge AI Optimization/non-contact-monitoring-edge"
+cd "Phase 3 - Track B - Nvidia Jetson and Edge AI/2. Edge AI Optimization/non-contact-monitoring-edge"
 pip install -r phase1/requirements.txt
 ```
 

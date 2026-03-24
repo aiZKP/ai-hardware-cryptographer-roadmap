@@ -67,7 +67,7 @@ Use a **single pinned repo or folder** with CMake or a simple `nvcc` + compiler 
 * **Phase 1 §3 (Architecture & hardware):** GPU is another memory hierarchy; warps behave like SIMD + multithreading.
 * **Phase 1 §6 (AI Fundamentals):** Tensors and ops are what you will eventually run through CUDA, TensorRT, or tinygrad backends.
 * **Phase 4 (Jetson / TensorRT):** Same CUDA model, with unified memory and power/thermal constraints.
-* **Phase 5 (HPC / GPU):** Everything here scales to multi-GPU, NCCL, and kernel optimization workflows.
+* **Phase 4 (HPC / GPU specialization):** Everything here scales to multi-GPU, NCCL, and kernel optimization workflows.
 
 ---
 
