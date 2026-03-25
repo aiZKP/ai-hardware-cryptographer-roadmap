@@ -37,6 +37,17 @@ For most small teams and solo developers, **L4T with JetPack is the pragmatic de
 
 ---
 
+## Official NVIDIA documentation
+
+Use the **Jetson Linux Developer Guide** for the same **major JetPack / L4T** line you ship; archived copies below illustrate the topics—open the matching release under [Jetson documentation](https://docs.nvidia.com/jetson/) if your version differs.
+
+| Topic | Why it matters for production |
+|-------|------------------------------|
+| [**Jetson Module Adaptation and Bring-Up**](https://docs.nvidia.com/jetson/archives/r35.3.1/DeveloperGuide/text/HR/JetsonModuleAdaptationAndBringUp.html) | Moving from a **developer kit** to a **custom carrier**: board naming, rootfs configuration, MB1/MB2 (pinmux, EEPROM), **device tree** porting, PCIe/USB, **flashing** the build image, and hardware/software bring-up **checklists**. |
+| [**Kernel customization**](https://docs.nvidia.com/jetson/archives/r34.1/DeveloperGuide/index.html#page/Tegra%20Linux%20Driver%20Package%20Development%20Guide/kernel_custom.html) | Syncing kernel sources with **Git**, building and installing the kernel, **DTB** and signing/encryption where required, external modules, and optional **real-time** kernel package workflow. |
+
+---
+
 ## Deep dives (Platform module 1)
 
 Use these Platform guides as **implementation** detail for L4T-facing production work:
