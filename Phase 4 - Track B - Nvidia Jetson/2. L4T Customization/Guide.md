@@ -54,6 +54,20 @@ Use the **Jetson Linux Developer Guide** for the same **major JetPack / L4T** li
 
 ---
 
+## EchoPilot AI (worked example / vendor reference)
+
+**EchoMAV** publishes a concrete **L4T bring-up** path for **EchoPilot AI** (Orin NX / Orin Nano on their carrier): Jetson Linux BSP, sample rootfs, `apply_binaries.sh`, default user creation, **device-tree overlays**, and **initrd flash** to NVMe. Treat it as a **reference implementation** for “custom carrier + headless Orin” alongside NVIDIA’s module adaptation guide.
+
+| Resource | What to use it for |
+|----------|-------------------|
+| [**echopilot_ai_bsp** (GitHub)](https://github.com/EchoMAV/echopilot_ai_bsp) | Upstream BSP scripts and branches (e.g. `board_revision_1b` for Rev1B). Clone this on your build host; run `install_l4t_orin.sh` against your `Linux_for_Tegra` tree as in their docs. |
+| **EchoPilot AI documentation** (EchoMAV MkDocs, e.g. *Building L4T (Orin NX and Orin Nano)*) | Step-by-step host setup (they target **Ubuntu 22.04**), download names for a given **Jetson Linux** drop (example in their guide: **36.4.3**), `l4t_initrd_flash.sh` invocation for **external NVMe**, and operational notes (USB autosuspend, `--flash-only` after first image build). |
+| **Local snapshot** — [echopilot_ai_bsp-board_revision_1b](echopilot_ai_bsp-board_revision_1b/README.md) | Copy of the **board_revision_1b** tree pinned in this repo: overlays under `Linux_for_Tegra/kernel/dtb/` (e.g. disable display, enable serial), BCT-related files, patches, and `install_l4t_orin.sh`. Diff this against your own `Linux_for_Tegra` when debugging DT or flash layout. |
+
+**Hardware / software deltas** called out in EchoPilot’s Orin guide (useful pattern for any third-party carrier): carrier may **not** use the same **board ID EEPROM** scheme as the NVIDIA dev kit; **headless** products often need **display paths disabled** in DT so boot completes; product-specific **UART** routing is enabled via **overlays**. Always match **branch / revision** of the BSP to the silkscreen **board revision** on the unit.
+
+---
+
 ## Deep dives (Platform module 1)
 
 Use these Platform guides as **implementation** detail for L4T-facing production work:
