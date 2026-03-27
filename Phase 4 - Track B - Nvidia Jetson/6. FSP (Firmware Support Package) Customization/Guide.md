@@ -53,28 +53,40 @@ NVIDIA’s welcome page lists **which demos are supported on which platforms** (
 
 ### OSA (Operating System Abstraction)
 
-Abstracts **FreeRTOS v10** so drivers and apps can be ported to another RTOS with minimal churn. Headers live under `fsp/source/include/osa/freertosv10/osa/`—for example:
+**Why OSA?**  
+OSA provides a layer that sits between firmware code (drivers/apps) and the underlying RTOS—**FreeRTOS v10** in NVIDIA’s FSP. This **abstraction layer** means most driver and middleware code is written against a *portable API*, not hardwired to FreeRTOS calls. If you need to move to a different RTOS (or update FreeRTOS version), only the OSA implementation needs change—not every driver or app. This improves **portability**, simplifies maintenance, and enables faster adaptation to new platforms or requirements.
 
-| Concern | Header (API entry point) |
-|---------|----------------------------|
-| Semaphore | `osa-semaphore.h` |
-| Mutex | `osa-mutex.h` |
-| Event group | `osa-event-group.h` |
-| Queue | `osa-queue.h` |
-| Tasks / scheduling | `osa-task.h` |
-| Software timer | `osa-timer.h` |
+Practical example: All the typical RTOS primitives (such as semaphores, mutexes, event groups, queues, and tasks) are wrapped by OSA APIs. The relevant headers in `fsp/source/include/osa/freertosv10/osa/` include:
 
-### CPL (CPU / platform abstraction)
+| Functionality      | OSA API Header             |
+|--------------------|---------------------------|
+| Semaphore          | `osa-semaphore.h`         |
+| Mutex              | `osa-mutex.h`             |
+| Event group        | `osa-event-group.h`       |
+| Queue              | `osa-queue.h`             |
+| Tasks / scheduling | `osa-task.h`              |
+| Software timer     | `osa-timer.h`             |
 
-CPU primitives shared across auxiliary processors—cache ops, register access, barriers, interrupt controller, chip ID. Examples (paths as in NVIDIA’s FSP page):
+In summary: **OSA isolates RTOS specifics**, letting you reuse and evolve your embedded codebase with minimal pain as requirements or platforms change.
 
-| Concern | Header |
-|---------|--------|
-| Cache | `fsp/source/include/cpu/arm/common/cpu/cache.h` |
+### CPL (CPU / platform abstraction): Why CPL?
+
+**Why CPL?**  
+The CPL (CPU/Platform Layer) abstracts low-level, hardware-specific operations—such as cache management, register manipulation, memory barriers, interrupt control, and chip identification—that are required across different CPUs or platforms.
+
+This abstraction ensures that firmware and driver code remains portable and maintainable. Instead of hardcoding ARM Cortex-R5 register access or cache flush routines throughout your code, you rely on standardized CPL function calls or macros. If NVIDIA or your project moves to a different processor core, only CPL needs to be updated for the new hardware—your application, middleware, and even drivers remain unchanged.
+
+Without CPL, code would be littered with hardware specifics, making porting between, e.g., Cortex-R5 and Cortex-A platforms a time-consuming, error-prone process. With CPL, you can cleanly swap out or enhance processor and platform primitives, keeping the rest of the stack untouched.
+
+**Examples of CPL-provided headers (paths as in NVIDIA’s FSP):**
+
+| Concern                  | Header                                                      |
+|--------------------------|-------------------------------------------------------------|
+| Cache operations         | `fsp/source/include/cpu/arm/common/cpu/cache.h`             |
 | Register access (Cortex-R5) | `fsp/source/include/cpu/arm/armv7/cortex-r5/reg-access/reg-access.h` |
-| Barriers | `fsp/source/include/cpu/arm/common/cpu/barriers.h` |
-| VIC (interrupts) | `fsp/source/include/cpu/arm/common/cpu/arm-vic.h` |
-| Chip ID / SKU | `fsp/source/include/chipid/chip-id.h` |
+| Barriers (memory/order)  | `fsp/source/include/cpu/arm/common/cpu/barriers.h`          |
+| VIC (interrupts)         | `fsp/source/include/cpu/arm/common/cpu/arm-vic.h`           |
+| Chip ID / SKU            | `fsp/source/include/chipid/chip-id.h`                       |
 
 ### Drivers
 
@@ -168,36 +180,65 @@ Full detail: [IVC](https://docs.nvidia.com/jetson/archives/r35.6.0/spe/md__home_
 
 ## Orin Nano — GTE application (`app/gte-app.c`)
 
-The **Generic Timestamping Engine (GTE)** snoops signals and exposes **timestamped events** via FIFOs (three **32-bit** slices for AON/SPE—see **`gte-tegra-hw.h`** for signal mapping). The demo pairs with **GPIO** activity; pin ↔ GTE bit mapping comes from the **pinmux spreadsheet** (**hidden “GTE”** column for slice 2), as in NVIDIA’s guide.
+The **Generic Timestamping Engine (GTE)** is a specialized hardware module in NVIDIA Jetson SoCs designed to monitor various system signals and record the exact time when specific events occur. Key features of GTE include:
 
-### Software steps (Orin Nano)
+- **High-Precision Timestamping:** GTE leverages a dedicated 32-bit hardware counter to provide accurate, low-latency timestamping of events. This is essential for real-time applications requiring deterministic timing and logging.
+- **Event Monitoring via Slices:** The GTE is partitioned into *slices*; on Orin Nano, there are three *32-bit* slices accessible to the AON/SPE CPU. Each slice can be configured to watch specific groups of signals (for instance, GPIO events, CAN signal edges, etc.). The exact mapping of which external signals connect to which GTE slices/bits is captured in the SoC’s pinmux spreadsheet (look for the “GTE” column, often hidden in slice 2).
+- **FIFO Event Buffering:** When a monitored event or signal transition occurs, the GTE records the event’s ID, the timestamp, and the slice where it happened and writes this into a memory-mapped FIFO buffer. The SPE firmware can read out these timestamped events and process them in real time.
+- **Flexible Signal Multiplexing:** GTE can be configured via the device tree and hardware registers to connect to a variety of sources: GPIOs, CAN, or other internal/external signals.
+- **Software Interface:** To facilitate application development, NVIDIA provides hardware abstraction and signal mapping in `gte-tegra-hw.h`.
 
-1. In **`soc/t23x/target_specific.mk`**: **`ENABLE_GTE_APP := 1`** and **`ENABLE_SPE_FOR_ORIN_NANO := 1`**. Rebuild **`bin_t23x`**, copy **`spe.bin`** → **`${L4T}/bootloader/spe_t234.bin`**.
-2. After **`source_sync.sh`**, disable the Linux **GTE** driver so it does not own the block while SPE uses it. File from NVIDIA (Orin Nano / CVB path):  
-   **`Linux_for_Tegra/sources/hardware/nvidia/platform/t23x/p3768/kernel-dts/cvb/tegra234-p3768-0000-a0.dtsi`**
+The typical FSP demo (`app/gte-app.c`) pairs GTE with GPIO events: by connecting or toggling a GPIO, the GTE picks up the change, logs the timestamp, and passes this data to the running SPE firmware.
 
-```dts
-gte@c1e0000 {
-    status = "disabled";
-};
-```
+### How GTE and GPIO Work Together in the Demo
 
-3. Rebuild the **kernel device tree**, copy DTBs to **`Linux_for_Tegra/kernel/dtb/`**, and adjust **firewall** so SPE can reach **GTE** registers. For Orin Nano, NVIDIA patches **`${L4T}/bootloader/tegra234-firewall-config-base.dtsi`**: change **`reg@1359`** (**`GTE_GPIO_SCR_TESCR_0`**) to allow SPE read/write:
+- A specific GPIO line is connected to a GTE input, as defined in your carrier board’s pinmux (refer to the spreadsheet—often the “GTE” column is hidden by default).
+- When the GPIO state changes (such as a rising or falling edge), the GTE hardware captures this as an event, tags it with a timestamp, and queues it in the slice’s FIFO.
+- The GTE application (`gte-app.c`) running on the SPE reads these FIFO events, parses out the slice, event ID, and timestamp, and can print/log/react to this data.
 
-```dts
-reg@1359 { /* GTE_GPIO_SCR_TESCR_0 */
-    exclusion-info = <3>;
-    value = <0x38001232>;
-};
-```
+### Software Setup for GTE Application (Orin Nano)
 
-4. **Full flash** so **DTB + firewall** land on the device (not SPE-only the first time you change these).
+1. Enable the GTE demo application in the SPE firmware build system. In **`soc/t23x/target_specific.mk`**, set:
+    - `ENABLE_GTE_APP := 1`
+    - `ENABLE_SPE_FOR_ORIN_NANO := 1`
+   Then rebuild the FSP firmware (`bin_t23x`), and copy the resulting `spe.bin` to your deployment location:
+   - `${L4T}/bootloader/spe_t234.bin`
 
-### Expected log (abbreviated)
+2. Disable the default Linux GTE driver in the device tree so that the Linux kernel does not claim exclusive access to the GTE hardware block (the SPE will control it instead). In the following file:
+   - `Linux_for_Tegra/sources/hardware/nvidia/platform/t23x/p3768/kernel-dts/cvb/tegra234-p3768-0000-a0.dtsi`
+   add or modify:
+   ```dts
+   gte@c1e0000 {
+       status = "disabled";
+   };
+   ```
 
-When the FIFO crosses **`GTE_FIFO_OCCUPANCY`**, the GTE ISR runs. NVIDIA’s guide shows lines such as **`gpio_app_task - Setting GPIO_APP_OUT to 1`**, **`Slice Id` / `Event Id` / `Timestamp in nanosec`**, and **`can_gpio_irq_handler`** toggling the output—pair with the **GPIO** demo wiring for a closed loop.
+3. Rebuild the kernel device tree and copy the updated DTBs to `Linux_for_Tegra/kernel/dtb/`. Next, adjust the system’s hardware firewall to allow the SPE CPU to read and write GTE registers. For Orin Nano, patch this entry in:
+   - `${L4T}/bootloader/tegra234-firewall-config-base.dtsi`
+   How do we know that `reg@1359` is the GTE GPIO Security Control Register?
 
-Full detail: [GTE Application](https://docs.nvidia.com/jetson/archives/r35.6.0/spe/md__home_jenkins_workspace_Utilities_rt_aux_cpu_demo_fsp_docs_work_rt_aux_cpu_demo_fsp_doc_gte_app.html).
+   The `reg@1359` node corresponds to the hardware address offset for the GTE GPIO Security Control Register, known as `GTE_GPIO_SCR_TESCR_0`. This information comes from the Orin Nano Technical Reference Manual (TRM), specifically from the memory map and register documentation for the GTE (Generic Timestamp Engine). In the firewall configuration device tree (`tegra234-firewall-config-base.dtsi`), entries like `reg@1359` use these offsets to control access permissions for the GTE module's registers.
+
+   In summary: The association is made by matching the register address (0x1359) to the "GTE_GPIO_SCR_TESCR_0" register name in the TRM. Nvidia's documentation and sample device tree overlays also reference this mapping.
+   ```dts
+   reg@1359 { /* GTE_GPIO_SCR_TESCR_0 */
+       exclusion-info = <3>;
+       value = <0x38001232>;
+   };
+   ```
+   This step gives the SPE permission to access the relevant GTE registers exclusively.
+
+4. Perform a **full device flash** (not just the SPE partition) so that the new device tree and firewall settings are applied to the device. This is required the **first** time you modify these aspects; for later SPE-only updates you can flash just the firmware.
+
+### What to Expect: Logs and Usage
+
+- When the GTE detects a qualifying input signal change and the FIFO buffer exceeds its configured threshold (`GTE_FIFO_OCCUPANCY`), the GTE issues an interrupt to the SPE.
+- The SPE’s GTE interrupt service routine (ISR) runs, reads out queued entries, and decodes them.
+- Output logs typically contain lines showing the application’s action (for GPIO pairing), recorded event details (“Slice Id”, “Event Id”, “Timestamp in nanosec”), and ISR execution logs such as `gpio_app_task - Setting GPIO_APP_OUT to 1` or `can_gpio_irq_handler` toggling the output GPIO.
+- To test the setup, you can wire two GPIO pins as in the GPIO app: toggling an input should immediately generate a timestamped event logged by the SPE.
+
+**Further reading and examples:** NVIDIA’s [GTE Application](https://docs.nvidia.com/jetson/archives/r35.6.0/spe/md__home_jenkins_workspace_Utilities_rt_aux_cpu_demo_fsp_docs_work_rt_aux_cpu_demo_fsp_doc_gte_app.html) page provides deeper architectural details, event format, and a walk-through of how to pair signal, pinmux, GTE configuration, and SPE firmware application together for advanced timestamping use cases.
+
 
 ---
 

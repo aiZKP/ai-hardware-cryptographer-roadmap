@@ -1,21 +1,77 @@
 # T23x Boot Configuration Table (BCT) — deployment reference
 
-**Source:** NVIDIA *T23x BCT Deployment Guide* (DU-10990-001), June 2022. This file reformats that guide for reading in the roadmap. For flashing behavior on your **exact** JetPack line, cross-check the [Jetson Linux Developer Guide](https://docs.nvidia.com/jetson/) for your release.
+**Roadmap focus:** Jetson **Orin Nano** and **Orin NX** (P3767 module family), SoC **T234** (tegra234). The body of this file follows NVIDIA **DU-10990** generically (`<platform>` placeholders and mixed examples). For Orin Nano–specific paths and flash variables, use [Orin Nano: BCT path cheat sheet](#orin-nano-bct-path-cheat-sheet).
 
-**What BCT is:** Platform data consumed at boot. **BootROM** and **MB1** use BCT in binary form. On T23x, inputs are **Device Tree Source (`.dtsi`)** files parsed by **`tegrabct_v2`** (older releases used `parameter = value` text).
+**Source:** *T23x BCT Deployment Guide* (DU-10990-001), June 2022, reformatted for this roadmap. For `flash.sh` / `tegrabct_v2` details and paths that change by release, use the [Jetson Linux Developer Guide](https://docs.nvidia.com/jetson/) for your JetPack / L4T version.
 
-**Reading tips**
+## At a glance
 
-- Chapters map to **separate `.dtsi` fragments** under `hardware/nvidia/platform/t23x/<platform>/bct/` (paths in the original doc).
-- Many sections show **NEW DTS** vs **OLD CFG** so you can relate spreadsheet / legacy output to DTS.
-- Long tables and code are still dense; use your editor outline (headings below) to jump.
-- **Carrier bring-up (Orin NX / Nano)** in prose form: [Jetson-Module-Adaptation-Bring-Up-Orin-NX-Nano.md](Jetson-Module-Adaptation-Bring-Up-Orin-NX-Nano.md) (module adaptation, pinmux, DT, PCIe, USB, UPHY, flash). Use this file together with the BCT reference below.
+| Term | Meaning |
+|------|---------|
+| **BCT** | Early-boot **binary** consumed by BootROM, MB1, and MB2 to configure pins, power rails, storage, UPHY, SDRAM, and security before Linux. |
+| **T23x** | tegra234-class silicon: Orin Nano, Orin NX, AGX Orin, … |
+| **Input format** | Device tree (`.dtsi` / `.dts`) built with `tegrabct_v2`. Legacy `parameter = value` `.cfg` appears in this doc as **Legacy `.cfg`** next to **NEW DTS** examples. |
 
-**Code style in this file**
+## Orin Nano: BCT path cheat sheet
 
-- Blocks labeled **NEW DTS** are fenced as `dts` (device tree). They are **examples** from the NVIDIA guide; indentation follows the PDF, not a strict style guide—paste into an editor and format if you edit them for real trees.
-- Blocks labeled **Legacy `.cfg` format** are fenced as `text` (old `parameter = value` style before DTS).
-- Inline “form” snippets (lines starting with `/ {` in normal paragraphs) are **templates** showing shape, not full working files.
+### Hardware IDs
+
+| ID | Description |
+|----|-------------|
+| **P3767** | Orin Nano / Orin NX module (SOM); BCT names often include `p3767`. |
+| **P3768** | Orin Nano Developer Kit carrier (CVB); kernel DT often `tegra234-p3768-0000+p3767-xxxx`. |
+| **P3766** | Orin Nano Developer Kit SKU (module + carrier). |
+
+### Where BCT sources live on the host
+
+| Path | Role |
+|------|------|
+| `Linux_for_Tegra/bootloader/generic/BCT/` | Main MB1/MB2 BCT `.dts` / `.dtsi` inputs for current Orin Nano flows (pinmux, pad voltage, PMIC, GPIO intmap, MB2 misc, …). |
+| `Linux_for_Tegra/bootloader/t186ref/BCT/` | Extra tegra234 MB1 fragments on some L4T versions (pinmux, gpioint `.dtsi`). Search for `tegra234-mb1-bct-*p3767*`. |
+| `Linux_for_Tegra/bootloader/` | `tegra234-firewall-config-base.dtsi` and related SCR/firewall sources for MB2. |
+
+### Example fragments (verify in your BSP tarball)
+
+| Topic | Example |
+|-------|---------|
+| Pinmux | `tegra234-mb1-bct-pinmux-p3767-dp-a03.dtsi` |
+| Pad voltage | `tegra234-mb1-bct-padvoltage-p3767-dp-a03.dtsi` |
+| MB1 GPIO | `tegra234-mb1-bct-gpio-p3767-dp-a03.dtsi` |
+| GPIO interrupt map | `tegra234-mb1-bct-gpioint-p3767-0000.dts` |
+| MB2 misc | `tegra234-mb2-bct-misc-p3767-0000.dts` |
+| MB2 SCR (carrier) | `tegra234-mb2-bct-scr-p3767-0000.dts` |
+
+### Flash configuration
+
+Board `.conf` files usually `source "${LDK_DIR}/p3767.conf.common"` and set `PINMUX_CONFIG`, `PMC_CONFIG`, `GPIOINT_CONFIG`, `MB2_BCT`, `SCR_CONFIG`, `DTB_FILE`, and similar to the fragments above. Step-by-step bring-up: [Jetson-Module-Adaptation-Bring-Up-Orin-NX-Nano.md](Jetson-Module-Adaptation-Bring-Up-Orin-NX-Nano.md) (MB1 edits, EEPROM-less carrier, `ODMDATA` / UPHY).
+
+### Related notes
+
+- [ODMDATA-and-GPIO-Jetson-Linux.md](ODMDATA-and-GPIO-Jetson-Linux.md) — UPHY, pinmux vs userspace GPIO  
+- [Orin-Nano-8GB-Custom-Board-L4T-Engineering-Flow.md](Orin-Nano-8GB-Custom-Board-L4T-Engineering-Flow.md) — custom carrier flow  
+- [FSP / SPE firmware](../6.%20FSP%20%28Firmware%20Support%20Package%29%20Customization/Guide.md) — SPE demos that touch `p3767` BCT  
+
+## Where files live (generic + upstream)
+
+| Location | Role |
+|----------|------|
+| `Linux_for_Tegra/bootloader/` (`generic/BCT/`, `t186ref/BCT/`) | Orin Nano: [cheat sheet](#orin-nano-bct-path-cheat-sheet). Other T23x boards use other `p####` prefixes (e.g. p3701 on AGX Orin reference carrier). |
+| `Linux_for_Tegra/sources/hardware/nvidia/platform/t23x/.../bct/` | Upstream layout after `source_sync.sh` / kernel BSP; matches DU-10990 examples. |
+| `<platform>` in DU-10990 | Board/CVB directory name in the PDF; for Nano, think `p3767` / `p3768`. |
+
+Use [Jetson-Module-Adaptation-Bring-Up-Orin-NX-Nano.md](Jetson-Module-Adaptation-Bring-Up-Orin-NX-Nano.md) for **procedure** (spreadsheet → `.dtsi`, flash, PCIe/USB). Use **this file** for **semantics** (what each BCT chapter can contain).
+
+## How to read this reference
+
+1. Read **Chapter 1** to see which artifact (BR-BCT, MB1-BCT, Mem-BCT, MB2-BCT) owns which data.
+2. Jump by task (pinmux, PMIC, storage, UPHY, SDRAM, GPIO intmap, SCR) via the [table of contents](#table-of-contents).
+3. Treat long **DTS** excerpts as **PDF illustrations**; reformat or regenerate from the pinmux spreadsheet before you ship a tree.
+
+### Code conventions
+
+- `dts` fenced blocks: device tree examples (may have bad line wraps from the PDF).
+- `text` fenced blocks: legacy `.cfg` style (`device.foo.bar = value`).
+- Unfenced `/ { … }` snippets in older text: shape templates only, not complete files.
 
 ## Quick map: which BCT, who consumes it
 
@@ -28,6 +84,7 @@
 
 ## Table of contents
 
+0. [Orin Nano: BCT path cheat sheet](#orin-nano-bct-path-cheat-sheet)
 1. [Chapter 1 — Introduction](#chapter-1-introduction)
 2. [Chapter 2 — Pinmux and GPIO Configuration](#chapter-2-pinmux-and-gpio-configuration)
 3. [Chapter 3 — Common Prod Configuration](#chapter-3-common-prod-configuration)
@@ -48,12 +105,12 @@
 
 ## Chapter 1. Introduction
 
-A **Boot Configuration Table (BCT)** is platform-specific data consumed early in boot. **BootROM** and **MB1** use BCT in **binary** form. That binary is produced by parsing **Device Tree Source** (`.dts` / `.dtsi`) with **`tegrabct_v2`** (older releases used plain `parameter = value` text files).
+A **Boot Configuration Table (BCT)** is early-boot platform data. BootROM and MB1 consume a **binary** BCT produced from Device Tree Source (`.dts` / `.dtsi`) with `tegrabct_v2`. Older releases used flat `parameter = value` `.cfg` files instead.
 
-On **T23x**, NVIDIA moved BCT input to **DTS** so that:
+On T23x, NVIDIA standardized on DTS for BCT input because:
 
-- DTS supports **includes** and **property overrides** in a structured tree.
-- **DTC** can compile DTS/DTSI to DTB, which is easier to parse than the legacy flat config format.
+- The tree supports `#include` and property overrides cleanly.
+- Tooling can mirror DTC-style workflows, and the structure is easier to diff than legacy CFG.
 
 ### 1.1 BR-BCT
 
@@ -93,6 +150,10 @@ The pinmux file describes **pinmux** and **GPIO**; content is normally generated
 Pinmux `.dtsi` files live under:
 
 `hardware/nvidia/platform/t23x/<platform>/bct/`
+
+On Orin Nano, map **`<platform>`** to the `p3767` / `p3768` file names under `Linux_for_Tegra` (e.g. `tegra234-mb1-bct-pinmux-p3767-dp-a03.dtsi`), which may not match the upstream `platform/t23x/.../bct/` directory string. See [Orin Nano: BCT path cheat sheet](#orin-nano-bct-path-cheat-sheet).
+
+> **Note:** The large **NEW DTS** excerpt below is copied from NVIDIA’s guide and may show **broken line wraps** (e.g. `TEGRA_PIN_PULL_` split across lines). Use it to recognize **structure** (`pinmux@…`, `nvidia,pins`, `nvidia,function`); for real products, **regenerate** from the **pinmux spreadsheet** or **reformat** in your editor.
 
 **NEW DTS format example of pinmux configuration file:**
 
@@ -262,11 +323,13 @@ gpio_wan3_ph1.PADCTL_CONN_CFG2TMC_GPIO_WAN3_0
 ```
 
 ## Chapter 3. Common Prod Configuration
-The prod configurations are the system characterized values of interface and controller
-settings, which are required for the given interface to work reliably for a platform. The prod
-configuration are set separately at controller and pinmux/pad levels. This file contains the
-common pinmux/pad level prod settings.
-Required properties:
+
+**Prod** settings are **silicon- and board-characterized** tweaks so an interface meets timing and signal quality. They are split into:
+
+- **Common prod** (this chapter) — **pad / pinmux** side, as a list of register patches.
+- **Controller prod** (Chapter 4) — **inside** specific controllers (QSPI, SDMMC, …).
+
+**Required properties:**
 - addr-value-data: List of <Absolute PADCTL register address, mask, data>
 For each such entry in the prod configuration file, MB1 reads the data from the specified address, modifies the data based on mask and value, and writes the data back to the address.
 
@@ -310,50 +373,52 @@ prod.0x02441004.0xff1ff000 =
 ```
 
 ## Chapter 4. Controller Prod Configuration
-The prod configurations are the system characterized values of interface and controller
-settings, which are required for the given interface to work reliably for a platform. The prod
-configuration are set separately at controller and pinmux/pad levels. This file contains the
-controller level prod settings.
-The DTS configuration file is of the following form:
+
+This chapter is **controller-level** prod: register tuples tied to a **specific IP instance** (QSPI, SDMMC, …), usually under a **`deviceprod`** node.
+
+**DTS shape (template):**
+
+```text
 / {
-deviceprod {
-<controller-name>-
-<Instance> = <&Label>;
-#prod-cells = <N>;
-<Label>: <controller-name>@<base-address> {
-<mode> {
-prod = <<address offset> <mask> <value>>;
+    deviceprod {
+        <controller-name>-<Instance> = <&Label>;
+        #prod-cells = <N>;
+        <Label>: <controller-name>@<base-address> {
+            <mode> {
+                prod = < <address offset> <mask> <value> >;
+            };
+        };
+    };
 };
-};
-};
-};
-where:
-- Instance is controller instance id
-- Label is the label assigned to the node which can be referenced for mapping instance to a
-node
-- <controller-name> is predefined module name (sdmmc, qspi, se, i2c)
-- <base-address> is base address of the controller
-- <mode> is controller mode for which the prod setting needs to be applied (e.g. default,
-hs400, etc)
-- <address offset> is the register address offset from base address of the
-controller/instance
-- <mask> is the mask value (4 bytes, unsigned)
-- <value> is the data value (4 bytes, unsigned)
-- N specifies how many entries are there on prod setting tuples per configurations.
-if #prod-cells == 3, there are three entries per prod configuration (address _offset,
-mask, and value).
+```
+
+**Where:**
+
+| Symbol | Meaning |
+|--------|---------|
+| **Instance** | Controller instance id. |
+| **Label** | Node label used to map instance → device node. |
+| **`<controller-name>`** | Module name (e.g. `sdmmc`, `qspi`, `se`, `i2c`). |
+| **`<base-address>`** | Controller base address. |
+| **`<mode>`** | Mode the prod applies to (e.g. `default`, `hs400`). |
+| **`<address offset>`** | Register offset from controller base. |
+| **`<mask>`**, **`<value>`** | 32-bit RMW mask and data. |
+| **`#prod-cells`** | Number of cells per `prod` tuple (e.g. **3** ⇒ offset, mask, value). |
+
 The legacy config format used device instance <controller-name>.<instance-index>
 instead of using the base address of the device. The legacy format keeps one byte to store the
 instance, but new DTS format has a base address, which requires four bytes in the BCT. As a
 result, some of the fields in the BCT structure have to be shifted accordingly.
-For each entry in the prod configuration file, MB1 reads data from the specified address,
-modifies the data based on the mask and value, and the data back to the address.
+
+For each tuple, **MB1** does a read–modify–write on the controller register:
+
+```text
 val = read(address)
-val = (val & ~mask) | (value
-& mask); write(val,
-address);
-The common prod configuration file is in the
-hardware/nvidia/platform/t23x/<platform>/bct/ directory.
+val = (val & ~mask) | (value & mask)
+write(val, address)
+```
+
+Controller prod files live in `hardware/nvidia/platform/t23x/<platform>/bct/`.
 
 **NEW DTS example of prod configuration file:**
 
@@ -433,16 +498,13 @@ tap and trim values deviceprod.sdmmc.3.hs400.0x0346010c.0x00003F00 =
 ```
 
 ## Chapter 5. Pad Voltage Binding
-Tegra pins and pads are designed to support multiple voltage levels at an interface. They can
-operate at 1.2 volts (V), 1.8 V or 3.3 V. Based on the interface and power tree of a given
-platform, the software must write to the correct voltage of these pads to enable interface. If
-pad voltage is higher than the I/O power rail, the pin does not work on that level. If pad voltage
-is lower than the I/O power rail, it can damage the SoC pads. Consequently, configuring the
-correct pad voltage is required, and this configuration is based on the power tree.
-The Pad voltage DTSI is generated using pinmux spreadsheet.
-The prod configuration files are kept in the
-hardware/nvidia/platform/t23x/<platform>/bct/ directory. The contrast in the
-New DTS format is because of the pinmux sheet output.
+
+Pads can run at **1.2 V**, **1.8 V**, or **3.3 V** (subject to SoC and ball rules). **MB1** must program **pad voltage** to match your **power tree** and interface:
+
+- If the **pad voltage setting is wrong** for the actual I/O rail, signals may fail—or in the **undervoltage** case, hardware can be **damaged**.
+- Pad-voltage **`.dtsi`** is normally **generated from the pinmux spreadsheet** (same flow as pinmux).
+
+Files live in `hardware/nvidia/platform/t23x/<platform>/bct/`. The **DTS** layout follows spreadsheet output, so it may look different from older **CFG** snippets.
 
 **NEW DTS format example of pad-voltage configuration file:**
 
@@ -491,147 +553,94 @@ PMC_IMPL_E_33V_PWR_0
 ```
 
 ## Chapter 6. PMIC Configuration
-During system boot, MB1 enables system power rails for CPU, CORE, DRAM and completes
-some system PMIC configurations. Here is a list of the typical configurations:
-- Enabling rails
-- Setting rail voltages
-- FPS configurations
-Enabling and setting of voltages of rails might require following platform-specific
-configurations:
-- I2C commands to devices
-- PWM commands to devices
-- MMIO accesses to Tegra registers, either read-modify-write or write-only
-- Delay after the commands
-The entries in PMIC configuration files are either common or rail-specific.
-### 6.1 Common Configuration
-The common configuration parameters are applicable to all rails. Each PMIC common
-configuration is of the following form:
+
+During boot, **MB1** brings up **PMIC** rails for **CPU**, **CORE**, **DRAM**, and related logic. Typical work includes:
+
+- Enabling rails and setting voltages  
+- **FPS** (sequencing) configuration  
+- Platform-specific **I2C** / **PWM** / **MMIO** sequences (sometimes with **delays** between steps)  
+
+PMIC BCT splits into **common** properties (global) and **rail-specific** **blocks**.
+
+### 6.1 Common configuration
+
+Applies to all rails. Template:
+
+```dts
 / {
-pmic {
-<parameter> = <value>;
+    pmic {
+        <parameter> = <value>;
+    };
 };
-};
-where:
-- <parameter> is one of the following:
-<parameter> Description
-rail-count Number of rails in the configuration file.
-command-retries-count The number of allowed command attempts.
-wait-before-start-bus-clearus
-Wait timeout, in microseconds before issuing the bus clear
-command. The wait time is calculated as 1 << n microseconds
-where n is provided by this parameter.
-### 6.2 Rail-Specific Configuration
-The rail-specific configuration are divided into blocks.
-- Each rail can have one or more blocks.
-- Each block can have only one type of commands (I2C, PWM, or MMIO).
-Each PMIC rail-specific configuration is of the following form:
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `rail-count` | Number of rails described in the file. |
+| `command-retries-count` | How many times MB1 may retry a command. |
+| `wait-before-start-bus-clear-us` | Wait **1 << n** microseconds before a bus-clear command (**n** = field value). |
+
+*(Property spelling follows NVIDIA DU-10990; your exact DTS may use the hyphenated names from the BSP.)*
+
+### 6.2 Rail-specific configuration
+
+- Each **rail** may have multiple **`block@N`** nodes.  
+- Each **block** uses **one** transport: **`i2c-controller`**, **`pwm`**, or **`mmio`**.  
+
+Template:
+
+```dts
 / {
-pmic {
- <rail-name> {
- block@<index> {
-<parameter> = <value>;
+    pmic {
+        <rail-name> {
+            block@<index> {
+                <parameter> = <value>;
+            };
+        };
+    };
 };
-};
-};
-};
-where:
-- <rail-name> identifies the rail and is one of the following:
-Name Description
-system System PMIC configuration
-cpu / cpu0 CPU rail configuration
-cpu1 CPU rail configuration
-core Core/SOC rail configuration
-memio DRAM related rail configuration
-thermal External thermal sensor configuration
-Name Description
-platform Platform's other I2C configuration
-- block-<index> The rail specific commands are divided into blocks.
-Each rail can have multiple blocks. Each block of given rails indexed starting from 0.
-- <parameter> is one of the following:
-<parameter> Description
-<type> Type of commands in the block. Valid properties are i2c-controller,
-pwm or
-mmio.
-commands {
-<group-name> {
-command@N {
-reg-addr = <regaddress>; mask = <regmask>;
-value = <reg-value>;
-};
-};
-};
-<group-name> node is the logical command group name and it is
-OPTIONAL. N is the sequential number for the command starting from
-0. MMIO or I2C commands (based on
-Type of command type) block Description
-mmio MMIO command (valid only if
-block has mmio property),
-where,
-<address> is absolute address
-of MMIO register and
-<mask> is the 32bit mask that
-is applied to the value read
-from the MMIO address to
-facilitate
-read-modify-write operation.
-<value> value written into
-the register
-i2c-controller I2c command, where
-<address> is the I2c slave
-register address, and
-<mask> is I2C slave mask that
-is applied to the value read
-<parameter> Description
-<i2c-parameter> I2C parameter (valid only if block has i2c- controller property), which
-is one of the following:
-pwm PWM parameter (valid only if block has pwm property), which is one
-of the following:
-<pwm-parameter> Description
-controller-id PWM controller instance (0-7)
-source-frq-hz PWM clock source frequency (in
-Hz)
-period-ns PWM time period (in
-nanoseconds)
-min-microvolts Vout from PWM regulator if duty
-cycle is 0
-max-microvolts Vout from PWM regulator if duty
-cycle is 100
-init-microvolts Vout from PWM regulator after
-initialization
-enable 0 (just configure PWM, do
-not enable);
-1 (enable PWM after
-configuring)
-### 6.3 Relative Order of Execution of the
-PMIC Configuration by MB1
-Apart from the order and point in boot in which the different rail configurations are executed,
-there is no difference in how MB1 treats each of these configurations. Depending on the
-platform, some of these configurations might be optional. Therefore, MB1 treats all
-configurations as optional and prints only a warning when a configuration is not provided in the
-MB1-BCT.
-<i2c-parameter> Description
-block-delay Delay (in microseconds), after
-each command in the block.
-<index> is the block index
-(starting from 0).
-i2c-controller-id I2C controller instance
-slave-addr 7-bit I2C slave address
-reg-data-size Register size in bits. Valid values
-are 0(1-byte), 8(1-byte) and
-16(2-byte)
-reg-addr-size Register address size in bits.
-Valid values are 0(1-byte)
-These sequences are executed in the following order by MB1:
-1. External thermal sensor configuration.
-2. Generic PMIC configuration.
-3. SOC rail configuration.
-4. DRAM related rail configuration.
-5. DRAM initialization.
-6. CPU rail configuration.
-7. Loading CPU related microcode and enabling CPUs.
-8. Platform's other I2C configuration.
-The PMIC configuration files are kept in the
-hardware/nvidia/platform/t23x/<platform>/bct/ directory.
+```
+
+**Rail names** (`<rail-name>`):
+
+| Name | Role |
+|------|------|
+| `system` | System PMIC |
+| `cpu` / `cpu0` | CPU rail |
+| `cpu1` | Second CPU rail |
+| `core` | Core / SoC rail |
+| `memio` | DRAM-related rail |
+| `thermal` | External thermal sensor path |
+| `platform` | Other platform I2C |
+
+**Commands:** Under a block, **`commands { … }`** may contain optional **groups** and **`command@N`** entries with `reg-addr`, `mask`, `value` (semantics depend on **MMIO** vs **I2C**—see NVIDIA’s full tables).
+
+**I2C-oriented block parameters** (representative):
+
+| Parameter | Description |
+|-----------|-------------|
+| `block-delay` | Delay (µs) after **each** command in the block. |
+| `i2c-controller-id` | I2C controller instance. |
+| `slave-addr` | 7-bit I2C address. |
+| `reg-data-size` | Data width: `0` / `8` (1 byte) or `16` (2 bytes). |
+| `reg-addr-size` | Register address width (see official doc for allowed values). |
+
+**PWM block parameters** (when type is PWM): `controller-id`, `source-frq-hz`, `period-ns`, `min-microvolts`, `max-microvolts`, `init-microvolts`, `enable` (`0` = configure only, `1` = enable after configure).
+
+### 6.3 Order of execution (MB1)
+
+MB1 treats PMIC sections as **optional** and **warns** if a block is missing. Typical **execution order**:
+
+1. External thermal sensor  
+2. Generic **system** PMIC  
+3. **SOC / core** rail  
+4. **DRAM-related** rail  
+5. DRAM init  
+6. **CPU** rail(s)  
+7. CPU microcode load / CPUs on  
+8. **Platform** other I2C  
+
+PMIC DTS fragments live in `hardware/nvidia/platform/t23x/<platform>/bct/`.
 
 **NEW DTS format example of PMIC configuration file**
 
@@ -1289,27 +1298,30 @@ device.ufs.0.init-state = 0;
 ```
 
 ## Chapter 8. UPHY Lane Configuration
-UPHY lanes can be configured to be owned by various IPs such as XUSB, NVME, MPHY, PCIE,
-NVLINK, and so on. MB1 supports NVME, UFS as boot devices for the UPHY lanes that need to
-be configured to access the storage in MB1 and MB2. This file defines the UPHY lane
-configuration that is necessary for MB1.
-In T23x, BPMP-FW is loaded by MB1 and MB2 relies on BPMP-FW for UPHY configuration.
-Each entry in the configuration file is of the following form:
+
+**UPHY** lanes can be assigned to different consumers (**XUSB**, **NVMe**, **UFS**, **PCIe**, **NVLink**, …). **MB1** must configure lanes that **MB1/MB2** need to reach **boot storage** (e.g. **NVMe**, **UFS**). On **T23x**, **MB1** loads **BPMP-FW**; **MB2** depends on BPMP for further UPHY setup—this BCT fragment is the **early** lane ownership MB1 needs.
+
+**Template:**
+
+```dts
 / {
-uphy-lane {
-<instance-type> {
-lane-owner-map = < <id> <ownerid> >,
-< <id> <owner-id> >;
+    uphy-lane {
+        <instance-type> {
+            lane-owner-map = < <id> <owner-id> >, < <id> <owner-id> >;
+        };
+    };
 };
-};
-};
-Where:
-- <instance-type> is the type of UPHY which needs to be configured, it can be hsio or nvhs
-- <uphy-component> is either lane or pll which needs to be configured
-- <id> is the lane/pll number which needs to be configured
-- <owner-id> is the unique id of the owner to which lane/pll will be assigned
-The UPHY lane configurations are kept in the
-hardware/nvidia/platform/t23x/<platform>/bct/ directory.
+```
+
+**Fields:**
+
+| Field | Meaning |
+|--------|---------|
+| **`<instance-type>`** | UPHY flavor to configure, e.g. **`hsio`** or **`nvhs`**. |
+| **`<id>`** | Lane or PLL index to assign. |
+| **`<owner-id>`** | Numeric **owner** id for that lane/PLL (see NVIDIA owner tables / spreadsheet). |
+
+Files live in `hardware/nvidia/platform/t23x/<platform>/bct/`.
 
 **NEW DTS example uphy lane DTS configuration file and old CFG file format:**
 
@@ -2273,222 +2285,247 @@ spe_uart_instance = 2;
 ```
 
 ## Chapter 12. SDRAM Configuration
-DTS format for SDRAM configuration:
-/
-{
-sdram {
-mem_cfg_<N>: mem-cfg@<N> {
-<parameter> = <value>;
+
+**Mem-BCT** carries **SDRAM / MC / EMC** parameters. DTS groups them as **memory configuration** nodes plus optional **overrides**.
+
+**Shape (conceptual):**
+
+```dts
+/ {
+    sdram {
+        mem_cfg_<N>: mem-cfg@<N> {
+            <parameter> = <value>;
+        };
+    };
 };
-};
-};
+
 &mem_cfg_<N> {
-#include " <mem_override_dts >"
+    #include "<mem_override.dtsi>"
 };
-where
-- <N> is number starting from 0 representing different memory configurations
-- <parameter> is the SDRAM parameter. Usually, this corresponds to MC/EMC register.
-- <value> is the 32bit value of the corresponding register.
-- <mem_override_dts> is override file for SDRAM parameters which will be applied to all the configs
-Format of override dts will be:
-<parameter> = <value>; // example McVideoProtectBom = <0x00000000>;
-Memory/MSS HW team will use a tool provided by SW to convert legacy configuration format to above DTS
-format.
+```
+
+| Symbol | Meaning |
+|--------|---------|
+| **`<N>`** | Memory config index (0, 1, …) for alternate DRAM profiles. |
+| **`<parameter>`** | Usually an **MC/EMC** register name / property. |
+| **`<value>`** | 32-bit data written for that parameter. |
+| **`mem_override.dtsi`** | Optional include applied to a given `mem_cfg_*` node. |
+
+Override files are typically lines like `<parameter> = <value>;`. **MSS / memory HW** often converts **legacy** mem BCT to this DTS using NVIDIA’s internal tooling.
+
 ### 12.1 Carveouts
-The following hardware carveouts are available:
-- GSC carveouts
-- Non-GSC carveouts Important carveout fields in BCT cfg
-Important carveout fields in BCT cfg.
-Field Description
-McGeneralizedCarveout<N>Bom and Mc
-GeneralizedCarveout<N>BomHi
-(where N is the GSC#)
-Preferred base address of the GSC carveout (recommended value = 0; allows MB1 to allocate on its own)
-McGeneralizedCarveout<N>Size128kb
-(where N is the GSC#)
-31:27 - Size of the generalized security carveout region with 4kb granularity
-11:0 - Size of the generalized security carveout region
-with 128kb granularity
-Size = (MC_SECURITY_CARVEOUT1_SIZE_RAN,
-GE_128KB << 17) | (MC_SECURITY_CARVEOU,
-T1_SIZE_RANGE_4KB << 12)
-McGeneralizedCarveout<N>Access[0-5]
-(where N is the GSC#)
-Client Access Register for Generalized Carveout. For bit
-description details refer to TRM
-McVideoProtectBom and McVideoProtectBomHi Preferred base address of VPR carveout (recommended value = 0; allows MB1 to allocate on its own)
-McVideoProtectSizeMb Specifies VPR carveout size (in MB) (see also
-enable_vpr_resize in “Miscellaneous
-Configuration).
-### 12.2 GSC Carveouts
-The following list gives a mapping between Carveout names and its corresponding GSC numbers:
-Carveout # Carveout Name
-1 NVDEC
-2 WPR1
-3 WPR2
-4 TSECA
-5 TSECB
-6 BPMP
-7 APE
-8 SPE
-9 SCE
-10 APR
-11 TZRAM
-12 IPC_SE_TSEC
-13 BPMP_RCE
-Carveout # Carveout Name
-14 BPMP_DMCE
-15 SE_SC7
-16 BPMP_SPE
-17 RCE
-18 CPUTZ_BPMP
-19 VM_ENCRYPT1
-20 CPU_NS_BPMP
-21 OEM_SC7
-22 IPC_SE_SPE_SCE_BPMP
-23 SC7_RF
-24 CAMERA_TASK
-25 SCE_BPMP
-26 CV
-27 VM_ENCRYPT2
-28 HYPERVISOR
-29 SMMU
-### 12.3 Non-GSC Carveouts
-Carveout # Carveout Name
-32 MTS
-33 VPR
+
+Hardware **carveouts** partition memory for firmware, security, video protected region (**VPR**), etc. Two families appear in the guide:
+
+- **GSC** (generalized security carveouts)  
+- **Non-GSC** (e.g. **MTS**, **VPR** sizing)  
+
+**Important GSC-related fields** (names per DU-10990):
+
+| Field | Role |
+|-------|------|
+| **McGeneralizedCarveout&lt;N&gt;Bom** / **BomHi** | Preferred **base** of GSC carveout **N** (often **0** so MB1 picks). |
+| **McGeneralizedCarveout&lt;N&gt;Size128kb** | Encoded size: high bits → **4 KB** granularity; low bits → **128 KB** granularity (full formula in TRM / original guide). |
+| **McGeneralizedCarveout&lt;N&gt;Access[0–5]** | Client access registers for that carveout (**TRM** bit definitions). |
+| **McVideoProtectBom** / **BomHi**, **McVideoProtectSizeMb** | **VPR** base and size (**MB**); see also **`enable_vpr_resize`** in miscellaneous configuration. |
+
+### 12.2 GSC carveouts
+
+Mapping of **GSC index → name** (excerpt from NVIDIA list):
+
+| # | Name |
+|---|------|
+| 1 | NVDEC |
+| 2 | WPR1 |
+| 3 | WPR2 |
+| 4 | TSECA |
+| 5 | TSECB |
+| 6 | BPMP |
+| 7 | APE |
+| 8 | SPE |
+| 9 | SCE |
+| 10 | APR |
+| 11 | TZRAM |
+| 12 | IPC_SE_TSEC |
+| 13 | BPMP_RCE |
+| 14 | BPMP_DMCE |
+| 15 | SE_SC7 |
+| 16 | BPMP_SPE |
+| 17 | RCE |
+| 18 | CPUTZ_BPMP |
+| 19 | VM_ENCRYPT1 |
+| 20 | CPU_NS_BPMP |
+| 21 | OEM_SC7 |
+| 22 | IPC_SE_SPE_SCE_BPMP |
+| 23 | SC7_RF |
+| 24 | CAMERA_TASK |
+| 25 | SCE_BPMP |
+| 26 | CV |
+| 27 | VM_ENCRYPT2 |
+| 28 | HYPERVISOR |
+| 29 | SMMU |
+
+### 12.3 Non-GSC carveouts
+
+| # | Name |
+|---|------|
+| 32 | MTS |
+| 33 | VPR |
+
 ## Chapter 13. GPIO Interrupt Mapping Configuration
-To reduce the interrupt hunt time for GPIO pins from single ISR, in T23x, each GPO controller has 8
-interrupt lines to LIC. This gives opportunity to map the GPIO pin to any of 8 interrupts. The configuration for
-the same is specified in the GPIO interrupt configuration file.
-Each entry in this configuration file is in the following form:
+
+To cut **GPIO** interrupt latency, **T23x** gives each **GPIO controller** up to **eight** interrupt lines into the **LIC**. You choose **which line (0–7)** each **pin** uses via the **gpio-intmap** BCT fragment.
+
+**Template:**
+
+```dts
 gpio-intmap {
-port@<PORT-ID> {
-pin-<N>-int-line = <INTERRUPT-NUMBER>;
+    port@<PORT_ID> {
+        pin-<N>-int-line = <INTERRUPT_NUMBER>;
+    };
 };
-port@<PORT-ID> {
-pin-<N>-int-line = <INTERRUPT-NUMBER>;
-};
-};
-where:
-- <PORT-ID> is the port name like A, B, C..Z, AA, BB
-- <N> is the pin id in the port. Valid values are 0-7.
-- <INTERRUPT-NUMBER> is interrupt route for that pin. Valid values are 0-7.
-The gpio-interrupt mapping configuration file are kept at hardware/nvidia/platform/t23x/<platform>/bct/
+```
+
+| Symbol | Meaning |
+|--------|---------|
+| **PORT_ID** | Port letter(s): `A`…`Z`, `AA`, `BB`, … |
+| **N** | Pin within the port, **0–7**. |
+| **INTERRUPT_NUMBER** | LIC line **0–7** for that pin. |
+
+Files live in `hardware/nvidia/platform/t23x/<platform>/bct/`.
 
 **NEW DTS example of GPIO interrupt mapping configuration file:**
 
 ```dts
 /dts-v1/;
 / {
-gpio-intmap {
-port@B {
-pin-1-int-line = <0>; // GPIO B1 to INT0
-};
-port@AA {
-pin-0-int-line = <0>; // GPIO
-AA0 to INT0 pin-1-int-line =
-<0>; // GPIO AA1 to INT0 pin-2-
-int-line = <0>; // GPIO AA2 to
-INT0
-};
-};
+    gpio-intmap {
+        port@B {
+            pin-1-int-line = <0>; /* GPIO B1 → INT0 */
+        };
+        port@AA {
+            pin-0-int-line = <0>; /* GPIO AA0 → INT0 */
+            pin-1-int-line = <0>; /* GPIO AA1 → INT0 */
+            pin-2-int-line = <0>; /* GPIO AA2 → INT0 */
+        };
+    };
 };
 ```
 
 **Legacy `.cfg` format (pre-DTS):**
 
 ```text
-gpio-intmap.port.B.pin.1 = 0; // GPIO
-B1 to INT0 gpio-intmap.port.AA.pin.0 =
-0; // GPIO AA0 to INT0 gpiointmap.port.AA.pin.1 = 0; // GPIO AA1
-to INT0 gpio-intmap.port.AA.pin.2 = 0;
-// GPIO AA2 to INT0
+gpio-intmap.port.B.pin.1 = 0;       // GPIO B1 → INT0
+gpio-intmap.port.AA.pin.0 = 0;      // GPIO AA0 → INT0
+gpio-intmap.port.AA.pin.1 = 0;      // GPIO AA1 → INT0
+gpio-intmap.port.AA.pin.2 = 0;      // GPIO AA2 → INT0
 ```
 
 ## Chapter 14. MB2 BCT Misc Configuration
-### 14.1 MB2 Feature Fields
-These feature bits are boolean flags that enable or disable certain functionality in MB2.
-Field Description
-disable-cpu-l2ecc If this property is present CPU L2 ECC is disabled. Otherwise, it is enabled.
-enable-combineduart
-If this property is present combined uart is enabled
-Otherwise, it is disabled.
-spe-uart-instance UART controller used for combined UART by SPE.
-### 14.2 MB2 Firmware Data
-Mb2 firmware configuration is specified as:
+
+Miscellaneous **MB2** behavior and **firmware load** addresses live here.
+
+### 14.1 MB2 feature fields
+
+Boolean-style flags for **MB2**:
+
+| Property | Effect |
+|----------|--------|
+| **`disable-cpu-l2ecc`** | Present ⇒ **disable** CPU L2 ECC; absent ⇒ enabled. |
+| **`enable-combined-uart`** | Present ⇒ **combined UART** on; absent ⇒ off. |
+| **`spe-uart-instance`** | Which **UART** instance **SPE** uses for combined UART. |
+
+### 14.2 MB2 firmware data
+
+Template:
+
+```dts
 / {
-mb2-misc {
-<firmware-type> {
-<parameter> = <value>;
+    mb2-misc {
+        <firmware-type> {
+            <parameter> = <value>;
+        };
+    };
 };
-};
-};
-Where firmware type is one of the cpubl, ape-fw, bpmp-fw, rce-fw, sce-fw, camera-taskfw, apr-fw.
-<parameter> is one of the parameters from below table.
-Parameters Description
-enable Enable loading of firmware from MB2, if this property is present Otherwise disable
-loading of firmware from MB2.
-ast-va Virtual address for firmware carveout in BPMP-R5 address-space.
-load-offset Offset in firmware carveout where firmware binary is loaded.
-entry-offset Offset of firmware entry point in firmware carveout.
-Example of an Mb2 misc DTS configuration file:
+```
+
+**`<firmware-type>`** examples: `cpubl`, `ape-fw`, `bpmp-fw`, `rce-fw`, `sce-fw`, `camera-taskfw`, `apr-fw`.
+
+| Parameter | Description |
+|-----------|-------------|
+| **`enable`** | Present ⇒ MB2 **loads** this firmware from its carveout; absent ⇒ do not load from MB2. |
+| **`ast-va`** | Virtual address of the firmware carveout in **BPMP R5** address space. |
+| **`load-offset`** | Offset within the carveout where the binary is placed. |
+| **`entry-offset`** | Entry point offset within the carveout. |
+
+**Example (from NVIDIA guide):**
+
+```dts
 /dts-v1/;
 / {
-mb2-misc {
-disable-cpul2ecc; enable-combined-uart;
-spe-uart-instance = <0x2>;
-firmware {
-sce {
-ast-va = <0x70000000>;
+    mb2-misc {
+        disable-cpu-l2ecc;
+        enable-combined-uart;
+        spe-uart-instance = <0x2>;
+        firmware {
+            sce {
+                ast-va = <0x70000000>;
+            };
+            ape {
+                enable;
+                ast-va = <0x80000000>;
+            };
+            rce {
+                enable;
+                ast-va = <0x70000000>;
+            };
+            cpubl {
+                load-offset = <0x600000>;
+            };
+            apr {
+                ast-va = <0xC0000000>;
+            };
+            camera-task {
+                ast-va = <0x78000000>;
+            };
+        };
+    };
 };
-ape {
-enable;
-ast-va = <0x80000000>;
-};
-rce {
-enable;
-ast-va = <0x70000000>;
-};
-cpubl {
-load-offset = <0x600000>;
-};
-apr {
-ast-va = <0xC0000000>;
-};
-camera-task {
-ast-va = <0x78000000>;
-};
-};
-};
-};
+```
+
 ## Chapter 15. Security Configuration
-MB1 and MB2 program most of the SCRs and firewalls in T23x. The list of SCRs/firewalls,
-their order, and their addresses is predetermined. The values are taken from the SCR
-configuration file.
-Each entry in this configuration file is in the following form:
+
+**MB1** and **MB2** program **SCR** (security configuration) and **firewall** registers from a fixed **index → register** list. Your BCT supplies **`exclusion-info`** and **`value`** per index.
+
+**Template:**
+
+```dts
 / {
-scr {
-reg@<index> {
-<parameter> = <value>;
+    scr {
+        reg@<index> {
+            <parameter> = <value>;
+        };
+    };
 };
-};
-};
-where:
-- <index> is the index of the SCR/firewall in the predefined list
-- <parameter> and its <value> can be as follows:
-Parameter Value
-exclusion-info Exclusion info is a bit field defined as follows
-Bit Description
-0 Do not program in coldboot or SC7-exit
-1 Program in coldboot, but skip in SC7-exit
-2 Program at end of MB2, instead of MB1
-value 32 bit value for the SCR register
-Note: The values of the SCRs are programmed in increasing order of indexes and not in the
-order they appear in the configuration file. The scr/firewalls which are not specified in the
-configuration file are locked without restricting the access to the protected registers.
-The scr configuration files are kept in the
-hardware/nvidia/platform/t23x/common/bct/scr directory.
+```
+
+| Field | Meaning |
+|--------|---------|
+| **`<index>`** | Slot in NVIDIA’s **predetermined** SCR/firewall table (not necessarily file order). |
+| **`exclusion-info`** | Bit mask controlling **when** this SCR is programmed (see table below). |
+| **`value`** | **32-bit** data written to the SCR. |
+
+**`exclusion-info` bits:**
+
+| Bit | Meaning |
+|-----|---------|
+| **0** | Do **not** program at cold boot or **SC7** exit. |
+| **1** | Program on **cold boot**, skip on **SC7** exit. |
+| **2** | Defer programming to **end of MB2** (instead of MB1). |
+
+**Note:** Hardware applies entries in **increasing index order**, not necessarily the order lines appear in the DTS. Entries **omitted** from the file are still **locked** in a default way that does **not** tighten access to protected registers (per NVIDIA).
+
+SCR sources live in `hardware/nvidia/platform/t23x/common/bct/scr/`.
 
 **NEW DTS format example of SCR config file:**
 
@@ -2515,13 +2552,9 @@ hardware/nvidia/platform/t23x/common/bct/scr directory.
 **Legacy `.cfg` format (pre-DTS):**
 
 ```text
-scr.161.7 = 0x3f008080; //
-TKE_AON_SCR_WDTSCR0_0 scr.162.4
-= 0x18000303; //
-DMAAPB_1_SCR_BR_INTR_SCR_0
-scr.163.4 = 0x18000303; //
-DMAAPB_1_SCR_BR_SCR_0
-
+scr.161.7 = 0x3f008080;   /* TKE_AON_SCR_WDTSCR0_0 */
+scr.162.4 = 0x18000303;   /* DMAAPB_1_SCR_BR_INTR_SCR_0 */
+scr.163.4 = 0x18000303;   /* DMAAPB_1_SCR_BR_SCR_0 */
 ```
 
 ---
