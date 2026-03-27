@@ -1,6 +1,6 @@
 # L4T customization (production)
 
-**Phase 4 — Track B — Nvidia Jetson** · Module 2 of 5
+**Phase 4 — Track B — Nvidia Jetson** · Module 2 of 6
 
 > **Focus:** Master **Linux for Tegra (L4T)** with **JetPack** as a **production** stack: reproducible images, a minimal root filesystem, kernel and device-tree integration, reliable boot and updates, and hardening—so you ship products instead of fighting the platform.
 
@@ -54,6 +54,7 @@ Use the **Jetson Linux Developer Guide** for the same **major JetPack / L4T** li
 - [Jetson-Module-Adaptation-Bring-Up-Orin-NX-Nano.md](Jetson-Module-Adaptation-Bring-Up-Orin-NX-Nano.md) — **Jetson Orin NX / Nano** module adaptation and bring-up (paired with `T23x-Deployment.md` for BCT): board naming, rootfs, MB1 pinmux/GPIO, DT porting, PCIe, USB, UPHY, `l4t_initrd_flash.sh`, env overrides.
 - [ODMDATA-and-GPIO-Jetson-Linux.md](ODMDATA-and-GPIO-Jetson-Linux.md) — **ODM data / `ODMDATA`**, **UPHY** relationship, and **pinmux vs `devmem` vs sysfs vs `libgpiod`** (JetPack 6–oriented mental model).
 - [Orin-Nano-8GB-Custom-Board-L4T-Engineering-Flow.md](Orin-Nano-8GB-Custom-Board-L4T-Engineering-Flow.md) — **End-to-end engineering flowchart**: host prep, BSP + sources, DTB, kernel, rootfs, flash, bring-up tests, versioning (with **JP6 / custom carrier** caveats).
+- [FSP / SPE customization](../6.%20FSP%20%28Firmware%20Support%20Package%29%20Customization/Guide.md) — **Sensor Processing Engine (AON Cortex-R5)** firmware: NVIDIA **FSP** on **FreeRTOS**, build/flash **`spe_t194.bin` / `spe_t234.bin`**, pinmux/SCR/BPMP interaction (companion to BCT and `flash.sh` workflows).
 
 ---
 

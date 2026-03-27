@@ -147,6 +147,7 @@ Pick **Track A (Xilinx)**, **Track B (Jetson)**, or both (typical for accelerato
 | [**Edge AI optimization**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/3.%20Edge%20AI%20Optimization/Guide.md) | Quantization, TensorRT, CUDA | Orin pipeline, analytics |
 | [**ROS2**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/4.%20ROS2/Guide.md) | DDS, nodes, topics | Multi-robot, edge |
 | [**OrinClaw**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/5.%20OpenClaw%20Assistant%20Box/Guide.md) | Product-style edge AI, OTA, privacy | Orin Nano assistant capstone |
+| [**FSP / SPE firmware**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/6.%20FSP%20%28Firmware%20Support%20Package%29%20Customization/Guide.md) | FreeRTOS on SPE/AON, peripherals, `spe-fw` flash | Wake, low-level I/O next to L4T |
 
 ---
 
