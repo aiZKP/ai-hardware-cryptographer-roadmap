@@ -1,12 +1,12 @@
 # Compliance and Manufacturing
 
-**Phase 4 — Track B — Nvidia Jetson** · Module 7 of 8
+**Phase 4 — Track B — Nvidia Jetson** · Module 7 of 7
 
 > **Focus:** Take a validated **Jetson Orin Nano 8GB** product from engineering prototype through **regulatory certification** (FCC/CE/IC), **DFM review**, **production flashing infrastructure**, **supply-chain management**, and **fleet operations** — the last mile before volume shipping and field sustaining.
 >
 > **Primary hardware:** Jetson Orin Nano 8GB on custom carrier (from Module 2)
 
-**Previous:** [6. Security and OTA](../6.%20Security%20and%20OTA/Guide.md) · **Next:** [8. OrinClaw Capstone](../8.%20OrinClaw%20Capstone/Guide.md)
+**Previous:** [6. Security and OTA](../6.%20Security%20and%20OTA/Guide.md)
 
 ---
 
@@ -327,12 +327,12 @@ NVIDIA periodically releases updated module revisions. Your carrier and BSP must
 ### Serial number scheme
 
 ```
-ORC-<year><week>-<sequence>
-Example: ORC-2626-00142
+JET-<year><week>-<sequence>
+Example: JET-2626-00142
          │    │     │
          │    │     └─ Unit 142
          │    └─ Year 2026, week 26
-         └─ Product prefix (OrinClaw)
+         └─ Product prefix (example)
 ```
 
 ### What to track per device

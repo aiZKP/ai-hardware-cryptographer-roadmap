@@ -1,6 +1,6 @@
 # L4T customization (production)
 
-**Phase 4 — Track B — Nvidia Jetson** · Module 3 of 8
+**Phase 4 — Track B — Nvidia Jetson** · Module 3 of 7
 
 > **Focus:** Master **Linux for Tegra (L4T)** with **JetPack** as a **production** stack: reproducible images, a minimal root filesystem, kernel and device-tree integration, reliable boot and updates, and hardening—so you ship products instead of fighting the platform.
 

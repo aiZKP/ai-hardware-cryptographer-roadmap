@@ -1,6 +1,6 @@
 # Security and OTA
 
-**Phase 4 — Track B — Nvidia Jetson** · Module 6 of 8
+**Phase 4 — Track B — Nvidia Jetson** · Module 6 of 7
 
 > **Focus:** Harden a **Jetson Orin Nano 8GB** product for field deployment: **secure boot** (PKC/SBK fuse programming), **OP-TEE** trusted execution, **disk encryption**, **A/B rootfs redundancy**, and a complete **OTA update pipeline** with rollback, monitoring, and reliability testing.
 >
@@ -549,7 +549,7 @@ done
 - **Secure boot lab:** Generate test PKC/SBK keys, sign a full JetPack image, flash a dev kit with secure boot enabled, then verify that unsigned images are rejected.
 - **End-to-end OTA pipeline:** Set up SWUpdate on a Jetson Orin Nano with A/B rootfs, a signing server, and a staging server. Push an update, verify rollback on intentional failure.
 - **Power-cycle soak:** Build a test jig with a relay-controlled power supply, run 1000 power-cycle boot tests, log results, and analyze any failures.
-- **Fleet dashboard:** Deploy 3+ OrinClaw units, set up MQTT telemetry + Grafana dashboard, monitor boot count, temperature, and OTA status across the fleet.
+- **Fleet dashboard:** Deploy 3+ Jetson devices, set up MQTT telemetry + Grafana dashboard, monitor boot count, temperature, and OTA status across the fleet.
 
 ---
 

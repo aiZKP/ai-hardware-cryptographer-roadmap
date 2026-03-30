@@ -1,6 +1,6 @@
 # Custom Carrier Board Design and Bring-Up
 
-**Phase 4 — Track B — Nvidia Jetson** · Module 2 of 8
+**Phase 4 — Track B — Nvidia Jetson** · Module 2 of 7
 
 > **Focus:** Design a **custom carrier board** for the **Jetson Orin Nano 8GB** SoM starting from the NVIDIA **P3768** reference design, through schematic capture, PCB layout, thermal and power-tree design, and first-article board bring-up validation.
 >
@@ -509,7 +509,7 @@ After a successful first boot with your custom pinmux, systematically validate e
 
 ## 15. Projects
 
-- **Minimal headless carrier:** Design a carrier for OrinClaw with USB-C power, GbE, NVMe M.2, debug UART, and fan header — no display, no USB hub. Target 4-layer PCB.
+- **Minimal headless carrier:** Design a carrier for a headless edge node with USB-C power, GbE, NVMe M.2, debug UART, and fan header — no display, no USB hub. Target 4-layer PCB.
 - **Robotics carrier:** Design a carrier with dual CAN-FD, 4x CSI-2, PoE PD, IMU (SPI), and GPS (UART). Target 6-layer PCB with industrial-temp components.
 - **Bring-up validation suite:** Write a shell script that runs the full peripheral validation checklist from Section 13 and generates a pass/fail report.
 

@@ -1,6 +1,6 @@
 # FSP (Firmware Support Package) and SPE firmware
 
-**Phase 4 — Track B — Nvidia Jetson** · Module 4 of 8
+**Phase 4 — Track B — Nvidia Jetson** · Module 4 of 7
 
 > **Focus:** Customize firmware that runs on the Jetson **Sensor Processing Engine (SPE)**—the **Cortex-R5** in the **always-on (AON)** domain—using NVIDIA’s **Firmware Support Package (FSP)** on **FreeRTOS**. This is the path for **low-level I/O**, **wake** scenarios, and **time-critical** tasks that should not live on the main Linux **CCPLEX**.
 >

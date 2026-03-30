@@ -1,6 +1,6 @@
 # Application Development
 
-**Phase 4 — Track B — Nvidia Jetson** · Module 5 of 8
+**Phase 4 — Track B — Nvidia Jetson** · Module 5 of 7
 
 > **Focus:** Build production application software on the **Jetson Orin Nano 8GB** — from low-level peripheral access (GPIO, UART, SPI, I2C, CAN) through networking, GUI, multimedia pipelines, **ML/AI inference** (TensorRT, DLA, tinygrad), and **ROS 2** integration.
 >
@@ -36,7 +36,7 @@ Custom carrier board (Module 2) + L4T BSP (Module 3) + FSP (Module 4)
   └─ ROS 2 ────────────── robot middleware tying it all together
         │
         ▼
-  Security & OTA (Module 6) → Compliance (Module 7) → OrinClaw (Module 8)
+  Security & OTA (Module 6) → Compliance (Module 7)
 ```
 
 Work through sub-modules 1–4 in any order based on your product's needs. **ML/AI** (sub-module 5) and **ROS 2** (sub-module 6) typically build on the peripheral and multimedia foundations.

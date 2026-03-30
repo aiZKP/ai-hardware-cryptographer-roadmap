@@ -1,6 +1,6 @@
 # Nvidia Jetson Platform
 
-**Phase 4 — Track B — Nvidia Jetson** · Module 1 of 8
+**Phase 4 — Track B — Nvidia Jetson** · Module 1 of 7
 
 > **Focus:** Go from unboxed **Jetson Orin Nano 8GB** hardware to a production-quality AI pipeline with ROS 2 integration, sensor fusion, optimized inference, OTA updates, and hardened security.
 >
@@ -2196,10 +2196,8 @@ Implement a simple OTA update service that fetches a new Docker image, tests it 
 ### Project 7: Security Hardening
 Start from a fresh Jetson install. Apply all items in the Security Audit Checklist. Verify each item. Run `nmap` from another machine to confirm attack surface.
 
-### Project 8: OrinClaw — End-to-End Product Capstone (OpenClaw-based)
-Design **OrinClaw**, a custom “AI assistant box” optimized from **hardware level → inference level → UX**, with offline-first privacy, streaming voice, robust OTA, and Home Assistant/browser automation integration (OpenClaw gateway + local inference).
-
-**Guide:** [OrinClaw Capstone →](../8.%20OrinClaw%20Capstone/Guide.md)
+### Project 8: End-to-end product integration (self-directed capstone)
+Tie together **Track B** modules **2–7**: a Jetson Orin Nano–class device (dev kit or your custom carrier), **L4T** image, **application** stack (networking, optional GUI, inference), **security / OTA**, and a **compliance / manufacturing** checklist suitable for a pilot build. Optional: use [OpenClaw](https://github.com/openclaw/openclaw) or another orchestrator for voice, automation, or browser tooling — scope and document your own acceptance tests.
 
 ---
 
@@ -2365,4 +2363,4 @@ docker compose pull && docker compose up -d
 
 ---
 
-*Next: [2. Custom Carrier Board](../2.%20Custom%20Carrier%20Board%20Design%20and%20Bring-Up/Guide.md) → [3. L4T Customization](../3.%20L4T%20Customization/Guide.md) → [4. FSP Customization](../4.%20FSP%20%28Firmware%20Support%20Package%29%20Customization/Guide.md) → [5. Application Development](../5.%20Application%20Development/Guide.md)*
+*Next: [2. Custom Carrier Board](../2.%20Custom%20Carrier%20Board%20Design%20and%20Bring-Up/Guide.md) → [3. L4T Customization](../3.%20L4T%20Customization/Guide.md) → [4. FSP Customization](../4.%20FSP%20%28Firmware%20Support%20Package%29%20Customization/Guide.md) → [5. Application Development](../5.%20Application%20Development/Guide.md) → [6. Security and OTA](../6.%20Security%20and%20OTA/Guide.md) → [7. Compliance and Manufacturing](../7.%20Compliance%20and%20Manufacturing/Guide.md)*

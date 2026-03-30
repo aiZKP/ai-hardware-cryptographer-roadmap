@@ -104,7 +104,7 @@ Run the Jetson as a Wi-Fi hotspot for direct device connection (useful for field
 
 ```bash
 sudo nmcli dev wifi hotspot ifname wlan0 \
-    ssid "OrinClaw-AP" password "securepass"
+    ssid "Jetson-Setup-AP" password "securepass"
 ```
 
 ### Using hostapd (more control)
@@ -116,7 +116,7 @@ sudo apt install hostapd dnsmasq
 cat <<EOF | sudo tee /etc/hostapd/hostapd.conf
 interface=wlan0
 driver=nl80211
-ssid=OrinClaw-AP
+ssid=Jetson-Setup-AP
 hw_mode=g
 channel=7
 wmm_enabled=0
@@ -288,7 +288,7 @@ app = Flask(__name__)
 @app.route('/api/status')
 def status():
     return jsonify({
-        'device': 'OrinClaw',
+        'device': 'JetsonEdge',
         'temperature': read_temperature(),
         'uptime': read_uptime()
     })

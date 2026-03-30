@@ -10,7 +10,7 @@
 
 </div>
 
-This roadmap takes you from digital logic and C++/CUDA all the way to custom inference accelerators. You will write GPU kernels, deploy models on Jetson and FPGA, build embedded Linux BSPs, design custom carrier boards, and prototype AI silicon — all through real projects ([tinygrad](https://github.com/tinygrad/tinygrad), [openpilot](https://github.com/commaai/openpilot), OrinClaw).
+This roadmap takes you from digital logic and C++/CUDA all the way to custom inference accelerators. You will write GPU kernels, deploy models on Jetson and FPGA, build embedded Linux BSPs, design custom carrier boards, and prototype AI silicon — all through real projects ([tinygrad](https://github.com/tinygrad/tinygrad), [openpilot](https://github.com/commaai/openpilot)).
 
 **Who is this for?** EE/ECE students, software ML engineers, embedded engineers, and career changers targeting AI accelerators, edge AI, or autonomous systems. No prior ML course required — Phase 3 teaches what you need.
 
@@ -167,13 +167,12 @@ Pick **Track A (Xilinx FPGA)**, **Track B (NVIDIA Jetson)**, or both (typical fo
 | Topic | Key Skills | Projects |
 |-------|------------|----------|
 | [**Nvidia Jetson Platform**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/1.%20Nvidia%20Jetson%20Platform/Guide.md) | Orin Nano, JetPack, L4T, CUDA | Detection, deployment, robot |
-| [**Custom carrier board**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/2.%20Custom%20Carrier%20Board%20Design%20and%20Bring-Up/Guide.md) | P3768 reference, schematic, PCB, thermal, bring-up | Carrier board for OrinClaw |
+| [**Custom carrier board**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/2.%20Custom%20Carrier%20Board%20Design%20and%20Bring-Up/Guide.md) | P3768 reference, schematic, PCB, thermal, bring-up | Custom Orin Nano carrier project |
 | [**L4T customization**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/3.%20L4T%20Customization/Guide.md) | Rootfs, kernel/DT, OTA vs Yocto | Fleet images, BSP hardening |
 | [**FSP / SPE firmware**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/4.%20FSP%20%28Firmware%20Support%20Package%29%20Customization/Guide.md) | FreeRTOS on SPE/AON, peripherals, `spe-fw` flash | Wake, low-level I/O next to L4T |
 | [**Application Development**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/5.%20Application%20Development/Guide.md) | Peripherals, networking, GUI, multimedia, ML/AI, ROS 2 | Sensor dashboard, camera pipeline, inference, robot |
 | [**Security and OTA**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/6.%20Security%20and%20OTA/Guide.md) | Secure boot, OP-TEE, encryption, A/B OTA | Hardened OTA with rollback |
 | [**Compliance and manufacturing**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/7.%20Compliance%20and%20Manufacturing/Guide.md) | FCC/CE, DFM, production flash, supply chain | Production flash station, factory test |
-| [**OrinClaw**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/8.%20OrinClaw%20Capstone/Guide.md) | Product-style edge AI, OTA, privacy | Orin Nano assistant capstone |
 
 ---
 

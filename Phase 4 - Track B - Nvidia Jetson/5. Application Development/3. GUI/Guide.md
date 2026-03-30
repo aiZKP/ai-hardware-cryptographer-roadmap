@@ -128,7 +128,7 @@ aqt install-qt linux desktop 6.6.0
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-    QLabel label("OrinClaw Status: Running");
+    QLabel label("Device Status: Running");
     label.setFont(QFont("Arial", 24));
     label.show();
     return app.exec();
@@ -220,7 +220,7 @@ Serve a web interface from the Jetson — accessible from any device with a brow
 ```
 Jetson (backend: Flask/FastAPI + frontend: React/Vue/plain HTML)
   │
-  └─ Browser on phone/laptop → http://orinclaw.local:8080
+  └─ Browser on phone/laptop → http://jetson-edge.local:8080 (example mDNS hostname)
 ```
 
 ### Advantages for embedded products
@@ -282,7 +282,7 @@ Add the touch controller I2C device in your carrier's device tree:
 
 - **Status kiosk:** Build a Qt EGLFS application that shows real-time GPU temperature, inference FPS, and network status on a 7" HDMI display.
 - **LVGL dashboard:** Display sensor readings (I2C temperature + CAN data) on a small SPI/I2C display using LVGL on framebuffer.
-- **Web config portal:** Build a Flask + HTMX web interface for OrinClaw that shows device status and allows Wi-Fi configuration from a phone browser.
+- **Web config portal:** Build a Flask + HTMX web interface for your Jetson edge device that shows device status and allows Wi-Fi configuration from a phone browser.
 
 ---
 
