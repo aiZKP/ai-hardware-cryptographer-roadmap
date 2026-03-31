@@ -1,4 +1,4 @@
-# 1. High Performance Computing (Phase 5)
+# 1. GPU Infrastructure (Phase 5)
 
 **Timeline:** 12–24 months (fundamentals); 24–48 months for advanced phase.
 

@@ -43,7 +43,7 @@ tinygrad is a minimal stack that exposes IR, scheduling, and backends in one cod
 
 ## Resources
 
-* [Phase 5 — Autonomous Driving / tinygrad](../../../Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Driving/3.%20tinygrad%20for%20Inference/) — Hands-on tinygrad material in this repo.
+* [Phase 5 — Autonomous Driving / tinygrad](../../../Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Vehicles/3.%20tinygrad%20for%20Inference/) — Hands-on tinygrad material in this repo.
 * [tinygrad GitHub](https://github.com/tinygrad/tinygrad) — Codebase for study and contribution.
 
 ---

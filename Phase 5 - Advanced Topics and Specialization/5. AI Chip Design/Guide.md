@@ -16,7 +16,7 @@
 **Resources:**
 
 * **tinygrad GitHub:** https://github.com/tinygrad/tinygrad — Minimal and readable. Study the codebase.
-* **tinygrad Learning Materials:** See [4. Autonomous Driving/tinygrad](../4.%20Autonomous%20Driving/3.%20tinygrad%20for%20Inference/) for hands-on guides, ops reference, and Jetson support.
+* **tinygrad Learning Materials:** See [4. Autonomous Vehicles/tinygrad](../4.%20Autonomous%20Vehicles/3.%20tinygrad%20for%20Inference/) for hands-on guides, ops reference, and Jetson support.
 * **"Tinygrad: A Simple Autograd Engine" (blog/videos):** George Hotz's explanations of tinygrad design.
 * **"Computer Architecture: A Quantitative Approach" (Hennessy & Patterson):** Foundation for understanding accelerator design.
 

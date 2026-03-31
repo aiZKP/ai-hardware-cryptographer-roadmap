@@ -184,11 +184,11 @@ Pick **Track A (Xilinx FPGA)**, **Track B (NVIDIA Jetson)**, **Track C (ML Compi
 
 | Track | Prerequisites | Focus | Guide |
 |-------|--------------|-------|-------|
-| **A: Autonomous Driving** | Phase 3 (CV, Fusion), Phase 4B (Jetson) | 6 modules: fundamentals, openpilot, tinygrad, BEV perception, safety/ISO 26262, [Lauterbach](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Driving/6.%20Lauterbach%20TRACE32%20Debug/Guide.md) | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Driving/Guide.md) |
-| **B: AI Chip Design** | Phase 4A (FPGA), Phase 4C (Compiler), Phase 3 (NN) | Systolic arrays, dataflow, tinygrad↔hardware, ASIC path | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/5.%20AI%20Chip%20Design/Guide.md) |
-| **C: High Performance Computing** | Phase 4B (CUDA), Phase 4C (Compiler) | **[Nvidia GPU](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/1.%20High%20Performance%20Computing/Nvidia%20GPU/Guide.md):** NCCL, NVLink, clusters · **[AMD GPU](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/1.%20High%20Performance%20Computing/AMD%20GPU/Guide.md):** ROCm, HIP, MI300X | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/1.%20High%20Performance%20Computing/Guide.md) |
-| **D: Robotics** | Phase 3 (Fusion), Phase 4B (ROS2) | Nav2, MoveIt, planning | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/3.%20Robotics%20Application/Guide.md) |
-| **E: Edge Computing** | Phases 1–2, Phase 4B (Jetson) | Efficient nets, quantization, Holoscan, real-time pipelines | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/2.%20Edge%20Computing/Guide.md) |
+| **A: GPU Infrastructure** | Phase 4B (CUDA), Phase 4C (Compiler) | **[Nvidia GPU](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/1.%20GPU%20Infrastructure/Nvidia%20GPU/Guide.md):** NCCL, NVLink, clusters · **[AMD GPU](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/1.%20GPU%20Infrastructure/AMD%20GPU/Guide.md):** ROCm, HIP, MI300X | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/1.%20GPU%20Infrastructure/Guide.md) |
+| **B: Edge AI** | Phases 1–2, Phase 4B (Jetson) | Efficient nets, quantization, Holoscan, real-time pipelines | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/2.%20Edge%20AI/Guide.md) |
+| **C: Robotics** | Phase 3 (Fusion), Phase 4B (ROS2) | Nav2, MoveIt, planning | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/3.%20Robotics/Guide.md) |
+| **D: Autonomous Vehicles** | Phase 3 (CV, Fusion), Phase 4B (Jetson) | 6 modules: fundamentals, openpilot, tinygrad, BEV perception, safety/ISO 26262, [Lauterbach](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Vehicles/6.%20Lauterbach%20TRACE32%20Debug/Guide.md) | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Autonomous%20Vehicles/Guide.md) |
+| **E: AI Chip Design** | Phase 4A (FPGA), Phase 4C (Compiler), Phase 3 (NN) | Systolic arrays, dataflow, tinygrad↔hardware, ASIC path | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/5.%20AI%20Chip%20Design/Guide.md) |
 
 ---
 
@@ -196,8 +196,8 @@ Pick **Track A (Xilinx FPGA)**, **Track B (NVIDIA Jetson)**, **Track C (ML Compi
 
 | Project | What it teaches | Used in |
 |---------|----------------|---------|
-| **[tinygrad](https://github.com/tinygrad/tinygrad)** | Minimal DL framework — IR, scheduler, BEAM, backends, compiler pipeline | Phase 3 (NN), Phase 4C (compiler), Phase 5A (openpilot inference) |
-| **[openpilot](https://github.com/commaai/openpilot)** | Production ADAS — camera→ISP→modeld→planning→CAN | Phase 4B (Jetson deployment), Phase 5A (autonomous driving) |
+| **[tinygrad](https://github.com/tinygrad/tinygrad)** | Minimal DL framework — IR, scheduler, BEAM, backends, compiler pipeline | Phase 3 (NN), Phase 4C (compiler), Phase 5D (openpilot inference) |
+| **[openpilot](https://github.com/commaai/openpilot)** | Production ADAS — camera→ISP→modeld→planning→CAN | Phase 4B (Jetson deployment), Phase 5D (autonomous driving) |
 
 ---
 
@@ -209,13 +209,13 @@ Pick **Track A (Xilinx FPGA)**, **Track B (NVIDIA Jetson)**, **Track C (ML Compi
 | **L2** Compiler | AI Compiler Engineer · DL Graph Optimization Engineer · ML Compiler Backend Engineer | Phase 4C |
 | **L3** Runtime | GPU/Accelerator Runtime Engineer · Inference Platform Engineer · Linux Kernel Engineer · Embedded Linux BSP Engineer | Phase 4A§5, Phase 4B§8 |
 | **L4** Firmware | Firmware Engineer (AI/Edge SoC) · Embedded Software Engineer · Embedded Linux Engineer · IoT Engineer | Phase 2, Phase 4B§4 |
-| **L5** Architecture | AI Accelerator Architect · SoC Platform Engineer | Phase 1§2, Phase 4A, Phase 5B |
+| **L5** Architecture | AI Accelerator Architect · SoC Platform Engineer | Phase 1§2, Phase 4A, Phase 5E |
 | **L6** RTL | RTL Design Engineer · FPGA Design Engineer · Design Verification Engineer | Phase 1§1, Phase 4A |
-| **L7** Physical | *Theory: OpenROAD, GDS flow* | Phase 5B (AI Chip Design) |
-| **L8** Fab/Package | *Theory: chiplets, CoWoS, TinyTapeout* | Phase 5B (AI Chip Design) |
+| **L7** Physical | *Theory: OpenROAD, GDS flow* | Phase 5E (AI Chip Design) |
+| **L8** Fab/Package | *Theory: chiplets, CoWoS, TinyTapeout* | Phase 5E (AI Chip Design) |
 
 **Cross-layer roles:**
-- **Autonomous Driving HW/SW Engineer** — L1 through L4 (Phase 4B + Phase 5A)
+- **Autonomous Vehicles HW/SW Engineer** — L1 through L4 (Phase 4B + Phase 5D)
 - **AI Hardware Engineer (Full-Stack)** — L1 through L6 (the signature role this roadmap targets)
 
 ---

@@ -1,4 +1,4 @@
-# Phase 5 — Autonomous Driving
+# Phase 5 — Autonomous Vehicles
 
 **Timeline:** 12–24 months (modules 1–3); 24–48 months with advanced modules (4–5). Module 6 is optional tooling.
 

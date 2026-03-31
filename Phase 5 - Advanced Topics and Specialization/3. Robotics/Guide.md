@@ -1,4 +1,4 @@
-**3. Robotics Application (12-18 months)**
+**3. Robotics (12-18 months)**
 
 This phase is organized into **four lecture tracks** (each has its own folder and `Lecture-01.md`). Start with **Advanced Robot Operating System**, then proceed in order or jump by topic.
 
