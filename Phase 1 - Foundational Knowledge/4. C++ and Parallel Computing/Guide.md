@@ -182,49 +182,202 @@ void add_vectors(float* a, float* b, float* c, int n) {
 
 > *Scale from one core to many — the CPU parallelism layer.*
 
-**OpenMP (pragma-based, easiest start):**
+#### OpenMP — Pragma-Based (Easiest Start)
+
+Add one line to a loop, and OpenMP distributes iterations across all CPU cores:
+
 ```cpp
 #pragma omp parallel for
 for (int i = 0; i < N; i++) {
     C[i] = A[i] + B[i];
 }
 ```
-One line turns a sequential loop into a multi-core parallel loop. The OpenMP runtime divides iterations across cores automatically.
 
-**oneTBB (task-based, more control):**
+The OpenMP runtime creates a **thread pool** (one thread per core), divides the loop range equally, and joins when done. You control scheduling strategy:
+
 ```cpp
-#include <tbb/parallel_for.h>
+// Static: divide N evenly across cores (predictable, best for uniform work)
+#pragma omp parallel for schedule(static)
 
+// Dynamic: each thread grabs a chunk when idle (better for uneven work)
+#pragma omp parallel for schedule(dynamic, 64)
+
+// Reduction: safely sum across threads
+double total = 0.0;
+#pragma omp parallel for reduction(+:total)
+for (int i = 0; i < N; i++) {
+    total += data[i];
+}
+```
+
+**OpenMP strengths:** zero boilerplate, easy to add to existing code, widely supported (GCC, Clang, MSVC).
+
+**OpenMP weakness:** limited control over task decomposition. For irregular workloads (tree traversals, graph algorithms, nested parallelism), you need something smarter.
+
+---
+
+#### oneTBB — Task-Based (More Control)
+
+**oneTBB** (oneAPI Threading Building Blocks) is a C++ template library developed by Intel for parallel programming on multi-core processors. Originally known as TBB, it was rebranded as oneTBB in 2020 to integrate into the broader oneAPI ecosystem.
+
+**Key difference from OpenMP:** Instead of parallelizing *loops*, oneTBB parallelizes *tasks*. You describe **what can run in parallel** — the runtime decides *how* to schedule it across cores.
+
+**What oneTBB provides:**
+
+| Component | What it does | Example |
+|-----------|-------------|---------|
+| **Parallel algorithms** | Ready-to-use parallel patterns | `parallel_for`, `parallel_reduce`, `parallel_sort`, `parallel_pipeline` |
+| **Concurrent containers** | Thread-safe data structures | `concurrent_hash_map`, `concurrent_vector`, `concurrent_queue` |
+| **Task-based runtime** | Breaks work into small tasks, schedules across cores | Work-stealing scheduler (see below) |
+| **Flow graph** | Dataflow-style parallelism | Connect processing nodes into a DAG |
+
+**Basic parallel_for:**
+
+```cpp
+#include <oneapi/tbb/parallel_for.h>
+#include <oneapi/tbb/blocked_range.h>
+
+// Simple lambda version
 tbb::parallel_for(0, N, [&](int i) {
     C[i] = A[i] + B[i];
 });
-```
-oneTBB uses a **work-stealing scheduler** — idle cores steal work from busy ones. Better load balancing for irregular workloads.
 
-**Comparison:**
+// blocked_range version (more control over grain size)
+tbb::parallel_for(
+    tbb::blocked_range<size_t>(0, N, /*grain_size=*/1024),
+    [&](const tbb::blocked_range<size_t>& r) {
+        for (size_t i = r.begin(); i < r.end(); i++) {
+            C[i] = A[i] + B[i];
+        }
+    }
+);
+```
+
+**parallel_reduce (thread-safe accumulation):**
+
+```cpp
+#include <oneapi/tbb/parallel_reduce.h>
+
+double total = tbb::parallel_reduce(
+    tbb::blocked_range<size_t>(0, N),
+    0.0,  // identity value
+    [&](const tbb::blocked_range<size_t>& r, double partial_sum) {
+        for (size_t i = r.begin(); i < r.end(); i++) {
+            partial_sum += data[i];
+        }
+        return partial_sum;
+    },
+    std::plus<double>()  // combine partial results
+);
+```
+
+**parallel_sort:**
+
+```cpp
+#include <oneapi/tbb/parallel_sort.h>
+
+std::vector<int> data(10000000);
+// ... fill data ...
+tbb::parallel_sort(data.begin(), data.end());
+// Automatically parallelizes across all cores
+```
+
+---
+
+#### The Work-Stealing Scheduler — How oneTBB Actually Works
+
+The work-stealing scheduler is the "brain" of oneTBB. It's what makes oneTBB automatically balance uneven workloads across cores — and it's a fundamental concept in parallel computing that appears in many systems (Go runtime, Tokio in Rust, Java ForkJoinPool).
+
+**How it works — step by step:**
+
+```
+Initial state: 4 cores, work divided into tasks
+
+Core 0 queue:  [T1] [T2] [T3] [T4] [T5]  ← lots of work
+Core 1 queue:  [T6] [T7]                   ← some work
+Core 2 queue:  [T8]                         ← little work
+Core 3 queue:  (empty)                      ← idle!
+```
+
+**Step 1 — Private queues:** Each worker thread (one per CPU core) maintains its own private **deque** (double-ended queue) of tasks.
+
+**Step 2 — LIFO execution (own work):** A thread pops tasks from the **bottom** of its own deque (newest first). This is like a stack — Last-In, First-Out. Why? The most recently created task likely has its data still in the CPU's L1/L2 cache. LIFO maximizes **cache locality**.
+
+```
+Core 0 works on its own tasks (bottom → top):
+  Executes T5 (newest, cache-hot)
+  Then T4
+  Then T3...
+```
+
+**Step 3 — The "steal" (when idle):** When a thread finishes all its tasks, it doesn't sleep. Instead, it becomes a **thief** and looks at other threads' queues.
+
+**Step 4 — FIFO stealing (from the top):** The thief steals from the **top** of another thread's deque (oldest task). This is critical:
+- The thief steals the **oldest** task (likely a large chunk of work, worth stealing)
+- The victim continues working on the **newest** task (undisturbed, cache-hot)
+- Minimal interference between thief and victim (they access opposite ends of the deque)
+
+```
+Core 3 is idle → steals T1 from Core 0's queue (top/oldest)
+
+Core 0 queue:  [T2] [T3] [T4]  ← didn't notice, still working on T4
+Core 3 queue:  [T1]             ← now has work!
+```
+
+**Why this is better than a central queue:**
+
+| Approach | How it works | Problem |
+|----------|-------------|---------|
+| Central queue | All threads grab tasks from one shared queue | Contention: every thread fights for the lock |
+| Static partition | Divide work evenly at start | Imbalance: some chunks finish faster than others |
+| **Work-stealing** | Each thread has private queue; steal only when idle | Only incurs synchronization overhead when actually out of work |
+
+**Why it matters:**
+- **Dynamic load balancing:** Handles irregular workloads where some tasks take 10x longer than others (tree traversals, sparse matrix, uneven image regions)
+- **Scalability:** Programs automatically scale to however many cores the machine has — no code changes needed
+- **Efficiency:** Near-zero overhead when all cores are busy; only the idle core pays the cost of stealing
+
+**Connection to the stack:**
+- **L4 (Firmware):** Your AI chip's command processor needs a task scheduler for DMA, compute, and I/O tasks — work-stealing is one approach
+- **L3 (Runtime):** CUDA's stream scheduler and TensorRT's engine executor solve similar problems on GPU
+
+---
+
+#### OpenMP vs oneTBB — When to Use Which
 
 | | OpenMP | oneTBB |
 |---|---|---|
-| Model | Pragma annotations | C++ task scheduler |
-| Ease of use | Very easy | Moderate |
-| Control | Low | High (task graphs, flow graphs) |
-| Load balancing | Static or dynamic | Work-stealing (automatic) |
-| Best for | Regular loops | Irregular/nested parallelism |
+| **Model** | Pragma annotations on existing code | C++ task scheduler with templates |
+| **Ease of use** | Very easy (one `#pragma` line) | Moderate (C++ lambda + template patterns) |
+| **Control** | Low (schedule policy, num threads) | High (grain size, task graphs, flow graphs, custom partitioners) |
+| **Load balancing** | Static or dynamic (loop-level) | Work-stealing (automatic, task-level) |
+| **Nested parallelism** | Awkward (nested `parallel for` creates too many threads) | Natural (tasks spawn sub-tasks, scheduler handles it) |
+| **Concurrent containers** | None (use `critical` sections) | Built-in (`concurrent_hash_map`, `concurrent_vector`) |
+| **Best for** | Regular loops, quick parallelization | Irregular work, graph algorithms, production C++ libraries |
+| **Compiler support** | GCC, Clang, MSVC (built-in) | Separate library (install via package manager or oneAPI) |
 
-**Key concepts:**
-- **Data races:** Two threads writing to the same memory → undefined behavior. Use `#pragma omp critical` or `std::mutex`.
-- **False sharing:** Two threads writing to adjacent cache lines → cache thrashing. Pad data structures.
-- **Amdahl's Law:** If 10% of your code is sequential, max speedup is 10x no matter how many cores. Parallelize the bottleneck.
-- **Reduction:** Summing across threads safely: `#pragma omp parallel for reduction(+:sum)`
+**Rule of thumb:** Start with OpenMP for simple loops. Switch to oneTBB when you need irregular parallelism, concurrent containers, or fine-grained control.
+
+---
+
+#### Key Concepts (Both OpenMP and oneTBB)
+
+- **Data races:** Two threads writing to the same memory → undefined behavior. Use `#pragma omp critical`, `std::mutex`, or oneTBB's concurrent containers.
+- **False sharing:** Two threads writing to adjacent cache lines → cache thrashing even though they access different data. Fix: pad data structures to cache line boundaries (`alignas(64)`).
+- **Amdahl's Law:** If 10% of your code is sequential, maximum speedup is 10x — no matter how many cores you add. Always parallelize the bottleneck first.
+- **Grain size:** The minimum chunk of work per task. Too small → scheduling overhead dominates. Too large → poor load balancing. oneTBB's `auto_partitioner` tunes this automatically.
 
 **Why it matters for AI hardware:**
 - Phase 4B Jetson: Cortex-A78AE cores use OpenMP for CPU-side preprocessing
 - Phase 2: FreeRTOS tasks are a form of multi-core parallelism on embedded SoCs
-- L4 (Firmware): Your AI chip's command processor uses multi-core scheduling
+- L4 (Firmware): Your AI chip's command processor uses multi-core scheduling — work-stealing is directly applicable
 
 **Projects:**
-- Parallelize matrix multiplication with OpenMP. Measure speedup from 1 to N cores.
-- Implement parallel merge sort with oneTBB's `parallel_invoke`. Compare with `std::sort`.
+1. **OpenMP matmul** — Parallelize matrix multiplication with `#pragma omp parallel for`. Measure speedup from 1 to N cores. Plot the scaling curve.
+2. **oneTBB parallel_reduce** — Sum 100M floats using `tbb::parallel_reduce`. Compare with OpenMP `reduction(+:sum)`. Measure both.
+3. **oneTBB parallel_sort** — Sort 10M integers with `tbb::parallel_sort`. Benchmark against `std::sort` (single-threaded). Measure speedup.
+4. **Work-stealing visualization** — Implement parallel merge sort with `tbb::parallel_invoke`. Use `tbb::task_scheduler_observer` to log which core runs which task. Observe work-stealing in action.
+5. **False sharing demo** — Write a program where N threads increment N counters in a shared array. First version: counters are adjacent. Second version: counters are padded to 64 bytes. Measure the performance difference.
 
 **Bridge to GPU:** CPU parallelism scales to 8–96 cores. For 10,000+ parallel operations (like a 4096-element vector times a 4096x4096 matrix), you need a GPU.
 
