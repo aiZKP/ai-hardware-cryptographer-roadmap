@@ -450,9 +450,9 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 
 ## Plan 2: Integrated 4K Wireless Chip Prototype — Detailed Execution Plan
 
-**Timeline:** 14 weeks (3.5 months)
+**Timeline:** 8 weeks (2 months)
 
-**Goal:** Build a fully integrated 4Kp60 wireless transmitter/receiver on Zynq UltraScale+ EV (ZCU106) with hardened VCU, MIPI CSI/DSI interfaces, custom low-latency wireless PHY/MAC, and ASIC transition plan.
+**Goal:** Build a fully integrated 4Kp60 wireless transmitter/receiver on Zynq UltraScale+ EV (ZCU106) with hardened VCU, MIPI CSI/DSI interfaces, custom low-latency wireless PHY/MAC, and ASIC transition plan. Aggressive parallelization across 3 work streams compresses the schedule.
 
 ---
 
@@ -537,9 +537,11 @@ Receiver: Antenna → AD9361 → PHY RX → Depacketizer → VCU Decode → Disp
 
 ---
 
-### 2.5 Phase 1 — Platform & VCU Validation (Weeks 1–4)
+### 2.5 Phase 1 — Platform + VCU + Wireless (Weeks 1–4, All Parallel)
 
-#### Week 1–2: Development Environment & Base Platform
+All three streams run simultaneously from day 1. By week 4 you have VCU encoding, MIPI camera capture, and wireless link — all validated independently, ready to merge.
+
+#### Stream A (Week 1–2): Development Environment & Base Platform
 
 **Day 1–2: Install tools**
 ```bash
@@ -595,7 +597,7 @@ int main() {
 }
 ```
 
-#### Week 2–3: VCU Encoding/Decoding Validation
+#### Stream A (Week 2–3): VCU Encoding/Decoding Validation
 
 **Add test pattern generator to PL:**
 ```tcl
@@ -623,7 +625,7 @@ gst-launch-1.0 filesrc location=test_4k60.h265 ! h265parse ! omxh265dec ! kmssin
 | Simultaneous encode + decode | Yes |
 | Bitrate range | 20–100 Mbps |
 
-#### Week 3–4: MIPI Camera Input
+#### Stream A (Week 3–4): MIPI Camera Input
 
 **MIPI D-PHY pin constraints (ZCU106 HP I/O bank):**
 ```tcl
@@ -651,18 +653,7 @@ XIicPs_CfgInitialize(&i2c, cfg, cfg->BaseAddress);
 // Initialize IMX274 for 4K60 mode via I2C register writes
 ```
 
-**Phase 1 deliverables:**
-- [ ] Vivado project with VCU + MIPI CSI-2 RX + test pattern generator
-- [ ] Bare-metal VCU init and test passing
-- [ ] 4K60 encode/decode loopback (Linux validation)
-- [ ] MIPI camera capture at 4K60
-- [ ] Performance metrics documented
-
----
-
-### 2.6 Phase 2 — MIPI & Wireless Integration (Weeks 5–8)
-
-#### Week 5–6: Wireless PHY (openwifi port + TDMA)
+#### Stream B (Week 1–3, parallel with Stream A): Wireless PHY + TDMA
 
 **Port openwifi to ZCU106:**
 ```bash
@@ -723,7 +714,7 @@ void sync_receive_beacon(uint64_t master_timestamp) {
 }
 ```
 
-#### Week 6–7: AD9361 RF Front-End
+#### Stream C (Week 1–3, parallel): AD9361 RF Front-End
 
 **Bare-metal AD9361 driver via SPI:**
 ```c
@@ -752,7 +743,7 @@ int ad9361_init(void) {
 | TX Gain | 5–15 dB | Adjust for range |
 | RX Gain | 15–25 dB | Auto or manual |
 
-#### Week 7–8: Video + Wireless Integration
+#### Week 4: Merge — Video + Wireless Integration
 
 **Custom packetizer (video frames → wireless packets):**
 ```verilog
@@ -780,19 +771,19 @@ endmodule
 4. Monitor display for 4K video output
 5. Measure latency with GPIO toggles on oscilloscope
 
-**Phase 2 deliverables:**
-- [ ] openwifi PHY ported to ZCU106
-- [ ] TDMA MAC implemented and tested
+**Phase 1 deliverables (end of week 4):**
+- [ ] VCU 4K60 encode/decode validated (Linux + bare-metal init)
+- [ ] MIPI camera capture at 4K60
+- [ ] openwifi PHY ported to ZCU106 with TDMA MAC
 - [ ] AD9361 bare-metal driver working
 - [ ] Packetizer/depacketizer integrated
-- [ ] 4K60 wireless video at 10+ meters
-- [ ] Latency < 50 ms, throughput > 80 Mbps
+- [ ] First 4K60 wireless video stream between two boards
 
 ---
 
-### 2.7 Phase 3 — System Integration & Bare-Metal (Weeks 9–12)
+### 2.6 Phase 2 — Integration, Optimization & ASIC Roadmap (Weeks 5–8)
 
-#### Week 9–10: FreeRTOS Integration
+#### Week 5–6: FreeRTOS Integration + Latency Optimization
 
 ```c
 // FreeRTOS task allocation across quad-core A53
@@ -817,7 +808,9 @@ void vRFControlTask(void *p) {
 }
 ```
 
-#### Week 10–11: Latency Optimization
+FreeRTOS and latency optimization run in the same sprint — assign tasks to cores on day 1 of week 5, then tune latency for the rest of the sprint.
+
+#### Week 5–6 continued: Latency Optimization
 
 **VCU low-latency encoder settings:**
 ```c
@@ -850,7 +843,7 @@ Xil_Out32(LATENCY_GPIO, 0x0);  // Low at display output
 // Measure with oscilloscope between TX and RX GPIO pins
 ```
 
-#### Week 11–12: Bare-Metal Transition (Optional)
+#### Week 7: Bare-Metal Transition + Validation
 
 **Replace FreeRTOS with minimal cooperative scheduler:**
 ```c
@@ -885,16 +878,7 @@ void wireless_rx_irq(void)   { depacketizer_start(); }
 void vcu_decode_irq(void)    { display_update(); }
 ```
 
-**Phase 3 deliverables:**
-- [ ] FreeRTOS running on quad-core A53
-- [ ] Latency optimized to < 30 ms
-- [ ] Bare-metal scheduler implemented
-- [ ] Interrupt-driven pipeline working
-- [ ] Stable 4K60 streaming over 10+ meters
-
----
-
-### 2.8 Phase 4 — Documentation & ASIC Roadmap (Weeks 13–14)
+#### Week 8: Documentation & ASIC Roadmap
 
 #### IP Block Inventory
 
@@ -929,7 +913,11 @@ void vcu_decode_irq(void)    { display_update(); }
 | Q4 | Synthesis, place & route |
 | Y2 Q1 | Tape-out, prototype bring-up |
 
-**Phase 4 deliverables:**
+**Phase 2 deliverables (end of week 8):**
+- [ ] FreeRTOS running on quad-core A53 with per-core task allocation
+- [ ] Latency optimized to < 30 ms end-to-end
+- [ ] Bare-metal scheduler implemented, interrupt-driven pipeline working
+- [ ] Stable 4K60 streaming over 10+ meters
 - [ ] Complete design documentation (block diagrams, data flow, timing, register maps)
 - [ ] IP inventory with ASIC readiness assessment
 - [ ] ASIC roadmap with timeline and cost estimates
@@ -937,7 +925,18 @@ void vcu_decode_irq(void)    { display_update(); }
 
 ---
 
-### 2.9 Troubleshooting Guide
+### 2.7 Timeline Summary
+
+| Phase | Weeks | Key deliverables |
+|-------|-------|------------------|
+| **1 — Platform + VCU + Wireless** | 1–4 | VCU validated, MIPI camera working, wireless link up, first 4K stream (3 parallel streams) |
+| **2 — Integration + Optimization + ASIC** | 5–8 | FreeRTOS, <30ms latency, bare-metal transition, documentation, ASIC roadmap |
+
+**Total: 8 weeks (2 months).** Achieved by running VCU/MIPI (Stream A), wireless PHY (Stream B), and RF front-end (Stream C) fully in parallel during Phase 1, then merging in week 4.
+
+---
+
+### 2.8 Troubleshooting Guide
 
 **VCU:**
 
