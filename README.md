@@ -127,6 +127,7 @@ Phase 5        ░░░     │    ░░░    │    ░░░    │        
 | 3 | [**Computer Vision**](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/3.%20Computer%20Vision/Guide.md) | Detection, segmentation, 3D vision, OpenCV | L1 |
 | 4 | [**Sensor Fusion**](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/4.%20Sensor%20Fusion/Guide.md) | Camera/LiDAR/IMU, Kalman, BEVFusion, MOT | L1 |
 | 5 | [**Edge AI & Model Optimization**](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/5.%20Edge%20AI%20and%20Model%20Optimization/Guide.md) | Quantization, pruning, deployment pipeline | L1 |
+| 6 | [**Voice AI**](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/6.%20Voice%20AI/Guide.md) | STT (Whisper), TTS (VITS/Piper), VAD, keyword spotting | L1 |
 
 **Track B — Agentic AI & ML Engineering** (→ Phase 5 HPC/GenAI):
 
