@@ -277,4 +277,4 @@ Real-time audio cleanup before STT.
 
 ## Next
 
-→ [**Module 5A — Edge AI & Model Optimization**](../5.%20Edge%20AI%20and%20Model%20Optimization/Guide.md) — quantize and deploy these voice models on edge hardware.
+→ [**Module 5A — Edge AI & Model Optimization**](../6.%20Edge%20AI%20and%20Model%20Optimization/Guide.md) — quantize and deploy these voice models on edge hardware.

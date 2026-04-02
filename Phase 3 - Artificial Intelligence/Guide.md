@@ -54,8 +54,8 @@ This track teaches the **perception and deployment workloads** that drive edge i
 |---|--------|---------------|----------|
 | **3** | [Computer Vision](Track%20A%20-%20Hardware%20and%20Edge%20AI/3.%20Computer%20Vision/Guide.md) | Image processing, detection, segmentation, 3D vision, OpenCV | Phase 4A (FPGA vision), Phase 5E (AV perception) |
 | **4** | [Sensor Fusion](Track%20A%20-%20Hardware%20and%20Edge%20AI/4.%20Sensor%20Fusion/Guide.md) | Camera/LiDAR/IMU, Kalman filtering, BEVFusion, MOT | Phase 4B (Jetson + ROS2), Phase 5E (AV) |
-| **5** | [Edge AI & Model Optimization](Track%20A%20-%20Hardware%20and%20Edge%20AI/5.%20Edge%20AI%20and%20Model%20Optimization/Guide.md) | Quantization, pruning, knowledge distillation, deployment pipeline | Phase 4 (bridge to all hardware tracks) |
-| **6** | [Voice AI](Track%20A%20-%20Hardware%20and%20Edge%20AI/6.%20Voice%20AI/Guide.md) | STT (Whisper), TTS (VITS/Piper), VAD, keyword spotting, noise suppression | Phase 4A (FPGA audio DSP), Phase 4B (Jetson voice pipeline) |
+| **5** | [Voice AI](Track%20A%20-%20Hardware%20and%20Edge%20AI/5.%20Voice%20AI/Guide.md) | STT (Whisper), TTS (VITS/Piper), VAD, keyword spotting, noise suppression | Phase 4A (FPGA audio DSP), Phase 4B (Jetson voice pipeline) |
+| **6** | [Edge AI & Model Optimization](Track%20A%20-%20Hardware%20and%20Edge%20AI/6.%20Edge%20AI%20and%20Model%20Optimization/Guide.md) | Quantization, pruning, knowledge distillation, deployment pipeline | Phase 4 (bridge to all hardware tracks) |
 
 **Build:** OpenCV detection, sensor calibration, INT8 quantization, tinygrad on-device inference, Whisper on Jetson, edge voice pipeline (VAD→STT→TTS).
 
