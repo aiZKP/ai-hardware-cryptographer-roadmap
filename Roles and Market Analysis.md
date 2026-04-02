@@ -441,33 +441,154 @@
 
 ---
 
+## Market Size & Industry Context
+
+### AI Chip Market
+
+| Segment | 2025 Size | 2030 Projected | CAGR | Key Drivers |
+|---------|-----------|----------------|:----:|-------------|
+| **AI Chip (Total)** | $71B | $227B | 26% | LLM training/inference, data center AI, edge AI |
+| AI Training Chips | $38B | $105B | 23% | GPT-scale models, multi-GPU clusters |
+| AI Inference Chips | $25B | $95B | 30% | On-device AI, LLM serving, autonomous vehicles |
+| Edge AI Chips | $8B | $27B | 28% | IoT, ADAS, robotics, smart cameras |
+
+*Sources: Gartner, McKinsey Semiconductor Practice, SIA (Semiconductor Industry Association), company filings.*
+
+### Semiconductor Industry
+
+| Metric | 2025 | Notes |
+|--------|------|-------|
+| Global semiconductor revenue | $687B | SIA estimate |
+| Semiconductor engineering workforce (US) | ~280,000 | BLS + SIA data |
+| AI hardware engineering jobs (US) | ~45,000–55,000 | Subset of semiconductor + AI infrastructure |
+| New chip design startups (2023–2025) | 150+ | Funded $10M+, most need L2/L5/L6 hires |
+
+### Adjacent Markets That Drive Hiring
+
+| Market | 2025 Size | How It Drives AI Hardware Jobs |
+|--------|-----------|-------------------------------|
+| Data center AI infrastructure | $150B+ | GPU clusters → L1a, L2c, L3c demand |
+| Autonomous vehicles (ADAS) | $45B | Edge inference → L1b, L4c demand |
+| Robotics | $18B | On-device perception → L1b, L1c demand |
+| AI cloud services (MLaaS) | $80B+ | Inference serving → L1a, L2a, L3a demand |
+| EDA tools | $16B | Chip design tools → L7a, L7b ecosystem |
+
+---
+
+## Job Posting Volume by Sub-Layer
+
+Estimated **monthly active US job postings** (LinkedIn + Indeed + Greenhouse + company career pages, Q1 2026). These numbers represent unique open positions, not total applicants.
+
+### Full Table
+
+| Sub-Layer | Monthly US Postings | YoY Change | Supply/Demand | Avg Time-to-Fill |
+|:---------:|:-------------------:|:----------:|:-------------:|:-----------------:|
+| **L1a** Inference Optimization | 1,200–1,500 | +35% | Balanced | 45–60 days |
+| **L1b** Edge AI Deployment | 800–1,100 | +15% | Balanced | 40–55 days |
+| **L1c** AI Application | 2,000–2,500 | +10% | Slight surplus | 30–45 days |
+| **L2a** Graph/IR Optimization | 200–350 | +60% | **Severe shortage** | 90–120 days |
+| **L2b** Compiler Backend | 300–500 | +55% | **Severe shortage** | 90–150 days |
+| **L2c** Kernel Engineering | 400–600 | +50% | **Shortage** | 75–100 days |
+| **L3a** GPU/Accelerator Runtime | 500–700 | +25% | Shortage | 60–80 days |
+| **L3b** Linux Kernel/Drivers | 600–800 | +15% | Shortage | 60–90 days |
+| **L3c** HPC Infrastructure | 700–1,000 | +30% | Balanced | 45–60 days |
+| **L4a** Embedded Software | 3,500–4,500 | +5% | Balanced | 30–45 days |
+| **L4b** Embedded Linux/BSP | 1,500–2,000 | +10% | Balanced | 35–50 days |
+| **L4c** Automotive/IoT | 2,000–2,800 | +20% | Slight shortage | 40–55 days |
+| **L5a** Accelerator Architecture | 100–200 | +70% | **Extreme shortage** | 120–180 days |
+| **L5b** System/SoC Architecture | 200–350 | +40% | **Severe shortage** | 90–150 days |
+| **L6a** RTL Design | 1,500–2,000 | +25% | Shortage | 50–70 days |
+| **L6b** Design Verification | 2,000–2,500 | +20% | **Chronic shortage** | 50–75 days |
+| **L6c** FPGA/HLS | 1,200–1,600 | +10% | Balanced | 40–55 days |
+| **L7a** Physical Design | 800–1,100 | +20% | Shortage | 55–75 days |
+| **L7b** DFT/CAD | 400–600 | +10% | Balanced | 45–60 days |
+| **L8a** Packaging/Process | 300–500 | +30% | Shortage | 60–80 days |
+| **L8b** Silicon Validation | 400–600 | +15% | Balanced | 45–60 days |
+| | **~20,700–24,800** | | | |
+
+### Job Volume Visualization
+
+```
+Monthly US Postings by Sub-Layer (Q1 2026 estimate)
+
+L4a Embedded SW        ████████████████████████████████████████████ 4,000
+L4c Automotive/IoT     ████████████████████████████ 2,400
+L6b Verification       ██████████████████████████ 2,250
+L1c AI Application     ██████████████████████████ 2,250
+L4b Embedded Linux     ████████████████████ 1,750
+L6a RTL Design         ████████████████████ 1,750
+L6c FPGA/HLS           █████████████████ 1,400
+L1a Inference Opt      ████████████████ 1,350
+L1b Edge AI            ████████████ 950
+L7a Physical Design    ████████████ 950
+L3c HPC Infra          ███████████ 850
+L3b Kernel/Drivers     █████████ 700
+L3a GPU Runtime        ████████ 600
+L2c Kernel Eng         ███████ 500
+L8b Silicon Valid      ██████ 500
+L7b DFT/CAD            ██████ 500
+L2b Compiler Backend   █████ 400
+L8a Packaging          █████ 400
+L2a Graph/IR           ███ 275
+L5b System/SoC Arch    ███ 275
+L5a Accelerator Arch   ██ 150
+                       └──────────────────────────────────────────┘
+                       0    500  1,000  1,500  2,000  2,500  3,000  4,000
+```
+
+### Key Insights from Job Data
+
+**Highest volume (easiest to find openings):**
+- L4a Embedded Software (~4,000/month) — the bread and butter of hardware engineering
+- L4c Automotive/IoT (~2,400/month) — ADAS growth driving automotive embedded demand
+- L6b Design Verification (~2,250/month) — chronic shortage means constant openings
+
+**Lowest volume but highest pay (hardest to get, hardest to fill):**
+- L5a Accelerator Architecture (~150/month) — only ~150 open positions, but $400K–$1M+ comp
+- L2a Graph/IR Optimization (~275/month) — every chip startup needs one, few candidates exist
+- L2b Compiler Backend (~400/month) — MLIR/LLVM expertise is extremely rare
+
+**Best ROI for career investment:**
+- L2b/L2c (Compiler/Kernel) — low supply, high demand, highest pay, growing 50–60% YoY
+- L5a (Architecture) — requires experience, but once you're there, extreme scarcity = leverage
+- L6b (Verification) — chronic shortage means job security; moderate pay but never unemployed
+
+**Fastest growing (YoY posting increase):**
+- L5a Accelerator Architecture: +70% (AI chip startup wave)
+- L2a Graph/IR: +60% (every new chip needs a compiler)
+- L2b Compiler Backend: +55%
+- L2c Kernel Engineering: +50%
+- L1a Inference Optimization: +35% (LLM inference demand)
+
+---
+
 ## Cross-Layer Summary
 
-### Compensation by Sub-Layer (Senior, Top-Tier Total Comp)
+### Compensation + Volume Combined (Senior, Top-Tier Total Comp)
 
-| Sub-Layer | Senior Total Comp | Scarcity | Demand Trend |
-|:---------:|------------------|:--------:|:------------:|
-| L1a Inference Optimization | $250K–$350K+ | Medium | Growing (LLM) |
-| L1b Edge AI | $220K–$300K+ | Medium | Stable |
-| L1c AI Application | $240K–$320K+ | Low-Medium | Stable |
-| **L2a Graph/IR** | **$350K–$480K+** | **High** | **Surging** |
-| **L2b Compiler Backend** | **$400K–$550K+** | **Very High** | **Surging** |
-| **L2c Kernel Engineering** | **$350K–$500K+** | **Very High** | **Surging** |
-| L3a GPU Runtime | $280K–$380K+ | High | Growing |
-| L3b Kernel/Drivers | $280K–$380K+ | High | Growing |
-| L3c HPC Infrastructure | $300K–$400K+ | Medium-High | Growing |
-| L4a Embedded Software | $195K–$250K+ | Medium | Stable (huge volume) |
-| L4b Embedded Linux/BSP | $210K–$270K+ | Medium | Stable |
-| L4c Automotive/IoT | $210K–$275K+ | Medium | Growing (ADAS) |
-| **L5a Accelerator Arch** | **$400K–$550K+** | **Extreme** | **Surging** |
-| L5b System/SoC Arch | $380K–$500K+ | Extreme | Surging |
-| L6a RTL Design | $300K–$400K+ | High | Growing |
-| L6b Verification | $290K–$380K+ | High (chronic) | Growing |
-| L6c FPGA/HLS | $250K–$340K+ | Medium | Stable |
-| L7a Physical Design | $260K–$360K+ | High | Growing (advanced nodes) |
-| L7b DFT/CAD | $240K–$330K+ | Medium | Stable |
-| L8a Packaging/Process | $240K–$330K+ | Medium-High | Growing (chiplets) |
-| L8b Silicon Validation | $235K–$310K+ | Medium | Stable |
+| Sub-Layer | Senior Comp | Monthly Postings | Scarcity | Demand Trend |
+|:---------:|------------|:----------------:|:--------:|:------------:|
+| L1a Inference Optimization | $250K–$350K+ | ~1,350 | Medium | Growing (LLM) |
+| L1b Edge AI | $220K–$300K+ | ~950 | Medium | Stable |
+| L1c AI Application | $240K–$320K+ | ~2,250 | Low-Medium | Stable |
+| **L2a Graph/IR** | **$350K–$480K+** | **~275** | **High** | **Surging** |
+| **L2b Compiler Backend** | **$400K–$550K+** | **~400** | **Very High** | **Surging** |
+| **L2c Kernel Engineering** | **$350K–$500K+** | **~500** | **Very High** | **Surging** |
+| L3a GPU Runtime | $280K–$380K+ | ~600 | High | Growing |
+| L3b Kernel/Drivers | $280K–$380K+ | ~700 | High | Growing |
+| L3c HPC Infrastructure | $300K–$400K+ | ~850 | Medium-High | Growing |
+| L4a Embedded Software | $195K–$250K+ | ~4,000 | Medium | Stable |
+| L4b Embedded Linux/BSP | $210K–$270K+ | ~1,750 | Medium | Stable |
+| L4c Automotive/IoT | $210K–$275K+ | ~2,400 | Medium | Growing |
+| **L5a Accelerator Arch** | **$400K–$550K+** | **~150** | **Extreme** | **Surging** |
+| L5b System/SoC Arch | $380K–$500K+ | ~275 | Extreme | Surging |
+| L6a RTL Design | $300K–$400K+ | ~1,750 | High | Growing |
+| L6b Verification | $290K–$380K+ | ~2,250 | Chronic | Growing |
+| L6c FPGA/HLS | $250K–$340K+ | ~1,400 | Medium | Stable |
+| L7a Physical Design | $260K–$360K+ | ~950 | High | Growing |
+| L7b DFT/CAD | $240K–$330K+ | ~500 | Medium | Stable |
+| L8a Packaging/Process | $240K–$330K+ | ~400 | Medium-High | Growing |
+| L8b Silicon Validation | $235K–$310K+ | ~500 | Medium | Stable |
 
 ### Work Arrangement Summary
 
