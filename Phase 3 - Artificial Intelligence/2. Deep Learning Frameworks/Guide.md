@@ -26,9 +26,9 @@ Study these three frameworks in order. Each teaches a different level of the sta
 
 | Framework | What it teaches | Size | Your learning goal |
 |-----------|----------------|------|-------------------|
-| **[micrograd](https://github.com/karpathy/micrograd)** | How autograd works — reverse-mode differentiation from scratch | ~100 lines | Build it yourself. Understand backprop at the code level. |
-| **[PyTorch](https://pytorch.org/)** | Industry-standard API — tensors, modules, optimizers, data loading | Millions of lines | Use it fluently. Train models, export ONNX, profile with torch.profiler. |
-| **[tinygrad](https://github.com/tinygrad/tinygrad)** | How a compiler turns tensor ops into GPU kernels — IR, scheduler, backends | ~10,000 lines | Read the source. Trace from `Tensor` to generated CUDA/OpenCL code. |
+| **[micrograd](micrograd/Guide.md)** | How autograd works — reverse-mode differentiation from scratch | ~100 lines | Build it yourself. Understand backprop at the code level. |
+| **[PyTorch](PyTorch/Guide.md)** | Industry-standard API — tensors, modules, optimizers, data loading | Millions of lines | Use it fluently. Train models, export ONNX, profile with torch.profiler. |
+| **[tinygrad](tinygrad/Guide.md)** | How a compiler turns tensor ops into GPU kernels — IR, scheduler, backends | ~10,000 lines | Read the source. Trace from `Tensor` to generated CUDA/OpenCL code. |
 
 ```
 micrograd          PyTorch              tinygrad

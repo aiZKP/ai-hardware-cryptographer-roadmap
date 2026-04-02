@@ -31,7 +31,7 @@
 
 | Subfolder | Description |
 |-----------|-------------|
-| [pytorch-and-micrograd/](pytorch-and-micrograd/Guide.md) | Build autograd from scratch with micrograd, master PyTorch, then bridge to tinygrad — the essential prerequisite for deep tinygrad mastery |
+| [pytorch-and-micrograd/](../2. Deep Learning Frameworks/micrograd/Guide.md) | Build autograd from scratch with micrograd, master PyTorch, then bridge to tinygrad — the essential prerequisite for deep tinygrad mastery |
 
 ---
 
@@ -1190,7 +1190,7 @@ Convolution output size:
 
 ## Deep Dive: Subfolders
 
-### [PyTorch + micrograd → tinygrad](pytorch-and-micrograd/Guide.md)
+### [PyTorch + micrograd → tinygrad](../2. Deep Learning Frameworks/micrograd/Guide.md)
 
 Before diving deep into tinygrad internals or porting models, you need a rock-solid foundation in how autograd actually works. This subfolder provides exactly that:
 

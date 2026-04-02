@@ -108,20 +108,33 @@ Phase 5        ░░░     │    ░░░    │    ░░░    │        
 
 ### Phase 3: Artificial Intelligence (6–12 months)
 
-> *The workloads your hardware must run — neural networks, edge deployment, vision, and sensor fusion.*
-> Covers: **L1** (AI application & framework)
+> *The workloads your hardware must run — and the AI applications that create inference demand.*
+> Covers: **L1** (AI application & framework). Core + two tracks.
 >
 > *Hub:* [**Phase 3 — Artificial Intelligence**](Phase%203%20-%20Artificial%20Intelligence/Guide.md)
+
+**Core (mandatory):**
 
 | # | Topic | Key Skills | Layer |
 |---|-------|------------|:-----:|
 | 1 | [**Neural Networks**](Phase%203%20-%20Artificial%20Intelligence/1.%20Neural%20Networks/Guide.md) | MLPs, CNNs, training, backpropagation, loss functions | L1 |
-| 2 | [**Deep Learning Frameworks**](Phase%203%20-%20Artificial%20Intelligence/2.%20Deep%20Learning%20Frameworks/Guide.md) | micrograd → PyTorch → tinygrad: autograd, ops, compiler pipeline | L1/L2 |
-| 3 | [**Computer Vision**](Phase%203%20-%20Artificial%20Intelligence/3.%20Computer%20Vision/Guide.md) | Image processing, detection, segmentation, 3D vision, OpenCV | L1 |
-| 4 | [**Sensor Fusion**](Phase%203%20-%20Artificial%20Intelligence/4.%20Sensor%20Fusion/Guide.md) | Camera, LiDAR, IMU, Kalman, BEVFusion, MOT | L1 |
-| 5 | [**Edge AI & Model Optimization**](Phase%203%20-%20Artificial%20Intelligence/5.%20Edge%20AI%20and%20Model%20Optimization/Guide.md) | Quantization, pruning, deployment pipeline — bridge to Phase 4 | L1 |
+| 2 | [**Deep Learning Frameworks**](Phase%203%20-%20Artificial%20Intelligence/2.%20Deep%20Learning%20Frameworks/Guide.md) | [micrograd](Phase%203%20-%20Artificial%20Intelligence/2.%20Deep%20Learning%20Frameworks/micrograd/Guide.md) → [PyTorch](Phase%203%20-%20Artificial%20Intelligence/2.%20Deep%20Learning%20Frameworks/PyTorch/Guide.md) → [tinygrad](Phase%203%20-%20Artificial%20Intelligence/2.%20Deep%20Learning%20Frameworks/tinygrad/Guide.md) | L1/L2 |
 
-**Build:** micrograd from scratch, CNN training, tinygrad IR tracing, OpenCV detection, sensor calibration, INT8 quantization
+**Track A — Hardware & Edge AI** (→ Phase 4 FPGA/Jetson/Compiler):
+
+| # | Topic | Key Skills | Layer |
+|---|-------|------------|:-----:|
+| 3 | [**Computer Vision**](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/3.%20Computer%20Vision/Guide.md) | Detection, segmentation, 3D vision, OpenCV | L1 |
+| 4 | [**Sensor Fusion**](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/4.%20Sensor%20Fusion/Guide.md) | Camera/LiDAR/IMU, Kalman, BEVFusion, MOT | L1 |
+| 5 | [**Edge AI & Model Optimization**](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/5.%20Edge%20AI%20and%20Model%20Optimization/Guide.md) | Quantization, pruning, deployment pipeline | L1 |
+
+**Track B — Agentic AI & ML Engineering** (→ Phase 5 HPC/GenAI):
+
+| # | Topic | Key Skills | Layer |
+|---|-------|------------|:-----:|
+| 3 | [**Agentic AI & GenAI**](Phase%203%20-%20Artificial%20Intelligence/Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/3.%20Agentic%20AI%20and%20GenAI/Guide.md) | LLM agents, RAG, tool use, GenAI products | L1 |
+| 4 | [**ML Engineering & MLOps**](Phase%203%20-%20Artificial%20Intelligence/Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/4.%20ML%20Engineering%20and%20MLOps/Guide.md) | Training pipelines, model serving, experiment tracking | L1 |
+| 5 | [**LLM Application Development**](Phase%203%20-%20Artificial%20Intelligence/Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/5.%20LLM%20Application%20Development/Guide.md) | Fine-tuning, RAG architecture, production deployment | L1 |
 
 ---
 

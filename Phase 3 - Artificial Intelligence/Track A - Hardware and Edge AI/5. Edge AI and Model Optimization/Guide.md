@@ -93,7 +93,7 @@ Step 1 is grounded in **[Neural Networks](../1.%20Neural%20Networks/Guide.md)**.
 
 | You want… | Start here | Then |
 |-----------|------------|------|
-| Intuition for tensors, backprop, CNNs | [Neural Networks](../1.%20Neural%20Networks/Guide.md) | tinygrad hands-on, [pytorch-and-micrograd](../2.%20Deep%20Learning%20Frameworks/pytorch-and-micrograd/Guide.md) |
+| Intuition for tensors, backprop, CNNs | [Neural Networks](../1.%20Neural%20Networks/Guide.md) | tinygrad hands-on, [micrograd](../2.%20Deep%20Learning%20Frameworks/micrograd/Guide.md) |
 | Product and deployment context (this guide) | Skim tiers + pipeline above | Phase 4 Jetson or FPGA track |
 | Vision preprocessing and classical CV | [Computer Vision](../3.%20Computer%20Vision/Guide.md) | Phase 4 perception pipelines |
 | Multi-sensor calibration, tracking, BEV fusion | [Sensor Fusion](../4.%20Sensor%20Fusion/Guide.md) | Phase 4 Jetson + [ROS2](../../Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/5.%20Application%20Development/6.%20ROS2/Guide.md) for integration |
