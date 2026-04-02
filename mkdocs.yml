@@ -8,6 +8,17 @@ edit_uri: edit/main/
 
 docs_dir: .
 
+exclude_docs: |
+  .git/
+  .github/
+  _site/
+  *.py
+  *.pyc
+  *.png
+  *.jpg
+  *.jpeg
+  !Assets/**
+
 theme:
   name: material
   logo: Assets/images/ai-hardware-engineer.png
