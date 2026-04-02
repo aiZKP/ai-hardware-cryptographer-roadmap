@@ -6,18 +6,7 @@ repo_url: https://github.com/ai-hpc/ai-hardware-engineer-roadmap
 repo_name: ai-hpc/ai-hardware-engineer-roadmap
 edit_uri: edit/main/
 
-docs_dir: .
-
-exclude_docs: |
-  .git/
-  .github/
-  _site/
-  *.py
-  *.pyc
-  *.png
-  *.jpg
-  *.jpeg
-  !Assets/**
+docs_dir: docs
 
 theme:
   name: material
