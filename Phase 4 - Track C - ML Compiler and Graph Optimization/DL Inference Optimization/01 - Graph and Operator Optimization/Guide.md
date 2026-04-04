@@ -2,7 +2,7 @@
 
 **Order:** First (foundation). You need to know *what* you're optimizing before writing kernels.
 
-**Role target:** [Step 2 — DL Inference Optimization Engineer](../../../../README.md#the-four-career-steps) · [MTS Kernels](../../../../README.md#the-four-career-steps)
+**Role target:** [Step 2 — DL Inference Optimization Engineer](../../../README.md#layer--job-title-quick-reference) · [MTS Kernels](../../../README.md#layer--job-title-quick-reference)
 
 **Before this unit:** Read [Basic concepts](../Guide.md#basic-concepts-read-this-first) in the DL Inference Optimization guide (LLM inference, TensorRT-LLM/vLLM, distributed training, KV-cache, and why new hardware changes kernel design).
 

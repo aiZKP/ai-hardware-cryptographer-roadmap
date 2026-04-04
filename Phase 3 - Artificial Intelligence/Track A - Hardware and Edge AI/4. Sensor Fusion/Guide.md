@@ -1,8 +1,8 @@
 # Sensor Fusion
 
-**Phase 3 — Artificial Intelligence.** Multi-sensor calibration, filtering, and fusion (Kalibr, BEVFusion, multi-object tracking). Complements **[Computer Vision](../3.%20Computer%20Vision/Guide.md)** and **[Neural Networks](../1.%20Neural%20Networks/Guide.md)**. Sub-guides that mention Jetson, TensorRT, or ROS2 assume you are also following **Phase 4 Track B** ([Jetson](../../Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/1.%20Nvidia%20Jetson%20Platform/Guide.md), [ROS2](../../Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/5.%20Application%20Development/6.%20ROS2/Guide.md)).
+**Phase 3 — Artificial Intelligence.** Multi-sensor calibration, filtering, and fusion (Kalibr, BEVFusion, multi-object tracking). Complements **[Computer Vision](../3.%20Computer%20Vision/Guide.md)** and **[Neural Networks](../../1.%20Neural%20Networks/Guide.md)**. Sub-guides that mention Jetson, TensorRT, or ROS2 assume you are also following **Phase 4 Track B** ([Jetson](../../../Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/1.%20Nvidia%20Jetson%20Platform/Guide.md), [ROS2](../../../Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/5.%20Application%20Development/6.%20ROS2/Guide.md)).
 
-**Hub:** [Phase 3 — Artificial Intelligence](../Guide.md)
+**Hub:** [Phase 3 — Artificial Intelligence](../../Guide.md)
 
 ---
 

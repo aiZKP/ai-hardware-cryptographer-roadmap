@@ -3168,4 +3168,4 @@ class PointNet(nn.Module):
 
 ---
 
-*Previous: [Phase 3 — Advanced FPGA and Acceleration](../Guide.md)*
+*Previous: [Phase 3 — Artificial Intelligence](../../Guide.md)*

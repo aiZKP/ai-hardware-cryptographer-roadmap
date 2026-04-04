@@ -161,4 +161,4 @@ print(y.grad)  # dz/dy = x + 2y = 2 + 6 = 8.0
 
 ## Next
 
-→ [**Module 3 — Computer Vision**](../3.%20Computer%20Vision/Guide.md) — the perception workloads that drive edge AI and autonomous systems.
+→ [**Module 3 — Computer Vision**](../Track%20A%20-%20Hardware%20and%20Edge%20AI/3.%20Computer%20Vision/Guide.md) — the perception workloads that drive edge AI and autonomous systems.

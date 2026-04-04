@@ -188,7 +188,7 @@ Total: ~38 hours of focused work. Return to earlier projects with `DEBUG=4` and 
 ## Further Reading
 
 - [Guide.md](../Guide.md) — full learning guide with theory for each topic
-- [tinygrad-notes.md](../tinygrad-notes.md) — overview and core philosophy
-- [hacking-tinygrad.md](../hacking-tinygrad.md) — code snippets for internals
+- tinygrad-notes.md — overview and core philosophy (see tinygrad source repo)
+- hacking-tinygrad.md — code snippets for internals (see tinygrad source repo)
 - [tinygrad source](https://github.com/tinygrad/tinygrad) — read `tinygrad/tensor.py` and `tinygrad/runtime/ops_clang.py`
 - [abstractions.py](https://github.com/tinygrad/tinygrad/blob/master/docs/abstractions.py) — annotated architecture walkthrough

@@ -4,7 +4,7 @@
 
 > **Goal:** Build a concrete, ground-up understanding of what AI is, what artificial neural networks are, how they learn, and how to implement everything hands-on using **tinygrad** — the minimal ML framework that exposes every fundamental operation.
 
-**Related (separate topic):** **[Edge AI](../6.%20Edge%20AI%20and%20Model%20Optimization/Guide.md)** — where models run on-device, latency/privacy tiers, train → optimize → deploy.
+**Related (separate topic):** **[Edge AI](../Track%20A%20-%20Hardware%20and%20Edge%20AI/6.%20Edge%20AI%20and%20Model%20Optimization/Guide.md)** — where models run on-device, latency/privacy tiers, train → optimize → deploy.
 
 ---
 
@@ -37,7 +37,7 @@
 
 ## 1. Training vs the edge
 
-This guide focuses on **training and inference math** (usually on a workstation or cloud with enough RAM and FLOPs). **On-device constraints**—MCU vs SBC vs Jetson, latency, privacy, and the full train → quantize → deploy loop—live in **[Edge AI](../6.%20Edge%20AI%20and%20Model%20Optimization/Guide.md)**. You can read that track after the sections below, or skim it first for motivation.
+This guide focuses on **training and inference math** (usually on a workstation or cloud with enough RAM and FLOPs). **On-device constraints**—MCU vs SBC vs Jetson, latency, privacy, and the full train → quantize → deploy loop—live in **[Edge AI](../Track%20A%20-%20Hardware%20and%20Edge%20AI/6.%20Edge%20AI%20and%20Model%20Optimization/Guide.md)**. You can read that track after the sections below, or skim it first for motivation.
 
 ---
 

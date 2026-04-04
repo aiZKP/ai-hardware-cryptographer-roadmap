@@ -51,10 +51,10 @@ Use one folder or repo with CMake or `nvcc` + script; **keep CPU goldens** for e
 
 ## Next in this section
 
-**[OpenCL](../OpenCL/Guide.md)** — portable compute across vendors.
+**[OpenCL](../OpenCL%20and%20SYCL/Guide.md)** — portable compute across vendors.
 
 ---
 
 ## Then Phase 3
 
-**[Neural Networks](../../Phase%203%20-%20Artificial%20Intelligence/1.%20Neural%20Networks/Guide.md)** · **[Edge AI](../../Phase%203%20-%20Artificial%20Intelligence/6.%20Edge%20AI%20and%20Model%20Optimization/Guide.md)**
+**[Neural Networks](../../../Phase%203%20-%20Artificial%20Intelligence/1.%20Neural%20Networks/Guide.md)** · **[Edge AI](../../../Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/6.%20Edge%20AI%20and%20Model%20Optimization/Guide.md)**

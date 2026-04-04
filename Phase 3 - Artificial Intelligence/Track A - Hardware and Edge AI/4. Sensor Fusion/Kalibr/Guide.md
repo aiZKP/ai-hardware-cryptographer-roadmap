@@ -1271,5 +1271,5 @@ Write a Python script that:
 ---
 
 *Up: [Sensor Fusion Guide](../Guide.md)*
-*See also: [BEVFusion](BEVFusion/Guide.md) — uses Kalibr camera intrinsics and extrinsics*
-*See also: [Multi-Object Tracking](multi-object-tracking/Guide.md)*
+*See also: [BEVFusion](../BEVFusion/Guide.md) — uses Kalibr camera intrinsics and extrinsics*
+*See also: [Multi-Object Tracking](../multi-object-tracking/Guide.md)*

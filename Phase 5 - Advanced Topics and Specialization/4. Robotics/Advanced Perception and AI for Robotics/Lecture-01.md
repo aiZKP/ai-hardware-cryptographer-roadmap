@@ -40,7 +40,7 @@ This block maps **detection → tracking → estimation → actuation** to **ROS
 
 **Learning-assisted** trackers (e.g. **ByteTrack**-style) add **association** robustness when detections flicker. In ROS 2, publish **track IDs** and **markers** for RViz2 so debugging is visual.
 
-**Roadmap deep dive:** [Phase 3 — Multi-Object Tracking guide](../../../Phase%203%20-%20Artificial%20Intelligence/Sensor%20Fusion/multi-object-tracking/Guide.md) (Kalman + assignment + ROS 2 patterns).
+**Roadmap deep dive:** [Phase 3 — Multi-Object Tracking guide](../../../Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/4.%20Sensor%20Fusion/multi-object-tracking/Guide.md) (Kalman + assignment + ROS 2 patterns).
 
 ### A.3 State estimation and `robot_localization`
 

@@ -22,20 +22,20 @@ A complete journey from elementary concepts to expert-level implementation.
 ### Level 4: Undergraduate (College)
 - [10 - Matrix Form](10-matrix-form.md) - Mathematical notation
 - [11 - Multidimensional Kalman Filter](11-multidimensional-kf.md) - Multiple states
-- [12 - Process and Measurement Noise](12-noise-models.md) - Covariance matrices
-- [13 - Kalman Filter Algorithm](13-kf-algorithm.md) - Complete equations
+- 12 - Process and Measurement Noise — Covariance matrices *(coming soon)*
+- 13 - Kalman Filter Algorithm — Complete equations *(coming soon)*
 
 ### Level 5: Graduate (Advanced)
-- [14 - Extended Kalman Filter](14-extended-kalman-filter.md) - Handling non-linearity
-- [15 - Unscented Kalman Filter](15-unscented-kalman-filter.md) - Better non-linear handling
-- [16 - Error State Kalman Filter](16-error-state-kf.md) - For orientation estimation
-- [17 - Multi-State Constraint KF](17-msckf.md) - For visual odometry
+- 14 - Extended Kalman Filter — Handling non-linearity *(coming soon)*
+- 15 - Unscented Kalman Filter — Better non-linear handling *(coming soon)*
+- 16 - Error State Kalman Filter — For orientation estimation *(coming soon)*
+- 17 - Multi-State Constraint KF — For visual odometry *(coming soon)*
 
 ### Level 6: Expert (Professional)
-- [18 - Kalman Smoothing](18-kalman-smoothing.md) - RTS smoother
-- [19 - Outlier Rejection](19-outlier-rejection.md) - Robust estimation
-- [20 - Implementation Tricks](20-implementation-tricks.md) - Numerical stability
-- [21 - Real World Applications](21-real-world-applications.md) - GPS, IMU, cameras
+- 18 - Kalman Smoothing — RTS smoother *(coming soon)*
+- 19 - Outlier Rejection — Robust estimation *(coming soon)*
+- 20 - Implementation Tricks — Numerical stability *(coming soon)*
+- 21 - Real World Applications — GPS, IMU, cameras *(coming soon)*
 
 ## How to Use This Guide
 

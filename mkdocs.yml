@@ -94,14 +94,56 @@ nav:
   - Home: README.md
   - Roles & Market: Roles and Market Analysis.md
 
+  # ── Phase 1 ─────────────────────────────────────────────────
   - Phase 1 — Digital Foundations:
-    - Overview: Phase 1 - Foundational Knowledge/1. Digital Design and Hardware Description Languages/Guide.md
     - Digital Design:
       - Guide: Phase 1 - Foundational Knowledge/1. Digital Design and Hardware Description Languages/Guide.md
       - Fundamentals: Phase 1 - Foundational Knowledge/1. Digital Design and Hardware Description Languages/Digital Design Fundamentals/Guide.md
       - HDLs: Phase 1 - Foundational Knowledge/1. Digital Design and Hardware Description Languages/Hardware Description Languages (HDLs)/Guide.md
-    - Computer Architecture: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Guide.md
-    - Operating Systems: Phase 1 - Foundational Knowledge/3. Operating Systems/Guide.md
+    - Computer Architecture:
+      - Guide: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Guide.md
+      - Architecture Deep Dive: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Architecture_Guide.md
+      - Hardware Platforms: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Hardware_Platforms_Guide.md
+      - Advanced Topics & Case Studies: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Advanced_Topics_and_CaseStudies.md
+      - Labs & Projects: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Labs_and_ProjectsGuide.md
+    - Operating Systems:
+      - Guide: Phase 1 - Foundational Knowledge/3. Operating Systems/Guide.md
+      - Lectures:
+        - "01: Introduction": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-01.md
+        - "02": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-02.md
+        - "03": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-03.md
+        - "04": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-04.md
+        - "05": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-05.md
+        - "06": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-06.md
+        - "07": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-07.md
+        - "08": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-08.md
+        - "09": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-09.md
+        - "10": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-10.md
+        - "11": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-11.md
+        - "12": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-12.md
+        - "13": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-13.md
+        - "14": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-14.md
+        - "15": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-15.md
+        - "16": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-16.md
+        - "17": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-17.md
+        - "18": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-18.md
+        - "19": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-19.md
+        - "20": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-20.md
+        - "21": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-21.md
+        - "22": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-22.md
+        - "23": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-23.md
+        - "24": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-24.md
+        - "25": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-25.md
+        - "26": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-26.md
+      - Lecture Notes:
+        - "Note 01": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-Note-01.md
+        - "Note 02": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-Note-02.md
+        - "Note 03": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-Note-03.md
+        - "Note 04": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-Note-04.md
+        - "Note 05": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-Note-05.md
+        - "Note 06": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-Note-06.md
+        - "Note 07": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-Note-07.md
+        - "Note 08": Phase 1 - Foundational Knowledge/3. Operating Systems/Lectures/Lecture-Note-08.md
     - C++ & Parallel Computing:
       - Guide: Phase 1 - Foundational Knowledge/4. C++ and Parallel Computing/Guide.md
       - C++ and SIMD: Phase 1 - Foundational Knowledge/4. C++ and Parallel Computing/C++ and SIMD/Guide.md
@@ -110,13 +152,35 @@ nav:
       - ROCm and HIP: Phase 1 - Foundational Knowledge/4. C++ and Parallel Computing/ROCm and HIP/Guide.md
       - OpenCL and SYCL: Phase 1 - Foundational Knowledge/4. C++ and Parallel Computing/OpenCL and SYCL/Guide.md
 
+  # ── Phase 2 ─────────────────────────────────────────────────
   - Phase 2 — Embedded Systems:
     - Schematic & PCB: Phase 2 - Embedded Systems/1. Schematic Capture and PCB Design/Guide.md
     - Embedded Software: Phase 2 - Embedded Systems/2. Embedded Software/Guide.md
     - Embedded Linux:
       - Guide: Phase 2 - Embedded Systems/3. Embedded Linux/Guide.md
-      - Yocto: Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Guide.md
+      - Yocto:
+        - Guide: Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Guide.md
+        - Lectures:
+          - Overview: Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/README.md
+          - "01": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-01.md
+          - "02": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-02.md
+          - "03": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-03.md
+          - "04": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-04.md
+          - "05": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-05.md
+          - "06": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-06.md
+          - "07": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-07.md
+          - "08": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-08.md
+          - "09": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-09.md
+          - "10": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-10.md
+          - "11": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-11.md
+          - "12": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-12.md
+          - "13": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-13.md
+          - "14": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-14.md
+          - "15": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-15.md
+          - "16": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lecture-16.md
+          - "Lab: Edge AI Camera": Phase 2 - Embedded Systems/3. Embedded Linux/Yocto/Lecture/Lab-01-Worked-Example-Edge-AI-Camera.md
 
+  # ── Phase 3 ─────────────────────────────────────────────────
   - Phase 3 — AI:
     - Overview: Phase 3 - Artificial Intelligence/Guide.md
     - 1. Neural Networks: Phase 3 - Artificial Intelligence/1. Neural Networks/Guide.md
@@ -132,6 +196,21 @@ nav:
         - Kalibr: Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/Kalibr/Guide.md
         - BEVFusion: Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/BEVFusion/Guide.md
         - MOT: Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/multi-object-tracking/Guide.md
+        - Kalman Filter:
+          - Index: Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/00-index.md
+          - "01: What is Estimation": Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/01-what-is-estimation.md
+          - "02: Noisy Measurements": Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/02-noisy-measurements.md
+          - "03: Combining Information": Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/03-combining-information.md
+          - "04: Averages & Uncertainty": Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/04-averages-and-uncertainty.md
+          - "05: Weighted Averages": Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/05-weighted-averages.md
+          - "06: Prediction": Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/06-prediction.md
+          - "07: Kalman Filter Idea": Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/07-kalman-filter-idea.md
+          - "08: 1D Kalman Filter": Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/08-1d-kalman-filter.md
+          - "09: Tracking Moving Object": Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/09-tracking-moving-object.md
+          - "10: Matrix Form": Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/10-matrix-form.md
+          - "11: Multidimensional KF": Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/11-multidimensional-kf.md
+          - 6D Kalman Explained: Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/6d-kalman-explained.md
+          - Cheat Sheet: Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/4. Sensor Fusion/kalman-filter/cheat-sheet.md
       - 5. Voice AI: Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/5. Voice AI/Guide.md
       - 6. Edge AI & Optimization: Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/6. Edge AI and Model Optimization/Guide.md
     - "Track B: Agentic AI & ML":
@@ -140,6 +219,7 @@ nav:
       - 5. LLM App Development: Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/5. LLM Application Development/Guide.md
     - CMU AI Courses: Phase 3 - Artificial Intelligence/CMU-AI-Courses.md
 
+  # ── Phase 4 ─────────────────────────────────────────────────
   - Phase 4 — Deployment:
     - "Track A: Xilinx FPGA":
       - 1. FPGA Development: Phase 4 - Track A - Xilinx FPGA/1. Xilinx FPGA Development/Guide.md
@@ -149,11 +229,45 @@ nav:
       - 5. Runtime & Drivers: Phase 4 - Track A - Xilinx FPGA/5. Runtime and Driver Development/Guide.md
       - 6. Projects: Phase 4 - Track A - Xilinx FPGA/6. Projects/Wireless-Video-FPGA.md
     - "Track B: NVIDIA Jetson":
-      - 1. Jetson Platform: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Guide.md
+      - 1. Jetson Platform:
+        - Guide: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Guide.md
+        - CUDA Programming: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-CUDA-Programming/Guide.md
+        - Camera ISP & Sensor Bring-Up: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-Camera-ISP-Sensor-Bringup/Guide.md
+        - Container Fleet: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-Container-Fleet/Guide.md
+        - DLA Deep Dive: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-DLA-Deep-Dive/Guide.md
+        - GPIO / SPI / I2C / CAN: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-GPIO-SPI-I2C-CAN/Guide.md
+        - Kernel Internals: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-Kernel-Internals/Guide.md
+        - Memory Architecture: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-Memory-Architecture/Guide.md
+        - OTA Deep Dive: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-OTA-Deep-Dive/Guide.md
+        - Power & Thermal: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-Power-Thermal/Guide.md
+        - RT Linux Deep Dive: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-RT-Linux-Deep-Dive/Guide.md
+        - Real-Time Inference: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-Real-Time-Inference/Guide.md
+        - Rootfs & A/B Redundancy: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-Rootfs-and-AB-Redundancy/Guide.md
+        - Security: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-Security/Guide.md
+        - TensorRT: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-Tensor/Guide.md
+        - Video Codec & DeepStream: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-Video-Codec-DeepStream/Guide.md
+        - Yocto BSP Production: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Orin-Nano-Yocto-BSP-Production/Guide.md
       - 2. Carrier Board: Phase 4 - Track B - Nvidia Jetson/2. Custom Carrier Board Design and Bring-Up/Guide.md
-      - 3. L4T Customization: Phase 4 - Track B - Nvidia Jetson/3. L4T Customization/Guide.md
+      - 3. L4T Customization:
+        - Guide: Phase 4 - Track B - Nvidia Jetson/3. L4T Customization/Guide.md
+        - Custom Board Engineering Flow: Phase 4 - Track B - Nvidia Jetson/3. L4T Customization/Orin-Nano-8GB-Custom-Board-L4T-Engineering-Flow.md
+        - Module Adaptation & Bring-Up: Phase 4 - Track B - Nvidia Jetson/3. L4T Customization/Jetson-Module-Adaptation-Bring-Up-Orin-NX-Nano.md
+        - ODMDATA & GPIO: Phase 4 - Track B - Nvidia Jetson/3. L4T Customization/ODMDATA-and-GPIO-Jetson-Linux.md
+        - T23x Deployment: Phase 4 - Track B - Nvidia Jetson/3. L4T Customization/T23x-Deployment.md
+        - Deployment: Phase 4 - Track B - Nvidia Jetson/3. L4T Customization/Deployment.md
       - 4. FSP Firmware: Phase 4 - Track B - Nvidia Jetson/4. FSP (Firmware Support Package) Customization/Guide.md
-      - 5. App Development: Phase 4 - Track B - Nvidia Jetson/5. Application Development/Guide.md
+      - 5. App Development:
+        - Guide: Phase 4 - Track B - Nvidia Jetson/5. Application Development/Guide.md
+        - Peripheral Access: Phase 4 - Track B - Nvidia Jetson/5. Application Development/1. Peripheral Access/Guide.md
+        - Network & Connectivity: Phase 4 - Track B - Nvidia Jetson/5. Application Development/2. Network and Connectivity/Guide.md
+        - GUI: Phase 4 - Track B - Nvidia Jetson/5. Application Development/3. GUI/Guide.md
+        - Multimedia: Phase 4 - Track B - Nvidia Jetson/5. Application Development/4. Multimedia/Guide.md
+        - ML & AI:
+          - Guide: Phase 4 - Track B - Nvidia Jetson/5. Application Development/5. ML and AI/Guide.md
+          - Small Object Detection: Phase 4 - Track B - Nvidia Jetson/5. Application Development/5. ML and AI/small-object-detection-jetson/Guide.md
+          - TAO Toolkit: Phase 4 - Track B - Nvidia Jetson/5. Application Development/5. ML and AI/tao-toolkit/Guide.md
+          - Non-Contact Monitoring: Phase 4 - Track B - Nvidia Jetson/5. Application Development/5. ML and AI/non-contact-monitoring-edge/Guide.md
+        - ROS 2: Phase 4 - Track B - Nvidia Jetson/5. Application Development/6. ROS2/Guide.md
       - 6. Security & OTA: Phase 4 - Track B - Nvidia Jetson/6. Security and OTA/Guide.md
       - 7. Manufacturing: Phase 4 - Track B - Nvidia Jetson/7. Compliance and Manufacturing/Guide.md
       - 8. Runtime & Drivers: Phase 4 - Track B - Nvidia Jetson/8. Runtime and Driver Development/Guide.md
@@ -168,22 +282,88 @@ nav:
         - 05 Runtimes: Phase 4 - Track C - ML Compiler and Graph Optimization/DL Inference Optimization/05 - Inference Runtimes and Deployment/Guide.md
         - 06 tinygrad: Phase 4 - Track C - ML Compiler and Graph Optimization/DL Inference Optimization/06 - tinygrad Deep Dive/Guide.md
 
+  # ── Phase 5 ─────────────────────────────────────────────────
   - Phase 5 — Specialization:
     - "A: GPU Infrastructure":
       - Guide: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Guide.md
-      - Nvidia GPU: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/Guide.md
+      - Nvidia GPU:
+        - Guide: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/Guide.md
+        - HPC Setup:
+          - Guide: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/Guide.md
+          - 8x H200 Training & Inference:
+            - Overview: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/8x-H200-Training-Inference/README.md
+            - 01 Hardware Architecture: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/8x-H200-Training-Inference/01-Hardware-Architecture.md
+            - 02 Training Setup: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/8x-H200-Training-Inference/02-Training-Setup.md
+            - 03 Inference Setup: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/8x-H200-Training-Inference/03-Inference-Setup.md
+            - 04 Memory Management: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/8x-H200-Training-Inference/04-Memory-Management.md
+            - 05 Performance Optimization: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/8x-H200-Training-Inference/05-Performance-Optimization.md
+            - 06 Benchmarks & Validation: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/8x-H200-Training-Inference/06-Benchmarks-and-Validation.md
+          - CUDA Advanced Optimization:
+            - Overview: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/CUDA-Advanced-Optimization/README.md
+            - 01 CUDA Graphs: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/CUDA-Advanced-Optimization/01-CUDA-Graphs.md
+            - 02 Cooperative Groups: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/CUDA-Advanced-Optimization/02-Cooperative-Groups.md
+            - 03 Persistent Kernels: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/CUDA-Advanced-Optimization/03-Persistent-Kernels.md
+            - 04 Kernel Fusion: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/CUDA-Advanced-Optimization/04-Kernel-Fusion.md
+            - 05 Warp Specialization: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/CUDA-Advanced-Optimization/05-Warp-Specialization.md
+          - GPUDirect Storage:
+            - Overview: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/GPUDirect-Storage/README.md
+            - 01 Architecture & Data Path: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/GPUDirect-Storage/01-Architecture-and-Data-Path.md
+            - 02 Hardware Setup: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/GPUDirect-Storage/02-Hardware-Setup.md
+            - 03 Software Stack: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/GPUDirect-Storage/03-Software-Stack.md
+            - 04 libcufile API: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/GPUDirect-Storage/04-libcufile-API.md
+            - 05 Performance Tuning: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/GPUDirect-Storage/05-Performance-Tuning.md
+            - 06 Disaggregated Storage: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/GPUDirect-Storage/06-Disaggregated-Storage.md
+          - L40S x12 Inference:
+            - Overview: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/L40S-x12-Inference/README.md
+            - 01 Hardware Architecture: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/L40S-x12-Inference/01-Hardware-Architecture.md
+            - 02 Inference Optimization: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/L40S-x12-Inference/02-Inference-Optimization.md
+            - 03 Multi-GPU Strategy: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/L40S-x12-Inference/03-Multi-GPU-Strategy.md
+            - 04 Deployment Guide: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/L40S-x12-Inference/04-Deployment-Guide.md
+            - 05 Benchmarks: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/L40S-x12-Inference/05-Benchmarks.md
+          - NCCL Deep Dive:
+            - Overview: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/NCCL-Deep-Dive/README.md
+            - 01 Fundamentals: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/NCCL-Deep-Dive/01-Fundamentals.md
+            - 02 Algorithms & Bandwidth: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/NCCL-Deep-Dive/02-Algorithms-and-Bandwidth.md
+            - 03 Framework Integration: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/NCCL-Deep-Dive/03-Framework-Integration.md
+            - 04 Configuration & Tuning: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/NCCL-Deep-Dive/04-Configuration-and-Tuning.md
+            - 05 Multi-Node Clusters: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/NCCL-Deep-Dive/05-Multi-Node-Clusters.md
+            - 06 Debugging: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/NCCL-Deep-Dive/06-Debugging.md
+            - 07 Trillion-Parameter Scale: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/Nvidia GPU/HPC Setup/NCCL-Deep-Dive/07-Trillion-Parameter-Scale.md
       - AMD GPU: Phase 5 - Advanced Topics and Specialization/1. GPU Infrastructure/AMD GPU/Guide.md
     - "B: HPC (CUDA-X)":
       - Guide: Phase 5 - Advanced Topics and Specialization/2. High Performance Computing/Guide.md
       - CUDA-X Libraries: Phase 5 - Advanced Topics and Specialization/2. High Performance Computing/CUDA-X Libraries/Guide.md
     - "C: Edge AI": Phase 5 - Advanced Topics and Specialization/3. Edge AI/Guide.md
-    - "D: Robotics": Phase 5 - Advanced Topics and Specialization/4. Robotics/Guide.md
+    - "D: Robotics":
+      - Guide: Phase 5 - Advanced Topics and Specialization/4. Robotics/Guide.md
+      - CMU Robotics Courses: Phase 5 - Advanced Topics and Specialization/4. Robotics/CMU-Robotics-Courses.md
+      - "Lecture: Perception & AI": Phase 5 - Advanced Topics and Specialization/4. Robotics/Advanced Perception and AI for Robotics/Lecture-01.md
+      - "Lecture: Advanced ROS": Phase 5 - Advanced Topics and Specialization/4. Robotics/Advanced Robot Operating System/Lecture-01.md
+      - "Lecture: Industrial & Embedded": Phase 5 - Advanced Topics and Specialization/4. Robotics/Industrial and Embedded Robotics/Lecture-01.md
+      - "Lecture: Multi-Robot & Swarm": Phase 5 - Advanced Topics and Specialization/4. Robotics/Multi-Robot Systems and Swarm Robotics/Lecture-01.md
     - "E: Autonomous Vehicles":
       - Guide: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/Guide.md
       - 1. Fundamentals: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/1. Fundamentals/Guide.md
-      - 2. openpilot: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/2. openpilot Reference Stack/Guide.md
-      - 3. tinygrad: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/3. tinygrad for Inference/Guide.md
+      - 2. openpilot:
+        - Guide: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/2. openpilot Reference Stack/Guide.md
+        - Flow Diagram: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/2. openpilot Reference Stack/flow-diagram.md
+        - AGNOS: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/2. openpilot Reference Stack/agnos/Guide.md
+        - camerad: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/2. openpilot Reference Stack/camerad/Guide.md
+      - 3. tinygrad:
+        - Guide: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/3. tinygrad for Inference/Guide.md
+        - Notes — Overview: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/3. tinygrad for Inference/notes/overview.md
+        - Notes — Internals: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/3. tinygrad for Inference/notes/internals.md
+        - Ops — Elementwise: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/3. tinygrad for Inference/ops/elementwise.md
+        - Ops — Movement: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/3. tinygrad for Inference/ops/movement.md
+        - Ops — Reduce: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/3. tinygrad for Inference/ops/reduce.md
       - 4. Perception: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/4. Advanced Perception and Prediction/Guide.md
       - 5. Safety: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/5. Safety Standards and Deployment/Guide.md
       - 6. Lauterbach: Phase 5 - Advanced Topics and Specialization/5. Autonomous Vehicles/6. Lauterbach TRACE32 Debug/Guide.md
-    - "F: AI Chip Design": Phase 5 - Advanced Topics and Specialization/6. AI Chip Design/Guide.md
+    - "F: AI Chip Design":
+      - Guide: Phase 5 - Advanced Topics and Specialization/6. AI Chip Design/Guide.md
+      - Lectures:
+        - "01": Phase 5 - Advanced Topics and Specialization/6. AI Chip Design/Lectures/Lecture-01.md
+        - "02": Phase 5 - Advanced Topics and Specialization/6. AI Chip Design/Lectures/Lecture-02.md
+        - "03": Phase 5 - Advanced Topics and Specialization/6. AI Chip Design/Lectures/Lecture-03.md
+        - "04": Phase 5 - Advanced Topics and Specialization/6. AI Chip Design/Lectures/Lecture-04.md
+        - "05": Phase 5 - Advanced Topics and Specialization/6. AI Chip Design/Lectures/Lecture-05.md

@@ -71,8 +71,8 @@ Phase 5        ░░░     │    ░░░    │    ░░░    │        
 
 | Topic | Key Skills | Layer |
 |-------|------------|:-----:|
-| [**Embedded Software**](Phase%202%20-%20Embedded%20Systems/1.%20Embedded%20Software/Guide.md) | ARM Cortex-M, FreeRTOS, SPI/UART/I2C/CAN, power, OTA | L4 |
-| [**Embedded Linux**](Phase%202%20-%20Embedded%20Systems/2.%20Embedded%20Linux/Guide.md) | Yocto, PetaLinux, kernel, rootfs | L3/L4 |
+| [**Embedded Software**](Phase%202%20-%20Embedded%20Systems/2.%20Embedded%20Software/Guide.md) | ARM Cortex-M, FreeRTOS, SPI/UART/I2C/CAN, power, OTA | L4 |
+| [**Embedded Linux**](Phase%202%20-%20Embedded%20Systems/3.%20Embedded%20Linux/Guide.md) | Yocto, PetaLinux, kernel, rootfs | L3/L4 |
 
 ### Phase 3: Artificial Intelligence (6–12 months)
 
@@ -187,7 +187,6 @@ Phase 5        ░░░     │    ░░░    │    ░░░    │        
 ## Additional Resources
 
 - [**Roles & Market Analysis**](Roles%20and%20Market%20Analysis.md) — 23 sub-layers, salary data, job postings, remote %, hiring priorities
-- [**AI & Hardware Roadmap (HTML)**](AI-Hardware-Engineer-Roadmap.html) — self-contained visual report with charts
 
 ---
 

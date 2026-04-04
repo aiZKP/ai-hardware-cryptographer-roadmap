@@ -1,10 +1,10 @@
 # Edge AI
 
-**Phase 3 — Artificial Intelligence** (standalone topic). Learn **where** and **why** models run on-device; learn **what** they compute in **[Neural Networks](../1.%20Neural%20Networks/Guide.md)**.
+**Phase 3 — Artificial Intelligence** (standalone topic). Learn **where** and **why** models run on-device; learn **what** they compute in **[Neural Networks](../../1.%20Neural%20Networks/Guide.md)**.
 
 > **Goal:** Map the edge stack—latency, privacy, power tiers, and the train → optimize → deploy pipeline—so Phase 4 (Xilinx or Jetson) and specialization tracks have clear context.
 
-**Previous:** [Phase 1 §4 — C++ and Parallel Computing](../../Phase 1 - Foundational Knowledge/4. C++ and Parallel Computing/Guide.md) · **Companion:** [Neural Networks](../1.%20Neural%20Networks/Guide.md) (MLPs, CNNs, training, tinygrad) · **Next (deployment depth):** [Phase 4 Track B — Jetson](../../Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Guide.md)
+**Previous:** [Phase 1 §4 — C++ and Parallel Computing](../../../Phase%201%20-%20Foundational%20Knowledge/4.%20C%2B%2B%20and%20Parallel%20Computing/Guide.md) · **Companion:** [Neural Networks](../../1.%20Neural%20Networks/Guide.md) (MLPs, CNNs, training, tinygrad) · **Next (deployment depth):** [Phase 4 Track B — Jetson](../../../Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/1.%20Nvidia%20Jetson%20Platform/Guide.md)
 
 ---
 
@@ -85,7 +85,7 @@ Tier 4 — Edge Servers:
 5. Run inference locally in real-time
 ```
 
-Step 1 is grounded in **[Neural Networks](../1.%20Neural%20Networks/Guide.md)**. Steps 2–5 are expanded in **Phase 4 Track B** ([ML and AI](../../Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/5.%20Application%20Development/5.%20ML%20and%20AI/Guide.md)) and, for custom silicon, **Phase 4 Track A** and **Phase 5 — AI Chip Design**.
+Step 1 is grounded in **[Neural Networks](../../1.%20Neural%20Networks/Guide.md)**. Steps 2–5 are expanded in **Phase 4 Track B** ([ML and AI](../../../Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/5.%20Application%20Development/5.%20ML%20and%20AI/Guide.md)) and, for custom silicon, **Phase 4 Track A** and **Phase 5 — AI Chip Design**.
 
 ---
 
@@ -93,9 +93,9 @@ Step 1 is grounded in **[Neural Networks](../1.%20Neural%20Networks/Guide.md)**.
 
 | You want… | Start here | Then |
 |-----------|------------|------|
-| Intuition for tensors, backprop, CNNs | [Neural Networks](../1.%20Neural%20Networks/Guide.md) | tinygrad hands-on, [micrograd](../2.%20Deep%20Learning%20Frameworks/micrograd/Guide.md) |
+| Intuition for tensors, backprop, CNNs | [Neural Networks](../../1.%20Neural%20Networks/Guide.md) | tinygrad hands-on, [micrograd](../../2.%20Deep%20Learning%20Frameworks/micrograd/Guide.md) |
 | Product and deployment context (this guide) | Skim tiers + pipeline above | Phase 4 Jetson or FPGA track |
 | Vision preprocessing and classical CV | [Computer Vision](../3.%20Computer%20Vision/Guide.md) | Phase 4 perception pipelines |
-| Multi-sensor calibration, tracking, BEV fusion | [Sensor Fusion](../4.%20Sensor%20Fusion/Guide.md) | Phase 4 Jetson + [ROS2](../../Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/5.%20Application%20Development/6.%20ROS2/Guide.md) for integration |
+| Multi-sensor calibration, tracking, BEV fusion | [Sensor Fusion](../4.%20Sensor%20Fusion/Guide.md) | Phase 4 Jetson + [ROS2](../../../Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/5.%20Application%20Development/6.%20ROS2/Guide.md) for integration |
 
-**Hub:** [Phase 3 — Artificial Intelligence](../Guide.md)
+**Hub:** [Phase 3 — Artificial Intelligence](../../Guide.md)
