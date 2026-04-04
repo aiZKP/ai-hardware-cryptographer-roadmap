@@ -1,4 +1,4 @@
-<div align="center">
+<div align="center" markdown="1">
 
 # AI Hardware Engineer Roadmap
 
@@ -190,7 +190,7 @@ Phase 5        ░░░     │    ░░░    │    ░░░    │        
 
 ---
 
-<div align="center">
+<div align="center" markdown="1">
 
 **A community-driven educational roadmap for AI hardware engineering.** · [Star ⭐](https://github.com/ai-hpc/ai-hardware-engineer-roadmap) if you find this useful
 

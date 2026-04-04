@@ -1,127 +1,237 @@
 /* AI Hardware Engineer Roadmap — MkDocs Material Custom Theme */
 
-/* ── Wider layout ────────────────────────────── */
+/* ── Layout ───────────────────────────────────── */
 .md-grid {
-  max-width: 1440px;
+  max-width: 1320px;
 }
 
-/* ── Home page hero ──────────────────────────── */
+.md-content__inner {
+  padding-top: 1.2rem;
+}
+
+/* ── Hero section ─────────────────────────────── */
 .md-content__inner > h1:first-of-type {
-  font-size: 2.2rem;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-align: center;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.15;
+}
+
+/* Tagline paragraph directly under hero H1 */
+.md-content__inner > p:first-of-type strong {
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+/* Center the badge row */
+.md-content__inner > p:has(img[src*="shields.io"]) {
+  text-align: center;
+  margin: 0.5rem 0 1rem;
+}
+
+/* Banner image */
+.md-content__inner > p > img[alt="AI Hardware Engineer Roadmap"] {
+  display: block;
+  margin: 0 auto 0.5rem;
+  max-width: min(720px, 100%);
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+}
+
+/* ── Intro paragraph ──────────────────────────── */
+.md-content__inner > p:nth-of-type(3) {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto 1.8rem;
+  color: var(--md-typeset-color);
+  opacity: 0.9;
+}
+
+/* ── Horizontal rule ──────────────────────────── */
+.md-typeset hr {
+  border-color: var(--md-typeset-table-color);
+  margin: 1.8rem 0;
+}
+
+/* ── Headings ─────────────────────────────────── */
+.md-typeset h1 {
   font-weight: 800;
   letter-spacing: -0.02em;
-  text-align: center;
-  margin-top: 0.5rem;
 }
 
-/* Center the banner image */
-.md-content__inner > p:nth-of-type(1) img {
-  display: block;
-  margin: 0 auto 1.5rem;
-  max-width: 100%;
-  border-radius: 12px;
+.md-typeset h2 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  border-bottom: 2px solid var(--md-primary-fg-color);
+  padding-bottom: 0.35rem;
+  margin-top: 2.2rem;
+  margin-bottom: 1rem;
 }
 
-/* First description paragraph — centered intro */
-.md-content__inner > p:nth-of-type(2) {
-  font-size: 1.05rem;
-  line-height: 1.7;
-  text-align: center;
-  max-width: 800px;
-  margin: 0 auto 1.5rem;
-  color: var(--md-typeset-color);
-}
-
-/* ── Layer color highlights in tables ────────── */
-.md-typeset table td:first-child {
+.md-typeset h3 {
   font-weight: 600;
+  margin-top: 1.6rem;
 }
 
-/* Bold L1-L8 in table cells */
-.md-typeset td:first-child:is(
-  [class*="layer"],
-  :has(strong)
-) {
-  white-space: nowrap;
+.md-typeset h4 {
+  font-weight: 600;
+  color: var(--md-primary-fg-color);
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.07em;
+  margin-top: 1.4rem;
 }
 
-/* ── Code blocks ─────────────────────────────── */
-.md-typeset code {
-  font-size: 0.82em;
-}
-
-.md-typeset pre code {
-  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
-  font-size: 0.78em;
-  line-height: 1.45;
-}
-
-/* ASCII art — prevent wrapping */
-.md-typeset pre {
-  overflow-x: auto;
-}
-
-/* ── Tables ──────────────────────────────────── */
+/* ── Tables ───────────────────────────────────── */
 .md-typeset table:not([class]) {
-  font-size: 0.88rem;
+  font-size: 0.875rem;
+  border-collapse: separate;
+  border-spacing: 0;
   border: 1px solid var(--md-typeset-table-color);
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
+  width: 100%;
+  margin: 1.2rem 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
 .md-typeset table:not([class]) th {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   background: var(--md-typeset-table-color);
   border-bottom: 2px solid var(--md-primary-fg-color);
+  padding: 0.6rem 0.85rem;
+  white-space: nowrap;
 }
 
 .md-typeset table:not([class]) td {
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.85rem;
+  border-top: 1px solid var(--md-typeset-table-color);
+  vertical-align: top;
+  line-height: 1.55;
+}
+
+.md-typeset table:not([class]) tr:first-child td {
+  border-top: none;
 }
 
 .md-typeset table:not([class]) tr:hover td {
   background: var(--md-accent-fg-color--transparent);
 }
 
-/* ── Navigation tabs ─────────────────────────── */
-.md-tabs__link--active {
-  font-weight: 700;
+/* First column bold — layer labels, platform names */
+.md-typeset table:not([class]) td:first-child {
+  font-weight: 600;
 }
 
-/* ── Phase header styling ────────────────────── */
-.md-typeset h2 {
-  border-bottom: 2px solid var(--md-primary-fg-color);
-  padding-bottom: 0.3rem;
-  margin-top: 2rem;
+/* ── Code blocks ──────────────────────────────── */
+.md-typeset code {
+  font-size: 0.82em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
 }
 
-/* ── Blockquotes as callouts ─────────────────── */
+.md-typeset pre {
+  border-radius: 8px;
+  overflow-x: auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.md-typeset pre code {
+  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.78em;
+  line-height: 1.5;
+}
+
+/* ── Blockquotes as callouts ──────────────────── */
 .md-typeset blockquote {
   border-left: 4px solid var(--md-primary-fg-color);
   background: var(--md-admonition-bg-color);
-  padding: 0.8rem 1.2rem;
-  border-radius: 0 6px 6px 0;
-  margin: 1rem 0;
+  padding: 0.75rem 1.2rem;
+  border-radius: 0 8px 8px 0;
+  margin: 1.2rem 0;
+  font-size: 0.93rem;
 }
 
 .md-typeset blockquote p {
+  margin-bottom: 0.3rem;
+}
+
+.md-typeset blockquote p:last-child {
   margin-bottom: 0;
 }
 
-/* ── Footer ──────────────────────────────────── */
+/* ── Admonitions ──────────────────────────────── */
+.md-typeset .admonition {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* ── Navigation tabs ──────────────────────────── */
+.md-tabs__link {
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  opacity: 0.82;
+}
+
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  opacity: 1;
+  font-weight: 700;
+}
+
+/* ── Sidebar nav ──────────────────────────────── */
+.md-nav__title {
+  font-weight: 700;
+}
+
+.md-nav__link {
+  font-size: 0.75rem;
+}
+
+/* ── Header ───────────────────────────────────── */
+.md-header {
+  box-shadow: 0 1px 8px rgba(0,0,0,0.12);
+}
+
+.md-header__title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* ── Footer ───────────────────────────────────── */
 .md-footer-meta a {
   color: var(--md-accent-fg-color);
 }
 
-/* ── Mermaid diagrams ────────────────────────── */
+/* ── Mermaid diagrams ─────────────────────────── */
 .mermaid {
   text-align: center;
   margin: 1.5rem 0;
 }
 
-/* ── Print styles ────────────────────────────── */
+/* ── Tag chips ────────────────────────────────── */
+.md-tag {
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+}
+
+/* ── Search ───────────────────────────────────── */
+.md-search__form {
+  border-radius: 6px;
+}
+
+/* ── Print ────────────────────────────────────── */
 @media print {
   .md-sidebar,
   .md-tabs,
@@ -134,16 +244,31 @@
   }
 }
 
-/* ── Mobile responsive ───────────────────────── */
+/* ── Mobile ───────────────────────────────────── */
 @media screen and (max-width: 768px) {
   .md-content__inner > h1:first-of-type {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
+
   .md-typeset table:not([class]) {
     font-size: 0.78rem;
   }
+
   .md-typeset table:not([class]) th,
   .md-typeset table:not([class]) td {
     padding: 0.35rem 0.5rem;
   }
+}
+
+/* ── Dark mode refinements ────────────────────── */
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+[data-md-color-scheme="slate"] .md-typeset pre {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+[data-md-color-scheme="slate"] .md-content__inner > p > img[alt="AI Hardware Engineer Roadmap"] {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
 }
