@@ -214,7 +214,26 @@ nav:
       - 5. Voice AI: Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/5. Voice AI/Guide.md
       - 6. Edge AI & Optimization: Phase 3 - Artificial Intelligence/Track A - Hardware and Edge AI/6. Edge AI and Model Optimization/Guide.md
     - "Track B: Agentic AI & ML":
-      - 3. Agentic AI & GenAI: Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Guide.md
+      - 3. Agentic AI & GenAI:
+        - Guide: Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Guide.md
+        - Lectures:
+          - Index: Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/README.md
+          - "01: LLM Fundamentals": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-01.md
+          - "02: Prompt Engineering": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-02.md
+          - "03: Tool Use": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-03.md
+          - "04: Agent Architecture": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-04.md
+          - "05: Memory Systems": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-05.md
+          - "06: LangGraph": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-06.md
+          - "07: Claude Agent SDK": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-07.md
+          - "08: Multi-Agent Systems": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-08.md
+          - "09: RAG — Ingestion": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-09.md
+          - "10: RAG — Retrieval": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-10.md
+          - "11: Evaluation": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-11.md
+          - "12: Production": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lecture-12.md
+        - Labs:
+          - "Lab 01: Research Agent": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lab-01-Research-Agent.md
+          - "Lab 02: Multi-Agent Pipeline": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lab-02-Multi-Agent-Pipeline.md
+          - "Lab 03: Production RAG": Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/3. Agentic AI and GenAI/Lectures/Lab-03-Production-RAG.md
       - 4. ML Engineering & MLOps: Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/4. ML Engineering and MLOps/Guide.md
       - 5. LLM App Development: Phase 3 - Artificial Intelligence/Track B - Agentic AI and ML Engineering/5. LLM Application Development/Guide.md
     - CMU AI Courses: Phase 3 - Artificial Intelligence/CMU-AI-Courses.md

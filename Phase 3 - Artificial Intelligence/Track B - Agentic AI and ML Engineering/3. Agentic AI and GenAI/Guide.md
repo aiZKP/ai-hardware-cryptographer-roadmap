@@ -10,6 +10,23 @@
 
 ---
 
+## Lecture Series
+
+12 lectures + 3 hands-on labs covering everything from LLM fundamentals to production multi-agent systems. **[→ Start here](Lectures/README.md)**
+
+| # | Lecture | # | Lecture |
+|---|---------|---|---------|
+| [01](Lectures/Lecture-01.md) | LLM Fundamentals | [07](Lectures/Lecture-07.md) | Claude Agent SDK |
+| [02](Lectures/Lecture-02.md) | Prompt Engineering | [08](Lectures/Lecture-08.md) | Multi-Agent Systems |
+| [03](Lectures/Lecture-03.md) | Tool Use | [09](Lectures/Lecture-09.md) | RAG — Ingestion |
+| [04](Lectures/Lecture-04.md) | Agent Architecture | [10](Lectures/Lecture-10.md) | RAG — Retrieval |
+| [05](Lectures/Lecture-05.md) | Memory Systems | [11](Lectures/Lecture-11.md) | Evaluation |
+| [06](Lectures/Lecture-06.md) | LangGraph | [12](Lectures/Lecture-12.md) | Production |
+
+**Labs:** [Lab 01 — Research Agent](Lectures/Lab-01-Research-Agent.md) · [Lab 02 — Multi-Agent Pipeline](Lectures/Lab-02-Multi-Agent-Pipeline.md) · [Lab 03 — Production RAG](Lectures/Lab-03-Production-RAG.md)
+
+---
+
 ## Why This Matters for AI Hardware
 
 Agentic AI creates the **inference demand** that drives chip design:
