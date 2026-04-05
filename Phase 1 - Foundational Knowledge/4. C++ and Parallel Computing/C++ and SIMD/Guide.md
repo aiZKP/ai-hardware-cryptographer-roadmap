@@ -532,13 +532,19 @@ void add_vectors_avx(float* a, float* b, float* c, int n) {
 
 | Operation | Intrinsic | What it does |
 |-----------|-----------|-------------|
-| Load | `_mm256_load_ps(ptr)` | Load 8 **32-byte-aligned** floats — **crashes if misaligned** |
+| Load aligned | `_mm256_load_ps(ptr)` | Load 8 **32-byte-aligned** floats — **crashes if misaligned** |
 | Load unaligned | `_mm256_loadu_ps(ptr)` | Load 8 floats (any alignment) — safer default |
 | Store | `_mm256_store_ps(ptr, v)` | Store 8 floats (aligned) |
+| Stream store | `_mm256_stream_ps(ptr, v)` | Write bypassing cache — use for large write-once buffers |
 | Add | `_mm256_add_ps(a, b)` | 8 parallel additions |
 | Multiply | `_mm256_mul_ps(a, b)` | 8 parallel multiplications |
-| **FMA** | `_mm256_fmadd_ps(a, b, c)` | 8 parallel `a*b + c` — **one instruction, not two** |
+| **FMA** | `_mm256_fmadd_ps(a, b, c)` | 8 parallel `a*b + c` — **one instruction, not two; also more precise** |
 | Broadcast | `_mm256_set1_ps(x)` | Fill all 8 lanes with same value |
+| Horizontal add | `_mm256_hadd_ps(a, b)` | Add adjacent pairs within each 128-bit half |
+| Compare | `_mm256_cmp_ps(a, b, _CMP_GT_OS)` | Per-lane compare → all-0s or all-1s mask |
+| Blend | `_mm256_blendv_ps(a, b, mask)` | Select per-lane: `mask[i] ? b[i] : a[i]` |
+| Permute (cross-lane) | `_mm256_permutevar8x32_ps(v, idx)` | Full cross-lane reorder by index vector |
+| Gather | `_mm256_i32gather_ps(base, idx, 4)` | Load from non-contiguous addresses |
 
 > **`_mm256_load_ps` alignment:** If `ptr` is not 32-byte aligned, this generates a segfault (`#GP` fault) at runtime — not a compile error. When in doubt, use `_mm256_loadu_ps` (the `u` = unaligned). On modern CPUs the performance difference is negligible.
 
@@ -552,6 +558,106 @@ alignas(32) float data[1024];
 // Or dynamic allocation
 float* data = (float*)aligned_alloc(32, 1024 * sizeof(float));
 ```
+
+### Cross-Lane Limitations (The AVX2 Gotcha)
+
+Most AVX2 "256-bit" instructions actually execute as **two independent 128-bit halves**. This is the single most surprising architectural quirk in AVX2 and causes subtle bugs when you expect full cross-lane operations.
+
+```cpp
+// shuffle_ps looks like it works on 256-bit, but it only shuffles within each 128-bit half:
+__m256 v = {7, 6, 5, 4, 3, 2, 1, 0};  // lanes 0-7
+__m256 s = _mm256_shuffle_ps(v, v, 0b00011011);
+// Result: {4,5,6,7, 0,1,2,3} — reversed within each half, NOT across the full register
+
+// To truly cross lanes, you need explicit cross-lane moves:
+// Swap the two 128-bit halves:
+__m256 swapped = _mm256_permute2f128_ps(v, v, 0x01);
+
+// Full cross-lane element reorder (AVX2) — the most flexible option:
+__m256i idx = _mm256_set_epi32(0, 1, 2, 3, 4, 5, 6, 7);  // reverse order
+__m256 reversed = _mm256_permutevar8x32_ps(v, idx);       // true 8-element permute
+```
+
+| Operation | Cross-lane? | Notes |
+|-----------|-------------|-------|
+| `_mm256_shuffle_ps` | No | Within each 128-bit half only |
+| `_mm256_hadd_ps` | No | Adjacent pairs within each half |
+| `_mm256_permute2f128_ps` | Yes | Swaps/copies 128-bit halves |
+| `_mm256_permutevar8x32_ps` | Yes | Full 8-element permute (AVX2 only) |
+
+> **Rule of thumb:** If an intrinsic says "256-bit" but was available in AVX (not AVX2), suspect it operates on two 128-bit halves. Verify with [Intel Intrinsics Guide](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/) or [uops.info](https://uops.info/).
+
+---
+
+### Inspecting SIMD Registers (Debugging)
+
+You can't `printf` a `__m256`. The standard pattern is a union, which lets you read individual lanes:
+
+```cpp
+// Union for safe lane inspection (from hands-on-simd-programming)
+union float8 {
+    __m256  v;
+    float   a[8];
+    float8() : v(_mm256_setzero_ps()) {}
+    float8(__m256 x) : v(x) {}
+};
+
+// Usage
+float8 result(_mm256_fmadd_ps(va, vb, vc));
+printf("lane 0: %f, lane 3: %f\n", result.a[0], result.a[3]);
+
+// Or with structured binding in C++17:
+auto [l0,l1,l2,l3,l4,l5,l6,l7] = result.a;
+```
+
+**Horizontal sum — reducing a vector to a scalar:**
+
+This pattern appears everywhere: dot products, attention scores, reductions.
+
+```cpp
+// Sum all 8 floats in a __m256 to a scalar
+float hsum(__m256 v) {
+    // Step 1: add pairs within each 128-bit half → [a+e, b+f, c+g, d+h | a+e, b+f, c+g, d+h]
+    __m128 lo  = _mm256_castps256_ps128(v);          // lower 128 bits
+    __m128 hi  = _mm256_extractf128_ps(v, 1);        // upper 128 bits
+    __m128 sum = _mm_add_ps(lo, hi);                 // add the two halves
+    // Step 2: horizontal adds until scalar
+    sum = _mm_hadd_ps(sum, sum);                     // [a+b+e+f, c+d+g+h, ...]
+    sum = _mm_hadd_ps(sum, sum);                     // [total, total, ...]
+    return _mm_cvtss_f32(sum);                       // extract lane 0
+}
+```
+
+**Stream stores for large write-once buffers:**
+
+```cpp
+// Non-temporal store: bypasses CPU cache entirely
+// Use when writing large output buffers you won't read back soon
+// (e.g., preprocessing output, frame buffer writes)
+for (int i = 0; i < n; i += 8) {
+    __m256 result = /* compute */;
+    _mm256_stream_ps(&out[i], result);   // skip cache, write direct to memory
+}
+_mm_sfence();  // memory fence — ensure all stream writes are visible
+
+// When to use: write-once buffers > L3 cache size
+// When NOT: if you'll read the data back soon (defeats the purpose)
+```
+
+**Gather — loading from non-contiguous addresses:**
+
+```cpp
+// Gather: load from base_ptr + indices[i] * scale
+float table[1024] = { /* lookup table */ };
+__m256i indices = _mm256_set_epi32(7, 3, 15, 0, 42, 8, 1, 100);  // arbitrary indices
+__m256 gathered = _mm256_i32gather_ps(table, indices, 4);          // scale=4 (sizeof float)
+
+// Note: gather throughput ≈ scalar loads — no bandwidth benefit for the gather itself.
+// The value: the *computation* after gather runs vectorized (8 FMAs instead of 8 scalar ops).
+// Good for: embedding lookups, sparse vector ops, non-sequential access patterns.
+```
+
+---
 
 ### Cache Lines and Memory Alignment
 
@@ -761,18 +867,61 @@ These are the issues that consume weeks of debugging in real HPC and ML systems.
 4. **Auto-vectorization** — Write a dot product loop. Compile with `-O2 -march=native -fopt-info-vec`. Check if the compiler vectorized it. If not, restructure the loop until it does.
 5. **AVX intrinsics dot product** — Implement dot product using `_mm256_fmadd_ps`. Benchmark against scalar and auto-vectorized versions. Measure GFLOPS.
 6. **Aligned vs unaligned** — Benchmark `_mm256_load_ps` (aligned) vs `_mm256_loadu_ps` (unaligned) for a large array. Measure the performance difference.
+7. **AoS → SoA benchmark** — Implement vector dot product for an array of `Vec3` structs (AoS) and compare to the SoA layout version. Observe the speedup gap (expect 10–40× from layout alone).
+8. **Horizontal sum** — Implement a dot product that uses `_mm256_fmadd_ps` to accumulate 8 at a time, then uses the horizontal sum idiom to reduce to a scalar. Verify against scalar result.
+9. **Tiny MHA block** — Implement a batched multi-head attention forward pass for seq=8, head_dim=16, heads=4 using raw AVX2 intrinsics. Pre-transpose weight matrices. Benchmark against scalar version. Observe that the speedup is ~2–3×, not 8× — explain why (memory-bound).
 
 ---
 
 ## Resources
 
+### Learning
+
 | Resource | What it covers |
 |----------|---------------|
 | *A Tour of C++* (Stroustrup) | Modern C++ overview, concise |
 | [cppreference.com](https://en.cppreference.com/) | Definitive C++ reference |
-| [Intel Intrinsics Guide](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/) | All SIMD intrinsics with search |
-| [Compiler Explorer (godbolt.org)](https://godbolt.org/) | See assembly output for any C++ code |
 | *C++ Concurrency in Action* (Williams) | Threads, atomics, memory model |
+| [SIMD for C++ Developers (const.me)](http://const.me/articles/simd/simd.pdf) | Best practitioner tutorial: loads, arithmetic, shuffles, masking, cross-lane gotchas. 23 pages. Read this first. |
+| [hands-on-simd-programming](https://github.com/yuninxia/hands-on-simd-programming) | Progressive labs from basic intrinsics → image processing → full MHA block → quantized GPT decoder. Run `./runme.sh` to see benchmarks. |
+| [awesome-simd](https://github.com/awesome-simd/awesome-simd) | Curated index of real-world SIMD libraries, tools, blogs, and references |
+| [Agner Fog Optimization Guides](https://www.agner.org/optimize/) | Definitive reference on CPU micro-architecture, instruction latencies, calling conventions |
+
+### Reference and Tooling
+
+| Resource | What it covers |
+|----------|---------------|
+| [Intel Intrinsics Guide](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/) | Searchable reference for every x86 SIMD intrinsic |
+| [uops.info](https://uops.info/) | Instruction latency, throughput, and port usage for every CPU micro-architecture |
+| [Compiler Explorer (godbolt.org)](https://godbolt.org/) | See assembly output for any C++ code — verify vectorization happened |
+| [SIMD-Visualiser](https://github.com/piotte13/SIMD-Visualiser) | Browser-based visual diagram of what each intrinsic does to register contents |
+| [Felix Cloutier x86 reference](https://www.felixcloutier.com/x86/) | HTML x86/x64 instruction reference |
+
+### Portable SIMD Libraries (skip raw intrinsics)
+
+| Library | Language | What it is |
+|---------|----------|------------|
+| [Google Highway](https://github.com/google/highway) | C++ | Best portable SIMD: length-agnostic, runtime dispatch, SSE/AVX/AVX-512/NEON/SVE |
+| [xsimd](https://github.com/QuantStack/xsimd) | C++ | Header-only wrappers for SSE/AVX/AVX-512/NEON |
+| [SIMDe](https://github.com/simd-everywhere/simde) | C/C++ | Emulates x86 intrinsics on ARM and other targets |
+| [Intel ISPC](https://ispc.github.io/) | ISPC | C-like language that compiles to optimal SIMD for SSE/AVX/AVX-512/NEON/PS5/Xbox |
+
+### Real-World SIMD Libraries to Study
+
+| Library | What it does |
+|---------|-------------|
+| [simdjson](https://github.com/lemire/simdjson) | JSON parsing at >2 GB/s using SIMD — canonical example of real-world vectorized parsing |
+| [SimSIMD](https://github.com/ashvardanian/SimSIMD) | SIMD-accelerated similarity measures (cosine, L2) for embedding vectors |
+| [ncnn](https://github.com/Tencent/ncnn) | On-device neural network inference with hand-tuned SIMD for ARM and x86 |
+| [StringZilla](https://github.com/ashvardanian/StringZilla) | SIMD substring search, fuzzy matching, sorting |
+
+### Blogs (practitioners writing production SIMD code)
+
+| Blog | Author |
+|------|--------|
+| [lemire.me/blog](https://lemire.me/blog/) | Daniel Lemire — simdjson, SIMDComp, practical vectorization |
+| [branchfree.org](https://branchfree.org/) | Geoff Langdale — branchless and SIMD techniques |
+| [0x80.pl/notesen](http://0x80.pl/notesen.html) | Wojciech Muła — low-level SIMD algorithms |
 
 ---
 
