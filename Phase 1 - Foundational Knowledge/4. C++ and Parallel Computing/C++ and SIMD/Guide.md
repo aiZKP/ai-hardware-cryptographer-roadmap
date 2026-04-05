@@ -559,6 +559,47 @@ alignas(32) float data[1024];
 float* data = (float*)aligned_alloc(32, 1024 * sizeof(float));
 ```
 
+---
+
+### Top 10 Most-Used Intrinsics in Real Codebases
+
+Analysis of SIMD usage across GitHub repositories (production ML frameworks, databases, parsers) shows the same ~10 intrinsics appear in 80%+ of vectorized code. These are the ones worth memorizing first.
+
+| Rank | Intrinsic | ISA | What it does | Why it's everywhere |
+|------|-----------|-----|--------------|---------------------|
+| 1 | `_mm256_add_ps(a, b)` | AVX | Add 8 float32 | Core of every FP loop |
+| 2 | `_mm256_loadu_ps(ptr)` | AVX | Load 8 floats, unaligned | Default load — no alignment constraint |
+| 3 | `_mm256_storeu_ps(ptr, v)` | AVX | Store 8 floats, unaligned | Default store |
+| 4 | `_mm256_fmadd_ps(a, b, c)` | FMA+AVX2 | `a*b + c` in one instruction | GEMM, convolution, attention |
+| 5 | `_mm_add_ps(a, b)` | SSE | Add 4 float32 (128-bit) | SSE compat code, horizontal ops |
+| 6 | `_mm_set1_epi32(x)` | SSE2 | Broadcast int to all 4 lanes | Loading integer constants |
+| 7 | `_mm256_cmp_ps(a, b, pred)` | AVX | Compare → bitmask | Conditional selection, NaN handling |
+| 8 | `_mm_loadu_si128(ptr)` | SSE2 | Load 128-bit integer vector | String/byte processing |
+| 9 | `_mm_shuffle_epi32(v, imm)` | SSE2 | Reorder 32-bit int lanes | Data rearrangement, AoS→SoA |
+| 10 | `_mm_popcnt_u32(x)` | SSE4.2 | Count set bits in 32-bit int | Database filters, Hamming distance |
+
+**Patterns behind the rankings:**
+
+- **`_ps` (packed single) dominates** — float32 is the workhorse of ML inference and scientific computing. Learn `_ps` variants first.
+- **Unaligned loads/stores are preferred** (`_loadu_`, `_storeu_`) — on Haswell and newer, the penalty for cache-line-crossing loads is ≤1 cycle. The code simplicity is worth it.
+- **SSE2 128-bit still common** — many codebases use SSE2 for compatibility or for 128-bit sub-operations (horizontal reduction, remainder loops, byte processing).
+- **`_mm_shuffle_epi32` is the workhorse for integer rearrangement** — appears in virtually every AoS→SoA conversion, hash function, and string parser.
+- **`_mm_popcnt_u32/u64` is an outlier** — not strictly a SIMD register instruction (operates on scalar registers), but uses the SSE4.2 ISA feature bit and dominates database and bit-manipulation code (Hamming distance, counting set bits in filters).
+
+```cpp
+// The most common inner loop pattern in real ML code (ranks 2, 4, 3):
+for (int i = 0; i < n; i += 8) {
+    __m256 a = _mm256_loadu_ps(&A[i]);     // rank 2
+    __m256 b = _mm256_loadu_ps(&B[i]);     // rank 2
+    acc      = _mm256_fmadd_ps(a, b, acc); // rank 4
+}
+_mm256_storeu_ps(out, acc);                // rank 3
+```
+
+> **Source:** Usage statistics from [simd.info intrinsic statistics](https://simd.info/blog/intrinsic_statistics_repositories_insights_and_patterns/) and analysis of GitHub repositories including production ML frameworks, databases, and codec libraries.
+
+---
+
 ### Cross-Lane Limitations (The AVX2 Gotcha)
 
 Most AVX2 "256-bit" instructions actually execute as **two independent 128-bit halves**. This is the single most surprising architectural quirk in AVX2 and causes subtle bugs when you expect full cross-lane operations.
