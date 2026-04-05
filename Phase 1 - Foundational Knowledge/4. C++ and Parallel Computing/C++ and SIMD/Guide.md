@@ -709,6 +709,112 @@ __m128 h = _mm_hadd_ps(a, b);   // [a0+a1, a2+a3, b0+b1, b2+b3]
 
 ---
 
+### Minimal Examples — Each Intrinsic in Isolation
+
+Before combining intrinsics, see each one do exactly one thing:
+
+```cpp
+#include <immintrin.h>
+
+// ── Data Movement ──────────────────────────────────────────────────────────
+
+// loadu: load 8 floats from any address
+float data[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+__m256 v = _mm256_loadu_ps(data);           // v = [1, 2, 3, 4, 5, 6, 7, 8]
+
+// set1: broadcast scalar to every lane
+__m256 v_pi = _mm256_set1_ps(3.14f);        // v_pi = [3.14, 3.14, 3.14, 3.14, 3.14, 3.14, 3.14, 3.14]
+
+// storeu: write register back to array
+float out[8];
+_mm256_storeu_ps(out, v);                   // out[] = {1, 2, 3, 4, 5, 6, 7, 8}
+
+// ── Arithmetic ─────────────────────────────────────────────────────────────
+
+__m256 v1 = _mm256_set1_ps(2.0f);           // [2, 2, 2, 2, 2, 2, 2, 2]
+__m256 v2 = _mm256_set1_ps(3.0f);           // [3, 3, 3, 3, 3, 3, 3, 3]
+
+__m256 sum     = _mm256_add_ps(v1, v2);     // [5, 5, 5, 5, 5, 5, 5, 5]
+__m256 product = _mm256_mul_ps(v1, v2);     // [6, 6, 6, 6, 6, 6, 6, 6]
+__m256 fma_res = _mm256_fmadd_ps(v1, v2, v1); // v1*v2 + v1 = [8, 8, 8, 8, 8, 8, 8, 8]
+
+// ── Comparison & Selection (vectorized if/else) ────────────────────────────
+
+__m256 a    = _mm256_setr_ps(1,5,3,7,2,6,4,8);
+__m256 b    = _mm256_set1_ps(4.0f);
+__m256 mask = _mm256_cmp_ps(a, b, _CMP_GT_OS); // mask[i] = a[i] > 4 ? 0xFFFFFFFF : 0
+                                                // [0, 1, 0, 1, 0, 1, 0, 1]
+__m256 result = _mm256_blendv_ps(b, a, mask);   // result[i] = mask[i] ? a[i] : b[i]
+                                                // [4, 5, 4, 7, 4, 6, 4, 8]
+
+// ── Shuffling ──────────────────────────────────────────────────────────────
+
+__m256 sv = _mm256_setr_ps(0,1,2,3,4,5,6,7);
+// _MM_SHUFFLE(d,c,b,a) → lane 0 = src[a], lane 1 = src[b], lane 2 = src[c], lane 3 = src[d]
+__m256 shuffled = _mm256_shuffle_ps(sv, sv, _MM_SHUFFLE(0,1,2,3));
+// Result: [3,2,1,0, 7,6,5,4] — reversed within each 128-bit half
+
+// ── Horizontal add (slow — only at loop end) ───────────────────────────────
+
+__m256 hv   = _mm256_setr_ps(1,2,3,4,5,6,7,8);
+__m256 hsum = _mm256_hadd_ps(hv, hv);
+// [1+2, 3+4, 1+2, 3+4 | 5+6, 7+8, 5+6, 7+8] = [3, 7, 3, 7, 11, 15, 11, 15]
+```
+
+---
+
+### Complete Example: Scaled Vector Addition
+
+All five core intrinsics working together in a realistic loop — the pattern used in neural network activations, image processing, and signal scaling:
+
+```cpp
+#include <immintrin.h>
+
+// Computes: c[i] = (a[i] + b[i]) * scale  for all i
+// Processes 8 elements per iteration using AVX
+void scaled_add(const float* a, const float* b, float* c, float scale, int n) {
+    // 1. set1: broadcast the scalar constant once, outside the loop
+    __m256 v_scale = _mm256_set1_ps(scale);
+
+    int i = 0;
+    for (; i <= n - 8; i += 8) {
+        // 2. loadu: load 8 elements from each input array
+        __m256 va = _mm256_loadu_ps(&a[i]);
+        __m256 vb = _mm256_loadu_ps(&b[i]);
+
+        // 3. add_ps: element-wise addition
+        __m256 vsum = _mm256_add_ps(va, vb);
+
+        // 4. mul_ps: scale the result
+        //    (alternatively: _mm256_fmadd_ps(va, v_scale, _mm256_mul_ps(vb, v_scale)))
+        __m256 vres = _mm256_mul_ps(vsum, v_scale);
+
+        // 5. storeu: write 8 results back to memory
+        _mm256_storeu_ps(&c[i], vres);
+    }
+
+    // Scalar remainder for elements that don't fill a full AVX register
+    for (; i < n; i++) {
+        c[i] = (a[i] + b[i]) * scale;
+    }
+}
+```
+
+**What this demonstrates:**
+- `_mm256_set1_ps` outside the loop — compute constants once, reuse every iteration
+- `_mm256_loadu_ps` — no alignment constraint needed
+- `_mm256_add_ps` → `_mm256_mul_ps` — two arithmetic ops, 8 elements each, back-to-back
+- `_mm256_storeu_ps` — write results
+- Remainder loop — handle `n % 8` trailing elements cleanly
+
+**FMA version** — if `a` and `b` have already been scaled separately, `fmadd` collapses two ops:
+```cpp
+// c[i] = a[i] * scale + b[i]
+__m256 vres = _mm256_fmadd_ps(va, v_scale, vb);
+```
+
+---
+
 ### Cross-Lane Limitations (The AVX2 Gotcha)
 
 Most AVX2 "256-bit" instructions actually execute as **two independent 128-bit halves**. This is the single most surprising architectural quirk in AVX2 and causes subtle bugs when you expect full cross-lane operations.
