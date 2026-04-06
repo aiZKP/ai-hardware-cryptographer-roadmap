@@ -823,54 +823,115 @@ void increment(int n) {
 
 ---
 
-### 1.9 Parallel STL (C++17)
+### 1.9 STL Algorithms and Parallel STL (C++17)
 
-The most powerful single feature for parallelism — add one argument to any STL algorithm and it runs in parallel:
+STL algorithms are pre-built, optimized functions that operate on any container. They eliminate manual loops, prevent index bugs, and — with C++17 execution policies — run in parallel with a single extra argument.
+
+#### Core STL Algorithms
+
+| Algorithm | What it does | Example |
+|-----------|-------------|---------|
+| `std::sort` | Sort elements | `sort(v.begin(), v.end())` |
+| `std::for_each` | Apply function to every element | `for_each(v.begin(), v.end(), f)` |
+| `std::transform` | Apply function, write to output | `transform(a, a+n, b, out, f)` |
+| `std::reduce` | Parallel-safe sum/product/etc. | `reduce(v.begin(), v.end())` |
+| `std::find_if` | Search by predicate | `find_if(v.begin(), v.end(), pred)` |
+| `std::minmax_element` | Min and max in one pass | `auto [lo, hi] = minmax_element(...)` |
+| `std::count_if` | Count matching elements | `count_if(v.begin(), v.end(), pred)` |
+| `std::copy_if` | Filtered copy | `copy_if(src, src+n, dst, pred)` |
+
+#### Sequential example — sort and iterate
+
+```cpp
+#include <vector>
+#include <algorithm>
+#include <iostream>
+
+std::vector<int> v = {4, 2, 7, 1, 5};
+
+std::sort(v.begin(), v.end());
+
+for (auto x : v) std::cout << x << " ";  // 1 2 4 5 7
+```
+
+#### Lambda + algorithm — custom behavior injected
+
+```cpp
+std::vector<int> v = {1, 2, 3, 4, 5};
+
+// Multiply every element by 2 — no loop index, no off-by-one
+std::for_each(v.begin(), v.end(), [](int& x) { x *= 2; });
+// v = {2, 4, 6, 8, 10}
+
+// Transform: square each element into a new vector
+std::vector<int> sq(v.size());
+std::transform(v.begin(), v.end(), sq.begin(), [](int x) { return x * x; });
+
+// Find first element > 5
+auto it = std::find_if(v.begin(), v.end(), [](int x) { return x > 5; });
+```
+
+#### Parallel STL — one argument changes everything
+
+C++17 execution policies parallelize any STL algorithm:
 
 ```cpp
 #include <algorithm>
 #include <execution>
 #include <vector>
 
-std::vector<float> data(10000000);
+std::vector<float> data(10'000'000);
 
-// Sequential (single core)
-std::sort(std::execution::seq, data.begin(), data.end());
+// Sequential (default, single core)
+std::sort(std::execution::seq,      data.begin(), data.end());
 
 // Parallel (multi-threaded across all cores)
-std::sort(std::execution::par, data.begin(), data.end());
+std::sort(std::execution::par,      data.begin(), data.end());
 
-// Parallel + vectorized (SIMD + threads)
+// Parallel + SIMD (threads + vectorization)
 std::sort(std::execution::par_unseq, data.begin(), data.end());
 ```
 
 **Execution policies:**
 
-| Policy | What it does | When to use |
-|--------|-------------|-------------|
-| `seq` | Sequential (default) | Small data, debugging |
+| Policy | Behavior | When to use |
+|--------|----------|-------------|
+| `seq` | Sequential | Small data, debugging |
 | `par` | Multi-threaded | Large data, independent elements |
-| `par_unseq` | Multi-threaded + SIMD vectorization | Maximum throughput, no dependencies |
-| `unseq` (C++20) | SIMD only (single thread) | Vectorizable loop, single core |
+| `par_unseq` | Multi-threaded + SIMD | Maximum throughput, no dependencies |
+| `unseq` (C++20) | SIMD only (single thread) | Vectorizable, single core |
 
-**Works with many STL algorithms:**
+#### Parallel transform, reduce, for_each
 
 ```cpp
-// Parallel transform (apply function to every element)
-std::transform(std::execution::par, a.begin(), a.end(), b.begin(), c.begin(),
+// Parallel transform: c[i] = a[i] + b[i]
+std::transform(std::execution::par,
+    a.begin(), a.end(), b.begin(), c.begin(),
     [](float x, float y) { return x + y; });
 
-// Parallel reduce (sum)
+// Parallel reduce: sum all elements
 float total = std::reduce(std::execution::par, data.begin(), data.end());
 
-// Parallel for_each
+// Parallel reduce with custom op: product
+float product = std::reduce(std::execution::par,
+    data.begin(), data.end(), 1.0f, std::multiplies<float>{});
+
+// Parallel for_each + SIMD: sqrt every element
 std::for_each(std::execution::par_unseq, data.begin(), data.end(),
     [](float& x) { x = std::sqrt(x); });
 ```
 
-**Why this is important:** `par_unseq` combines SIMD vectorization with multi-threading in one line. No intrinsics, no OpenMP pragmas, no oneTBB templates. It's the easiest path to parallel code — and it works with any STL-compatible container.
+#### Manual loop vs STL vs Parallel STL
 
-> **`par_unseq` requirements:** Your loop body must have **no data races** (independent elements) AND **no loop-carried dependencies**. If element `i` depends on element `i-1`, `par_unseq` produces undefined behavior — not just wrong results, but undefined behavior.
+| | Manual loop | STL + lambda | Parallel STL |
+|--|------------|--------------|--------------|
+| Code length | Long | Short | Short |
+| Index bug risk | Medium | None | None |
+| Parallelism | Manual (`std::thread`) | Manual | Automatic |
+| SIMD | Compiler may vectorize | Compiler may vectorize | `par_unseq` forces it |
+| Debugging | Hard | Easy | Harder (non-deterministic) |
+
+> **`par_unseq` requirements:** Loop body must have **no data races** AND **no loop-carried dependencies** (`a[i]` must not read `a[i-1]`). Violating either produces undefined behavior — not a compile error, not even consistent wrong results.
 
 > **Warning — not always faster:** Parallel STL has overhead (thread pool spin-up, synchronization). For small arrays (< ~100K elements), `seq` is often faster. In HPC and production ML systems, teams frequently prefer **OpenMP** or **oneTBB** for more predictable, tunable, and debuggable parallelism. Benchmark before committing to `par` or `par_unseq`.
 
