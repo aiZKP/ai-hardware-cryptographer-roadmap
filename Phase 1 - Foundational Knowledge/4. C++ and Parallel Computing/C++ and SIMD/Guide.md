@@ -27,6 +27,7 @@ Learn these features now. You'll use every single one in Sub-Tracks 2–5.
 ### 1.1 Type Deduction (`auto`, `decltype`)
 
 **`auto` — let the compiler figure out the type:**
+
 ```cpp
 auto x = 10;          // int
 auto y = 3.14;        // double
@@ -132,6 +133,7 @@ You will see patterns like `decltype(auto)`, `std::declval<T>()`, and trailing r
 ### 1.2 Smart Pointers (Memory Safety via RAII)
 
 **The problem with raw pointers:**
+
 ```cpp
 int* p = new int(5);
 // ... 200 lines of code ...
@@ -140,6 +142,7 @@ int* p = new int(5);
 ```
 
 **The solution — RAII (Resource Acquisition Is Initialization):**
+
 ```cpp
 #include <memory>
 
@@ -170,6 +173,7 @@ auto r = q;  // Reference count = 2
 `shared_ptr` uses reference counting. The count only reaches zero — and the memory only frees — when **no `shared_ptr` points to the object**. If two objects hold `shared_ptr` to each other, neither count ever reaches zero. This is a **reference cycle** and it silently leaks memory forever.
 
 **The cycle problem:**
+
 ```cpp
 struct Node {
     std::shared_ptr<Node> next;   // strong reference
@@ -299,6 +303,7 @@ auto [min_val, max_val] = std::minmax_element(data.begin(), data.end());
 Lambdas are **the single most important C++ feature for parallel programming**. Every parallel framework uses them.
 
 **Syntax:**
+
 ```
 [ captures ] ( parameters ) -> return_type { body }
 ```
@@ -308,6 +313,7 @@ Lambdas are **the single most important C++ feature for parallel programming**. 
 - `body` → code block
 
 **Basic lambda:**
+
 ```cpp
 auto add = [](int a, int b) {
     return a + b;
@@ -412,11 +418,13 @@ f();  // undefined behavior
 ```
 
 **Fix 1 — capture by value:**
+
 ```cpp
 return [local]() { return local; };  // safe copy
 ```
 
 **Fix 2 — move ownership into the lambda (C++14):**
+
 ```cpp
 auto buf = std::make_unique<int>(42);
 std::thread t([buf = std::move(buf)]() {
@@ -568,7 +576,7 @@ q.parallel_for(sycl::range{N}, [=](sycl::id<1> i) {
 |-----------|-------------|
 | **Parallel STL** | `std::sort(std::execution::par, v.begin(), v.end(), [](auto a, auto b) { return a > b; });` |
 | **oneTBB** | `tbb::parallel_for(0, N, [&](int i) { C[i] = A[i] + B[i]; });` |
-| **OpenMP** (C++17) | Task-based parallelism |
+| **OpenMP** (C++17) | `#pragma omp parallel for` + lambda tasks: `omp_set_num_threads(N); #pragma omp task` |
 | **CUDA** (modern) | Device lambdas in `__device__` context — `[=]` only |
 | **SYCL** | `q.parallel_for(range, [=](id<1> i) { C[i] = A[i] + B[i]; });` |
 
@@ -579,6 +587,7 @@ q.parallel_for(sycl::range{N}, [=](sycl::id<1> i) {
 ### 1.6 `std::optional`, `std::variant`, `std::any` (C++17)
 
 **`std::optional` — a value that may or may not exist:**
+
 ```cpp
 #include <optional>
 
@@ -596,6 +605,7 @@ if (result) {
 ```
 
 **`std::variant` — type-safe union:**
+
 ```cpp
 #include <variant>
 
@@ -615,6 +625,7 @@ std::visit([](auto&& val) { std::cout << val << "\n"; }, v);
 ### 1.7 Move Semantics (Performance Core)
 
 **The problem — expensive copies:**
+
 ```cpp
 std::vector<float> create_large_buffer() {
     std::vector<float> buf(10000000);  // 40 MB
@@ -624,6 +635,7 @@ std::vector<float> create_large_buffer() {
 ```
 
 **Copy vs move:**
+
 ```cpp
 std::vector<int> a = {1, 2, 3, 4, 5};
 
@@ -635,6 +647,7 @@ std::vector<int> c = std::move(a); // c owns the data, a is now empty
 ```
 
 **How move works internally:**
+
 ```
 Before move:
   a → [heap: 1, 2, 3, 4, 5]    (owns the buffer)
@@ -661,6 +674,7 @@ No data was copied. Just three pointer/size assignments. O(1) instead of O(n).
 ### 1.8 Multithreading Basics (`std::thread`, `std::mutex`)
 
 **Launching a thread:**
+
 ```cpp
 #include <thread>
 
@@ -678,6 +692,7 @@ int main() {
 ```
 
 **Protecting shared data with mutex:**
+
 ```cpp
 #include <mutex>
 
@@ -693,6 +708,7 @@ void increment(int n) {
 ```
 
 **Better: `std::scoped_lock` (C++17) for multiple mutexes:**
+
 ```cpp
 std::mutex m1, m2;
 {
@@ -702,6 +718,7 @@ std::mutex m1, m2;
 ```
 
 **`std::atomic` for simple shared variables:**
+
 ```cpp
 #include <atomic>
 
@@ -749,6 +766,7 @@ std::sort(std::execution::par_unseq, data.begin(), data.end());
 | `unseq` (C++20) | SIMD only (single thread) | Vectorizable loop, single core |
 
 **Works with many STL algorithms:**
+
 ```cpp
 // Parallel transform (apply function to every element)
 std::transform(std::execution::par, a.begin(), a.end(), b.begin(), c.begin(),
@@ -775,6 +793,7 @@ std::for_each(std::execution::par_unseq, data.begin(), data.end(),
 ### 1.10 Templates & Generic Programming
 
 **Function templates:**
+
 ```cpp
 template<typename T>
 T add(T a, T b) {
@@ -786,6 +805,7 @@ add(3.14, 2.71);  // T = double
 ```
 
 **Class templates:**
+
 ```cpp
 template<typename T, int N>
 struct Vector {
@@ -807,6 +827,7 @@ Vector<float, 4> v;  // 4-element float vector
 ### 1.11 `constexpr` (Compile-Time Computation)
 
 **Move computation from runtime to compile time:**
+
 ```cpp
 constexpr int square(int x) {
     return x * x;
@@ -819,6 +840,7 @@ float buffer[tile_size];  // float buffer[256] — no runtime cost
 ```
 
 **`constexpr` + `if` (C++17):**
+
 ```cpp
 template<typename T>
 void process(T value) {
@@ -951,6 +973,7 @@ void add_vectors_avx(float* a, float* b, float* c, int n) {
 > **FMA is the core of deep learning:** `_mm256_fmadd_ps(a, b, c)` computes `a*b + c` in a single fused instruction. GEMM (matrix multiplication), convolutions, and transformer attention inner loops are entirely composed of FMA. This is why FLOPS counts are usually reported as "FLOPS of FMA." On AVX2, 8-wide FMA at 2 ops/cycle = **16 GFLOPS/GHz per core**.
 
 **Aligned memory:**
+
 ```cpp
 // Aligned allocation (required for _mm256_load_ps)
 alignas(32) float data[1024];
@@ -1356,6 +1379,7 @@ struct alignas(64) WorkerB { int counter; };
 How you arrange data in memory determines whether SIMD can vectorize it. This is one of the most impactful micro-architecture decisions in HPC.
 
 **Array of Structs (AoS) — natural but SIMD-unfriendly:**
+
 ```cpp
 struct Particle { float x, y, z, w; };
 Particle particles[N];  // Memory: xyzw xyzw xyzw xyzw ...
@@ -1365,6 +1389,7 @@ Particle particles[N];  // Memory: xyzw xyzw xyzw xyzw ...
 ```
 
 **Struct of Arrays (SoA) — SIMD-friendly:**
+
 ```cpp
 struct Particles {
     float x[N], y[N], z[N], w[N];
@@ -1447,6 +1472,7 @@ If  AI < Peak FLOPS / Peak BW  → memory-bound   (better layout / caching helps
 ```
 
 **Example for a modern desktop CPU:**
+
 ```
 Peak AVX2 FP32 = 3.6 GHz × 8 lanes × 2 (FMA) = ~58 GFLOPS/core
 Peak DRAM BW   = ~50 GB/s
