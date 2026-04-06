@@ -606,19 +606,107 @@ if (result) {
 
 **`std::variant` — type-safe union:**
 
+#### `union` vs `std::variant` — why the old way is dangerous
+
+The old C `union` stores multiple types in the same memory, but has no idea which type is currently active:
+
+```cpp
+union Data {
+    int   i;
+    float f;
+};
+
+Data d;
+d.i = 42;
+std::cout << d.f << "\n";  // undefined behavior — reading int bits as float
+```
+
+Memory layout of a `union` — 4 bytes, no type information:
+
+```
++------------------+
+|  42 (int bits)   |   <- what's stored
++------------------+
+  ^ no type tag     <- compiler has no idea which member is active
+```
+
+Reading the wrong member is **undefined behavior**. No compiler error, no runtime check — just wrong results or crashes, often appearing only in release builds.
+
+`std::variant` adds a **type tag** alongside the stored value:
+
+```
++------------------+
+|  3.14f (float)   |   <- stored data
++------------------+
+  type tag: float       <- runtime always knows which type is active
+```
+
 ```cpp
 #include <variant>
 
 std::variant<int, float, std::string> v;
-v = 42;         // holds int
-v = 3.14f;      // now holds float
-v = "hello";    // now holds string
+v = 42;         // holds int   — type tag = int
+v = 3.14f;      // holds float — type tag = float
+v = "hello";    // holds string — type tag = string
 
-// Visit pattern (useful for dispatch)
+// std::visit dispatches to the right lambda branch based on the type tag
 std::visit([](auto&& val) { std::cout << val << "\n"; }, v);
 ```
 
-**Why it matters:** Safer API design. Avoids null pointer bugs and unsafe unions. Better error handling in production HPC code.
+#### `union` vs `std::variant` comparison
+
+| | `union` | `std::variant` |
+|--|---------|----------------|
+| Type tracking | None — programmer's responsibility | Runtime type tag stored alongside value |
+| Wrong-type read | Undefined behavior, silent | `std::bad_variant_access` exception |
+| Size overhead | Zero (just the max member size) | Max member size + small tag (usually 1–8 bytes) |
+| Parallel safety | Dangerous — type confusion across threads | Safe — each element carries its own type info |
+| Use in HPC | Avoid in new code | Heterogeneous arrays, command dispatch, AST nodes |
+
+#### `std::visit` — type-dispatching with a lambda
+
+`std::visit` calls your lambda with the **actually stored type**, not a generic variant:
+
+```cpp
+std::variant<int, float> v = 3.14f;
+
+// Generic lambda — works for any type in the variant
+std::visit([](auto&& x) {
+    std::cout << x << "\n";                           // prints 3.14
+    std::cout << typeid(x).name() << "\n";            // prints "f" (float)
+}, v);
+
+// Typed overloads using overload pattern (C++17)
+std::visit(overloaded{
+    [](int   x) { std::cout << "int: "   << x << "\n"; },
+    [](float x) { std::cout << "float: " << x << "\n"; },
+}, v);  // prints: float: 3.14
+```
+
+#### Parallel example — mixed-type array processed safely
+
+```cpp
+#include <variant>
+#include <vector>
+#include <algorithm>
+#include <execution>
+
+std::vector<std::variant<int, float>> data = {1, 2.5f, 3, 4.5f};
+
+// Double every element in parallel — type-safe, no UB
+std::for_each(std::execution::par, data.begin(), data.end(),
+    [](auto& val) {
+        std::visit([](auto&& x) { x *= 2; }, val);
+    });
+
+// Output: 2  5  6  9
+for (auto& v : data)
+    std::visit([](auto&& x) { std::cout << x << " "; }, v);
+```
+
+Each element carries its own type tag, so parallel threads never confuse `int` and `float` even when accessing adjacent elements.
+
+**Why it matters for HPC:** Compiler IR nodes, kernel dispatch tables, and mixed-precision computation graphs (FP32/FP16/INT8 hybrid inference) all need to store heterogeneous types safely. `std::variant` + `std::visit` replaces the old `void*`-with-a-type-enum pattern with zero undefined behavior.
 
 ---
 
