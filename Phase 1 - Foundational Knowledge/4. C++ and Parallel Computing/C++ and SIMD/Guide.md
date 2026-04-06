@@ -1042,18 +1042,70 @@ CPU vector instructions that process 4, 8, 16, or 32 data elements in one instru
 | AVX-512 (2017) | 512-bit | 16x float32 | x86 (server) |
 | ARM NEON | 128-bit | 4x float32 | ARM (Jetson, mobile) |
 
-### Parallel Mental Models
+### From SIMD to GPU — One Idea, Three Expressions
 
-SIMD is the first step in a hierarchy of data-parallel abstractions. Every level below uses the same fundamental idea:
+Every level of the parallel stack applies **the same operation to multiple data elements at once**. What changes is the width, the programming model, and who manages the indices.
 
-| Concept | CPU SIMD | GPU (CUDA) | Hardware |
-|---------|----------|------------|----------|
-| **Data parallelism** | AVX lanes (8× float) | Warp (32 threads) | Vector unit |
-| **Task parallelism** | `std::thread` / OpenMP | Thread blocks | Core clusters |
-| **Memory hierarchy** | L1/L2 cache | Shared / global memory | SRAM / DRAM |
-| **Latency hiding** | ILP + SIMD | Warp scheduling | Pipeline design |
+Take the simplest possible operation: `c[i] = a[i] + b[i]`. Here is how you express it at each level:
 
-Learn SIMD well and the GPU mental model becomes obvious — not a new paradigm, but SIMD at 32× width with explicit memory tiers.
+```
+Scalar (1 element at a time):
+  c[0] = a[0] + b[0]
+  c[1] = a[1] + b[1]   ← you write a loop, CPU executes one add per cycle
+  c[2] = a[2] + b[2]
+  ...
+
+CPU SIMD / AVX (8 elements at a time):
+  c[0..7] = a[0..7] + b[0..7]  ← you write i += 8, CPU runs 8 adds in one instruction
+  c[8..15] = ...
+
+GPU warp / CUDA (32 elements at a time):
+  each thread handles one i      ← you write kernel for one element,
+  32 threads run in lock-step       GPU runs 32 threads simultaneously (one warp)
+  c[0..31] = a[0..31] + b[0..31]
+
+GPU grid (thousands at a time):
+  all threads launch at once     ← GPU runs thousands of warps across SM clusters
+```
+
+```cpp
+// ── Scalar ──────────────────────────────────────────────────────
+for (int i = 0; i < n; i++)
+    c[i] = a[i] + b[i];            // 1 add/cycle
+
+// ── CPU SIMD (AVX) ───────────────────────────────────────────────
+for (int i = 0; i < n; i += 8) {
+    __m256 va = _mm256_loadu_ps(&a[i]);
+    __m256 vb = _mm256_loadu_ps(&b[i]);
+    _mm256_storeu_ps(&c[i], _mm256_add_ps(va, vb));  // 8 adds/cycle
+}
+
+// ── GPU (CUDA) ───────────────────────────────────────────────────
+__global__ void add(float* a, float* b, float* c, int n) {
+    int i = threadIdx.x + blockIdx.x * blockDim.x;  // each thread owns one i
+    if (i < n) c[i] = a[i] + b[i];                  // 32 threads run this simultaneously
+}
+```
+
+**The key differences — not a new idea, just new mechanics:**
+
+| | Scalar | CPU SIMD (AVX) | GPU (CUDA warp) |
+|--|--------|---------------|-----------------|
+| Width | 1 element | 8 floats | 32 threads |
+| Who picks `i` | Your loop counter | Your stride (`+= 8`) | Hardware (`threadIdx + blockIdx`) |
+| Fast memory | L1/L2 cache | L1/L2 cache | Shared memory (48 KB/SM) |
+| Slow memory | RAM | RAM | Global memory (VRAM) |
+| Hiding latency | Out-of-order execution | ILP across loop iterations | Warp switching |
+| Divergence cost | Branch misprediction | Breaks vectorization | Serializes warp lanes |
+
+**The scaling ladder:**
+
+```
+AVX2:       8 floats  × ~4 GHz × 2 (FMA) = ~64 GFLOPS / core
+GPU warp:  32 threads × thousands of warps  → tens of TFLOPS
+```
+
+SIMD is the mental foundation. Once you understand why `i += 8` processes 8 elements at once, the GPU model — "just make every thread a lane, and launch millions" — follows naturally.
 
 ---
 
