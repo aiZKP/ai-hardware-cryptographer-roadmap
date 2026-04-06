@@ -1577,40 +1577,104 @@ struct alignas(64) WorkerB { int counter; };
 
 ### Data Layout: AoS vs SoA
 
-How you arrange data in memory determines whether SIMD can vectorize it. This is one of the most impactful micro-architecture decisions in HPC.
+How you arrange data in memory is often **the single highest-leverage optimization** in SIMD and GPU code — more impactful than instruction selection.
 
-**Array of Structs (AoS) — natural but SIMD-unfriendly:**
+#### Array of Structs (AoS) — natural, object-oriented, SIMD-unfriendly
+
+Each particle is one contiguous object. Easy to pass around, easy to reason about.
 
 ```cpp
-struct Particle { float x, y, z, w; };
-Particle particles[N];  // Memory: xyzw xyzw xyzw xyzw ...
+struct Particle {
+    float x, y, z;    // position
+    float vx, vy, vz; // velocity
+};
 
-// SIMD load picks up interleaved x,y,z,w — not what we want
-// Must gather/scatter or use expensive shuffles
+Particle particles[4];
 ```
 
-**Struct of Arrays (SoA) — SIMD-friendly:**
+Memory layout — fields interleaved across all particles:
+
+```
+particle 0          particle 1          particle 2          particle 3
+[x][y][z][vx][vy][vz][x][y][z][vx][vy][vz][x][y][z][vx][vy][vz][x][y][z][vx][vy][vz]
+```
+
+When you want to add `dx` to all x-positions:
+
+```cpp
+// AoS: stride between consecutive x values = sizeof(Particle) = 24 bytes
+for (int i = 0; i < N; i++)
+    particles[i].x += dx;
+// An AVX load at &particles[0].x picks up: x0,y0,z0,vx0,vy0,vz0,x1,y1
+//                                                           ^^^ garbage fields in the register
+// You wanted: x0,x1,x2,x3,x4,x5,x6,x7 — but they're 24 bytes apart, not contiguous
+```
+
+The x-values are **scattered** in memory. SIMD cannot load them efficiently — it would need gather (`_mm256_i32gather_ps`), which has the same throughput as scalar loads.
+
+#### Struct of Arrays (SoA) — SIMD-friendly
+
+Each field gets its own contiguous array. All x values together, all y values together.
 
 ```cpp
 struct Particles {
-    float x[N], y[N], z[N], w[N];
+    float x[N], y[N], z[N];
+    float vx[N], vy[N], vz[N];
 };
-Particles p;  // Memory: xxxx... yyyy... zzzz... wwww...
 
-// Now AVX loads 8 consecutive x values in one instruction
+Particles p;
+p.x[0]=1; p.x[1]=4; p.x[2]=7;   // all x values contiguous
+p.y[0]=2; p.y[1]=5; p.y[2]=8;
+```
+
+Memory layout — each field is a flat contiguous array:
+
+```
+x:  [x0][x1][x2][x3][x4][x5][x6][x7]...  ← one AVX load = 8 x-values
+y:  [y0][y1][y2][y3][y4][y5][y6][y7]...
+z:  [z0][z1][z2][z3]...
+vx: [vx0][vx1][vx2]...
+```
+
+Now the SIMD loop is clean — one load, one add, one store:
+
+```cpp
+// SoA: x values are contiguous → direct sequential AVX load
+__m256 vdx = _mm256_set1_ps(dx);
 for (int i = 0; i < N; i += 8) {
-    __m256 vx = _mm256_load_ps(&p.x[i]);  // 8 x-coords, perfectly packed
-    // process...
+    __m256 vx = _mm256_loadu_ps(&p.x[i]);       // load x0..x7 — perfectly contiguous
+    _mm256_storeu_ps(&p.x[i], _mm256_add_ps(vx, vdx));  // add dx to all 8 at once
 }
 ```
 
-| Layout | Memory pattern | SIMD efficiency | Typical use |
-|--------|---------------|-----------------|-------------|
-| AoS | `xyzw xyzw xyzw` | Low (shuffles needed) | Game objects, general code |
-| SoA | `xxxx yyyy zzzz` | High (contiguous lanes) | Physics simulations, ML kernels |
-| AoSoA | `[xxxx yyyy][xxxx yyyy]` | High + cache-friendly | Intel oneDNN, CUTLASS |
+#### Side-by-side loop comparison
 
-> **Deep learning connection:** cuDNN uses NCHW (channels × height × width) and NHWC layouts. Switching between them is exactly an AoS↔SoA transformation. Tensor Core efficiency depends on the right layout.
+```cpp
+// AoS — compiler cannot auto-vectorize the x update (stride too large)
+for (int i = 0; i < N; i++)
+    particles[i].x += dx;           // stride = 24 bytes between x values
+
+// SoA — compiler auto-vectorizes, or you write AVX explicitly
+for (int i = 0; i < N; i++)
+    p.x[i] += dx;                   // stride = 4 bytes — perfectly sequential
+```
+
+#### Layout comparison
+
+| | AoS | SoA | AoSoA |
+|--|-----|-----|-------|
+| Memory pattern | `xyzxyzxyz...` | `xxx...yyy...zzz...` | `[xxxx yyyy][xxxx yyyy]...` |
+| SIMD efficiency | Low — gather/scatter needed | High — sequential load | High + cache-friendly |
+| GPU coalescing | Poor | Good | Good |
+| Code readability | High — `p[i].x` | Medium — `p.x[i]` | Low — tiled indexing |
+| Best for | Small structs, OOP | Physics, ML kernels, SIMD | Intel oneDNN, CUTLASS tiling |
+
+**When to choose each:**
+- **AoS** — small datasets, all fields used together, readability matters more than throughput
+- **SoA** — large arrays, per-field operations, SIMD loops, GPU kernels
+- **AoSoA** — when you need SoA efficiency but also want cache-line-sized tiles for L1 reuse (oneDNN weight format, CUTLASS fragment layouts)
+
+> **Deep learning connection:** cuDNN NCHW vs NHWC is exactly this choice. NCHW = SoA over spatial dimensions (all red pixels, then all green). NHWC = AoS over channels (all channels for one pixel together). Tensor Core layouts (e.g., `mma.sync` fragments) use AoSoA — 16×16 tiles packed for register-level reuse. Choosing the wrong layout forces expensive transposes that dominate runtime.
 
 ---
 
