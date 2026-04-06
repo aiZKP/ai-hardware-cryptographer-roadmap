@@ -163,9 +163,90 @@ auto r = q;  // Reference count = 2
 
 **Rule:** Never use `new`/`delete` in modern C++. Use `make_unique` and `make_shared`.
 
+---
+
+#### Breaking Cycles with `std::weak_ptr`
+
+`shared_ptr` uses reference counting. The count only reaches zero — and the memory only frees — when **no `shared_ptr` points to the object**. If two objects hold `shared_ptr` to each other, neither count ever reaches zero. This is a **reference cycle** and it silently leaks memory forever.
+
+**The cycle problem:**
+```cpp
+struct Node {
+    std::shared_ptr<Node> next;   // strong reference
+    int value;
+};
+
+auto a = std::make_shared<Node>();  // a: refcount = 1
+auto b = std::make_shared<Node>();  // b: refcount = 1
+
+a->next = b;   // b refcount = 2
+b->next = a;   // a refcount = 2
+
+// a and b go out of scope:
+//   a's refcount drops to 1 (b->next still holds it)
+//   b's refcount drops to 1 (a->next still holds it)
+//   Neither reaches 0 → MEMORY LEAK
+```
+
+**The fix — `weak_ptr` for the back-edge:**
+
+`weak_ptr` observes a `shared_ptr` **without incrementing the reference count**. The observed object can still be destroyed normally. Before using a `weak_ptr`, you must `lock()` it — this returns a `shared_ptr` that is either valid (object alive) or empty (object was destroyed).
+
+```cpp
+struct Node {
+    std::shared_ptr<Node> next;   // strong: owns the next node
+    std::weak_ptr<Node>   prev;   // weak: observes without owning
+    int value;
+};
+
+auto a = std::make_shared<Node>();  // a: refcount = 1
+auto b = std::make_shared<Node>();  // b: refcount = 1
+
+a->next = b;        // b refcount = 2  (strong)
+b->prev = a;        // a refcount still = 1  (weak — no increment)
+
+// a and b go out of scope:
+//   a's refcount drops to 0 → destroyed → a->next released
+//   b's refcount drops to 0 → destroyed
+//   No leak.
+
+// Accessing through weak_ptr — always check if still alive:
+if (auto owner = b->prev.lock()) {   // lock() returns shared_ptr or nullptr
+    std::cout << "prev value: " << owner->value << "\n";
+} else {
+    std::cout << "prev was destroyed\n";
+}
+```
+
+**When cycles appear in practice:**
+
+| Pattern | Cycle edge | Fix |
+|---------|------------|-----|
+| Doubly-linked list | `prev` pointer | `prev` as `weak_ptr` |
+| Tree with parent pointer | `parent` pointer | `parent` as `weak_ptr` |
+| Observer / event system | Subscriber holds reference to publisher | Subscriber stores `weak_ptr` to publisher |
+| Computation graph (ML) | Back-edge from output node to input | Back-edges as `weak_ptr` |
+
+**`weak_ptr` API:**
+
+```cpp
+auto sp = std::make_shared<int>(42);
+std::weak_ptr<int> wp = sp;          // observe, no refcount increment
+
+wp.expired();                        // true if the object was destroyed
+wp.use_count();                      // same as sp.use_count() (0 if expired)
+auto sp2 = wp.lock();                // returns shared_ptr<int> or nullptr — ALWAYS use this
+if (sp2) { /* safe to use */ }
+```
+
+> **Do not dereference a `weak_ptr` directly.** Always call `.lock()` and check the result. The object could be destroyed between `expired()` returning `false` and your next line.
+
+---
+
 **Why it matters for parallel computing:**
 - GPU memory (`cudaMalloc`/`cudaFree`) follows the same RAII pattern — wrap in a smart pointer or custom RAII class
 - Thread-safe reference counting (`shared_ptr`) is essential for multi-threaded data sharing
+- Computation graphs (PyTorch autograd, JAX jaxpr) are graphs with cycles — real implementations use weak back-edges to avoid memory leaks
 - Memory leaks in HPC = your 80 GB GPU runs out of memory mid-training
 
 ---
