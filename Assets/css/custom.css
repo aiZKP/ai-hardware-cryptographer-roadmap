@@ -114,9 +114,10 @@
   background: var(--md-accent-fg-color--transparent);
 }
 
-/* First column bold — layer labels, platform names */
+/* Soften bold inside table cells — keep emphasis but reduce visual weight */
+.md-typeset table:not([class]) td strong,
 .md-typeset table:not([class]) td:first-child {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* ── Code blocks ──────────────────────────────── */
