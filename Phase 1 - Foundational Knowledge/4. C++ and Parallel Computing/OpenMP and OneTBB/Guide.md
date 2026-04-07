@@ -331,17 +331,24 @@ Built-in operators: `+`, `*`, `-`, `&`, `|`, `^`, `&&`, `||`, `min`, `max`.
 ```cpp
 struct Vec3 { float x, y, z; };
 
+// Declare how to combine two partial results (omp_out += omp_in)
+// and what value each thread's private copy starts at.
 #pragma omp declare reduction(vec_add : Vec3 : \
     omp_out.x += omp_in.x; \
     omp_out.y += omp_in.y; \
     omp_out.z += omp_in.z) \
-    initializer(omp_priv = Vec3{0,0,0})
+    initializer(omp_priv = Vec3{0, 0, 0})
 
-Vec3 total{0,0,0};
+Vec3 total{0, 0, 0};
 
-#pragma omp parallel for reduction(vec_add:total)
-for (int i = 0; i < N; i++)
-    total += forces[i];
+#pragma omp parallel for reduction(vec_add : total)
+for (int i = 0; i < N; i++) {
+    total.x += forces[i].x;   // accumulate into the thread-private copy of total
+    total.y += forces[i].y;
+    total.z += forces[i].z;
+}
+// After the loop: OpenMP calls the combiner to merge all thread-private
+// totals into the final total using the vec_add rules above.
 ```
 
 ---
