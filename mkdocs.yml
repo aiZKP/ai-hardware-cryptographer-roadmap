@@ -100,12 +100,7 @@ nav:
       - Guide: Phase 1 - Foundational Knowledge/1. Digital Design and Hardware Description Languages/Guide.md
       - Fundamentals: Phase 1 - Foundational Knowledge/1. Digital Design and Hardware Description Languages/Digital Design Fundamentals/Guide.md
       - HDLs: Phase 1 - Foundational Knowledge/1. Digital Design and Hardware Description Languages/Hardware Description Languages (HDLs)/Guide.md
-    - Computer Architecture:
-      - Guide: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Guide.md
-      - Architecture Deep Dive: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Architecture_Guide.md
-      - Hardware Platforms: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Hardware_Platforms_Guide.md
-      - Advanced Topics & Case Studies: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Advanced_Topics_and_CaseStudies.md
-      - Labs & Projects: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Labs_and_ProjectsGuide.md
+    - Computer Architecture: Phase 1 - Foundational Knowledge/2. Computer Architecture and Hardware/Guide.md
     - Operating Systems:
       - Guide: Phase 1 - Foundational Knowledge/3. Operating Systems/Guide.md
       - Lectures:
