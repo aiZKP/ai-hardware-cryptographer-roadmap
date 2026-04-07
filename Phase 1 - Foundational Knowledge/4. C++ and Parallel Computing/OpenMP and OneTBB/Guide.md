@@ -4,47 +4,13 @@ Part of [Phase 1 section 4 — C++ and Parallel Computing](../Guide.md).
 
 **Goal:** Shared-memory **CPU parallelism** with **OpenMP** (directive-based) and **oneTBB** (task-based algorithms and flow graphs) so structured parallel patterns feel familiar before CUDA.
 
-This guide is organized in three parts. Section 1 is a brief baseline on raw C++ threads. Section 2 is a progressive tour of OpenMP — from a one-line `#pragma` to tasks and SIMD. Section 3 covers oneTBB's template-based API in the same order, from simple loops to flow graphs and runtime controls. Each section builds on the previous one.
+This guide covers two parts. Section 1 is a progressive tour of OpenMP — from a one-line `#pragma` to tasks and SIMD. Section 2 covers oneTBB's template-based API in the same order, from simple loops to flow graphs and runtime controls.
 
 ---
 
-## 1. Baseline: `std::thread` and Synchronization
+## 1. OpenMP
 
-Before frameworks, understand what they abstract over:
-
-```cpp
-#include <thread>
-#include <mutex>
-#include <atomic>
-
-// Raw thread
-std::thread t([]{ /* work */ });
-t.join();
-
-// Mutex for shared state
-std::mutex mtx;
-std::lock_guard<std::mutex> lock(mtx);  // RAII, released on scope exit
-
-// Atomic for simple counters (no mutex needed)
-std::atomic<int> counter{0};
-counter.fetch_add(1, std::memory_order_relaxed);
-```
-
-**Key concepts:**
-- **Data races** — two threads access the same memory, at least one writes, no synchronization → undefined behavior. Not a crash, just undefined.
-- **Lock granularity** — coarse locks are safe but serialize; fine locks are fast but deadlock-prone.
-- **Atomics** — cheaper than mutexes for single-variable shared state. Same concept as CUDA's `atomicAdd`.
-- **Profiling first** — find hotspots with `perf stat` or VTune before parallelizing. The bottleneck is rarely the obvious loop.
-
-OpenMP and oneTBB both build on these primitives. Understanding `std::thread` helps debug race conditions in any framework.
-
-Now that you know what parallelism primitives look like at the lowest level, the next two sections show how OpenMP and oneTBB abstract them away — turning the manual work above into one-line directives or template calls.
-
----
-
-## 2. OpenMP
-
-### 2.0 Mental Model: Fork-Join
+### 1.0 Mental Model: Fork-Join
 
 OpenMP uses the **fork-join model**. The program starts with one thread (the *master*). When it hits a parallel region, it forks into a team of threads. When the region ends, all threads join back into one.
 
@@ -70,7 +36,7 @@ main thread continues ───────────────────�
 
 ---
 
-### 2.1 Your First Parallel Loop
+### 1.1 Your First Parallel Loop
 
 ```cpp
 #include <omp.h>
@@ -105,7 +71,7 @@ This is safe here because each `i` writes to a different `c[i]`. No two threads 
 
 ---
 
-### 2.2 The Classic Race Condition
+### 1.2 The Classic Race Condition
 
 **Wrong — data race:**
 
@@ -145,7 +111,7 @@ Each thread gets its own private copy of `sum` (initialized to 0). After the loo
 
 ---
 
-### 2.3 Data Sharing Clauses
+### 1.3 Data Sharing Clauses
 
 Every variable referenced inside a parallel region is either **shared** (one copy, all threads see it) or **private** (each thread has its own copy). OpenMP's default: variables declared outside the region are shared.
 
@@ -311,7 +277,7 @@ for (int i = 0; i < N; i++) {
 
 ---
 
-### 2.4 Schedules — How Work Is Divided
+### 1.4 Schedules — How Work Is Divided
 
 OpenMP divides loop iterations among threads according to a *schedule*. The right schedule depends on whether iterations take equal time or vary widely.
 
@@ -357,7 +323,7 @@ Tuning at runtime without recompile?   → runtime
 
 ---
 
-### 2.5 Reductions
+### 1.5 Reductions
 
 Building on the `reduction(+:sum)` clause introduced in section 2.2, here are all supported operators and how to define custom reductions:
 
@@ -394,7 +360,7 @@ for (int i = 0; i < N; i++)
 
 ---
 
-### 2.6 Collapse — Parallelizing Nested Loops
+### 1.6 Collapse — Parallelizing Nested Loops
 
 When a nested loop's outer dimension is small (e.g., 4 rows but 8 threads), `collapse` merges the outer and inner loops into a single flattened iteration space so all threads have work.
 
@@ -418,7 +384,7 @@ for (int i = 0; i < 4; i++)
 
 ---
 
-### 2.7 SIMD — Vectorization Hints
+### 1.7 SIMD — Vectorization Hints
 
 SIMD (Single Instruction, Multiple Data) processes multiple array elements in one CPU instruction. This is the same principle behind GPU SIMT — learning it here prepares you for CUDA's warp-level execution.
 
@@ -444,7 +410,7 @@ The `simd` pragma is a hint. The compiler still decides if vectorization is safe
 
 ---
 
-### 2.8 Protecting Shared State: critical and atomic
+### 1.8 Protecting Shared State: critical and atomic
 
 When `reduction` is not enough (complex shared state):
 
@@ -484,7 +450,7 @@ shared_var = computed;
 
 ---
 
-### 2.9 Synchronization: Barriers and nowait
+### 1.9 Synchronization: Barriers and nowait
 
 Every `#pragma omp for` has an implicit barrier at the end — all threads wait until the slowest finishes. `nowait` removes that barrier to overlap phases.
 
@@ -510,7 +476,7 @@ Every `#pragma omp for` has an implicit barrier at the end — all threads wait 
 
 ---
 
-### 2.10 Sections — Fixed Concurrent Operations
+### 1.10 Sections — Fixed Concurrent Operations
 
 When you have a small fixed set of independent operations (not a loop), `sections` runs each one on a separate thread:
 
@@ -542,7 +508,7 @@ Sections handles a fixed set of concurrent operations. When the number of tasks 
 
 ---
 
-### 2.11 Tasks — Recursive and Irregular Work
+### 1.11 Tasks — Recursive and Irregular Work
 
 Tasks are for work that doesn't fit a regular loop: **recursive algorithms, tree traversal, linked lists**.
 
@@ -597,7 +563,7 @@ result = fib(30);
 
 ---
 
-### 2.12 Thread Info and Environment
+### 1.12 Thread Info and Environment
 
 ```cpp
 // Query runtime info
@@ -627,7 +593,7 @@ GOMP_SPINCOUNT=100000         # how long to spin before sleeping (GNU)
 
 ---
 
-### 2.13 Nested Parallelism
+### 1.13 Nested Parallelism
 
 ```cpp
 omp_set_nested(1);  // enable nested parallel regions
@@ -647,7 +613,7 @@ void outer_task() {
 
 ---
 
-### 2.14 Common Pitfalls
+### 1.14 Common Pitfalls
 
 | Pitfall | Symptom | Fix |
 |---------|---------|-----|
@@ -661,7 +627,7 @@ void outer_task() {
 
 ---
 
-### 2.15 OpenMP vs oneTBB
+### 1.15 OpenMP vs oneTBB
 
 | | OpenMP | oneTBB |
 |--|--------|--------|
@@ -681,7 +647,7 @@ The table above highlights where oneTBB offers capabilities OpenMP lacks — esp
 
 ---
 
-### 2.16 Benchmark — Serial vs OpenMP vs oneTBB
+### 1.16 Benchmark — Serial vs OpenMP vs oneTBB
 
 The Fibonacci example from section 2.11 is a useful benchmark because the call tree is pure recursive work with no I/O or system calls — the only variable is scheduling overhead and parallelism.
 
@@ -825,9 +791,9 @@ CUTOFF=25 is the sweet spot: enough tasks to keep all threads busy, few enough t
 
 ---
 
-## 3. oneTBB (oneAPI Threading Building Blocks)
+## 2. oneTBB (oneAPI Threading Building Blocks)
 
-### 3.0 Mental Model: Work-Stealing Scheduler
+### 2.0 Mental Model: Work-Stealing Scheduler
 
 oneTBB is a **task-based** parallel programming library. Instead of managing threads directly, you express *what* can run in parallel — the runtime distributes work using a **work-stealing** scheduler.
 
@@ -870,7 +836,7 @@ using namespace oneapi::tbb;
 
 ---
 
-### 3.1 `parallel_for` — Parallel Loop
+### 2.1 `parallel_for` — Parallel Loop
 
 The fundamental building block. Splits a range into chunks and executes each chunk on an available thread.
 
@@ -1069,7 +1035,7 @@ The `tile.rows()` and `tile.cols()` accessors give you the subrange for this til
 
 ---
 
-### 3.2 `parallel_reduce` — Parallel Reduction
+### 2.2 `parallel_reduce` — Parallel Reduction
 
 For loops that accumulate a result: sum, min, max, dot product, histogram.
 
@@ -1231,7 +1197,7 @@ Each leaf calls `body(subrange, 0LL)` — the identity `0LL` means every thread 
 
 ---
 
-### 3.3 `parallel_scan` — Prefix Sum
+### 2.3 `parallel_scan` — Prefix Sum
 
 A prefix sum (scan) gives every output element the running total up to that point:
 
@@ -1283,7 +1249,7 @@ Use cases: cumulative sums, exclusive scan for stream compaction, computing CDF 
 
 ---
 
-### 3.4 `parallel_sort`
+### 2.4 `parallel_sort`
 
 ```cpp
 #include "oneapi/tbb/parallel_sort.h"
@@ -1311,7 +1277,7 @@ Uses a parallel quicksort variant with work-stealing. Typically 4–6× faster t
 
 ---
 
-### 3.5 `parallel_for_each` — Unknown Iteration Space
+### 2.5 `parallel_for_each` — Unknown Iteration Space
 
 For containers without random-access iterators (linked lists, sets) or when the iteration space grows during execution:
 
@@ -1340,7 +1306,7 @@ parallel_for_each(roots.begin(), roots.end(),
 
 ---
 
-### 3.6 `parallel_pipeline` — Assembly Line
+### 2.6 `parallel_pipeline` — Assembly Line
 
 A pipeline is a sequence of stages where each item flows through all stages in order. Unlike a plain `parallel_for` (all items do the same thing), a pipeline lets **different items be at different stages at the same time** — exactly like a factory assembly line.
 
@@ -1409,7 +1375,7 @@ parallel_pipeline(max_tokens,
 
 ---
 
-### 3.7 `parallel_invoke` and `task_group` — Explicit Tasks
+### 2.7 `parallel_invoke` and `task_group` — Explicit Tasks
 
 For a fixed number of independent tasks (fork-join):
 
@@ -1456,7 +1422,7 @@ tg2.wait();
 
 ---
 
-### 3.8 Per-Thread Storage — `enumerable_thread_specific`
+### 2.8 Per-Thread Storage — `enumerable_thread_specific`
 
 The problem with shared accumulators: every thread writes to the same memory location, causing data races or expensive lock contention.
 
@@ -1540,7 +1506,7 @@ enumerable_thread_specific<std::vector<int>> ets3(
 
 ---
 
-### 3.9 `combinable<T>` — Simpler Per-Thread Accumulation
+### 2.9 `combinable<T>` — Simpler Per-Thread Accumulation
 
 A simplified version of `enumerable_thread_specific` specifically for accumulating a single value:
 
@@ -1567,7 +1533,7 @@ Use `combinable` when you just want a thread-local accumulator. Use `enumerable_
 
 ---
 
-### 3.10 Flow Graph — Data Flow and Dependence Graphs
+### 2.10 Flow Graph — Data Flow and Dependence Graphs
 
 For expressing complex parallel patterns as a graph of nodes and edges. The runtime automatically runs nodes when their inputs are ready — no manual synchronization.
 
@@ -1691,7 +1657,7 @@ input_port<1>(idx).try_put(3.14f);  // send float
 
 ---
 
-### 3.11 Concurrent Containers
+### 2.11 Concurrent Containers
 
 **The problem:** standard containers (`std::vector`, `std::map`, `std::queue`) have no internal locking. If two threads write at the same time, you get data corruption, crashes, or silently wrong results.
 
@@ -1823,7 +1789,7 @@ pq.try_pop(top);   // top = 20 (max-heap by default)
 
 ---
 
-### 3.12 Scalable Memory Allocator
+### 2.12 Scalable Memory Allocator
 
 Standard `malloc`/`free` have a single global lock — a bottleneck when many threads allocate simultaneously. TBB's allocator uses per-thread memory pools:
 
@@ -1845,7 +1811,7 @@ Most impactful when many threads frequently allocate/free small objects (task ob
 
 ---
 
-### 3.13 `task_arena` — Control Thread Pool
+### 2.13 `task_arena` — Control Thread Pool
 
 By default, TBB creates one global thread pool that uses all hardware threads. Every `parallel_for`, `parallel_reduce`, etc. draws from that pool. `task_arena` lets you create a **separate, bounded execution zone** with its own concurrency limit and optionally pinned to specific NUMA nodes.
 
@@ -1919,7 +1885,7 @@ numa_arena.execute([&]{
 
 ---
 
-### 3.14 `global_control` — Runtime Configuration
+### 2.14 `global_control` — Runtime Configuration
 
 `task_arena` limits threads *locally* (inside one block). `global_control` sets a **program-wide policy** that applies to every TBB algorithm everywhere — including third-party libraries that use TBB internally.
 
@@ -1968,7 +1934,7 @@ Each thread has a fixed stack. Deep recursion or large stack-allocated buffers s
 
 ---
 
-### 3.15 Exception Handling and Cancellation
+### 2.15 Exception Handling and Cancellation
 
 In normal single-threaded C++, an exception unwinds the call stack to the nearest `catch`. In a parallel loop, each iteration runs in a different thread with its own stack — there is no shared call stack to unwind.
 
@@ -2037,7 +2003,7 @@ parallel_for()  → returns normally (no exception thrown)
 
 ---
 
-### 3.16 Work Isolation
+### 2.16 Work Isolation
 
 TBB's work-stealing scheduler is aggressive: when a thread finishes a task and is waiting on an inner `parallel_for`, it doesn't idle — it looks for *any* available task in the pool, including tasks from the outer loop. This is great for throughput but dangerous when inner and outer tasks share data.
 
@@ -2098,7 +2064,7 @@ If the inner loop works on independent data (no sharing with outer tasks), isola
 
 ---
 
-### 3.17 Pattern Cheat Sheet
+### 2.17 Pattern Cheat Sheet
 
 **Reduce:**
 
@@ -2157,7 +2123,7 @@ parallel_pipeline(max_tokens, input_filter & transform_filter & output_filter);
 
 ---
 
-### 3.18 Connection to GPU Programming
+### 2.18 Connection to GPU Programming
 
 oneTBB patterns map directly to GPU frameworks:
 
