@@ -787,7 +787,7 @@ parallel_for(blocked_range<int>(0, N), body);
 static affinity_partitioner ap;
 parallel_for(blocked_range<int>(0, N), body, ap);
 
-// simple_partitioner: chunk = grainsize exactly, no dynamic balancing
+// simple_partitioner: chunk = grainsize exactly, no adaptive splitting (work-stealing still active)
 parallel_for(blocked_range<int>(0, N, 1000), body, simple_partitioner());
 
 // static_partitioner: divide evenly upfront, no stealing
@@ -795,12 +795,12 @@ parallel_for(blocked_range<int>(0, N, 1000), body, simple_partitioner());
 parallel_for(blocked_range<int>(0, N), body, static_partitioner());
 ```
 
-| Partitioner | Chunk size | Load balancing | Use when |
-|-------------|------------|----------------|---------|
-| `auto_partitioner` | Adaptive | Work-stealing (default) | Most cases |
-| `affinity_partitioner` | Adaptive | Dynamic + cache-aware | Re-running same loop over same data repeatedly |
-| `simple_partitioner` | = grainsize | None | Each chunk needs temp buffer, or N is huge |
-| `static_partitioner` | Uniform | None | Need reproducible execution for debugging |
+| Partitioner | Chunk size | Adaptive splitting | Work-stealing | Use when |
+|-------------|------------|--------------------|---------------|---------|
+| `auto_partitioner` | Dynamic | Yes | Yes | Most cases — default |
+| `affinity_partitioner` | Adaptive | Yes | Yes | Re-running same loop over same data (cache-warm) |
+| `simple_partitioner` | Fixed ≈ grainsize | No | Yes | Chunk needs fixed-size temp buffer; work is uniform; N is huge |
+| `static_partitioner` | Pre-divided, fixed mapping | No | No | NUMA/cache locality tuning; strict reproducible thread mapping |
 
 **Grainsize tuning:** Each chunk should take ≥ ~100,000 clock cycles (~50 µs at 2 GHz). Too-small chunks = scheduling overhead dominates. Rule: if loop body takes 10 ns, grainsize of 10,000+ is reasonable.
 
