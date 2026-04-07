@@ -4,8 +4,6 @@
 
 **From firmware & AI applications to ML compilers — and ultimately, custom silicon.**
 
-<a href="https://github.com/ai-hpc/ai-hardware-engineer-roadmap/stargazers"><img src="https://img.shields.io/github/stars/ai-hpc/ai-hardware-engineer-roadmap" style="vertical-align: middle"/></a>
-
 ![AI Hardware Engineer Roadmap](Assets/images/ai-hardware-engineer.png)
 
 </div>
