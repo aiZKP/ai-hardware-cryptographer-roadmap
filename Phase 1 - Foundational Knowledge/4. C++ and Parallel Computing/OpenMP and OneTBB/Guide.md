@@ -12,11 +12,35 @@ This guide covers two parts. Section 1 is a progressive tour of OpenMP — from 
 
 ### 1.0 Mental Model: Fork-Join
 
-OpenMP uses the **fork-join model**. The program starts with one thread (the *master*). When it hits a parallel region, it forks into a team of threads. When the region ends, all threads join back into one.
+OpenMP uses the **fork-join model**. Your program starts with a single *master* thread. When it reaches a parallel region, it **forks** into a team of worker threads. All threads execute the region concurrently, then **join** back into one at an implicit barrier at the end.
 
-![Fork-join model](../../../../../Assets/images/openmp-fork-join.svg)
+```
+ serial          parallel region              serial
+─────────── ╔══════════════════════════╗ ───────────────►
+            ║  #pragma omp parallel    ║
+   master ──╫──► thread 0  (work) ────╫──► master
+            ╠──► thread 1  (work) ────╣
+            ╠──► thread 2  (work) ────╣
+            ╚──► thread 3  (work) ────╝
+                                  ▲
+                         implicit barrier:
+                    all threads must arrive
+                    before master continues
+```
 
-**The compiler does this for you:** `#pragma omp parallel for` is essentially a loop split + thread pool dispatch + barrier, all generated automatically.
+You can have **multiple parallel regions** in one program. Each fork creates the thread team; each join dissolves it (or returns threads to a pool for reuse).
+
+```
+master ──── [serial] ──── fork ──── [parallel] ──── join ──── [serial] ──── fork ──── [parallel] ──── join ────►
+```
+
+**Three things OpenMP manages for you automatically:**
+
+| What | How OpenMP handles it |
+|------|-----------------------|
+| Thread creation | Thread pool — threads are reused, not recreated each region |
+| Work distribution | Divides loop iterations across threads (`schedule` clause controls how) |
+| Synchronization | Implicit barrier at the end of every parallel region |
 
 **Compile:** `g++ -fopenmp -O2 my_code.cpp`
 
