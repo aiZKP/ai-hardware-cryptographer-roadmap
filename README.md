@@ -2,192 +2,236 @@
 
 # AI Hardware Engineer Roadmap
 
-**From firmware & AI applications to ML compilers — and ultimately, custom silicon.**
+**Learn to build the hardware that runs AI — from writing your first CUDA kernel to designing a custom AI chip.**
 
 ![AI Hardware Engineer Roadmap](Assets/images/ai-hardware-engineer.png)
 
+[📖 Read the full guide](https://ai-hpc.github.io/ai-hardware-engineer-roadmap/) · [⭐ Star this repo](https://github.com/ai-hpc/ai-hardware-engineer-roadmap)
+
 </div>
 
-A custom AI chip is an **8-layer vertical stack**. This roadmap builds vertical literacy across all 8 layers — from AI applications and ML compilers down to RTL design and silicon fabrication.
+---
+
+## What is this?
+
+Every AI model — GPT, Stable Diffusion, your self-driving car — runs on **specialized hardware**. Someone has to build that hardware, write the software that drives it, and make the two work together efficiently.
+
+This is a **free, community-driven curriculum** that teaches you to do exactly that. It covers the full stack from the AI application at the top down to the chip design at the bottom — organized as a self-paced learning roadmap with guides, projects, and curated resources.
+
+**You will learn to:**
+- Write GPU kernels and parallel code that runs at hardware speed
+- Deploy AI models on real embedded hardware (NVIDIA Jetson, Xilinx FPGA)
+- Understand how ML compilers turn PyTorch into chip instructions
+- Read and reason about chip architecture — the way AI accelerators are designed
 
 ---
 
-## The 8-Layer AI Chip Stack
+## Who is this for?
 
-| Layer | What it does | Key technologies |
-|:-----:|-------------|-----------------|
-| **L1** | **AI Application & Framework** | PyTorch, ONNX, Agentic AI, MLOps, quantization |
-| **L2** | **Compiler & Graph Optimization** | MLIR dialects, TVM, LLVM, custom NPU lowering |
-| **L3** | **Runtime & Driver** | C++ runtime, Linux kernel driver, CUDA-like API |
-| **L4** | **Firmware & OS** | FreeRTOS, bootloader, embedded Linux, RTOS |
-| **L5** | **Hardware Architecture** | Systolic arrays, HBM controllers, NoC, power domains |
-| **L6** | **RTL & Logic Design** | SystemVerilog, UVM verification, FPGA prototyping |
-| **L7** | **Physical Implementation** | EDA tools, place & route, timing closure |
-| **L8** | **Fabrication & Packaging** | Foundry process, CoWoS, post-silicon bring-up |
-
-<small>**L1–L6:** Hands-on projects throughout the curriculum &nbsp;|&nbsp; **L7–L8:** Theory and guided labs (OpenROAD, TinyTapeout)</small>
+| Background | What you'll get from this |
+|------------|--------------------------|
+| **Software engineer** wanting to go deeper into AI infrastructure | CUDA, parallel computing, ML compilers, GPU runtimes |
+| **ML / AI engineer** who wants to understand the hardware | How chips work, why quantization matters, how to optimize inference |
+| **Embedded / firmware engineer** moving into AI products | AI workloads, edge deployment, Jetson, sensor fusion |
+| **Computer science student** aiming at AI hardware roles | A structured curriculum from foundations to specialization |
+| **Hardware engineer** adding AI/software skills | Neural networks, CUDA, ML frameworks, model optimization |
 
 ---
 
-## How Phases Map to Layers
+## The AI Chip Stack — Explained Simply
+
+A chip that runs AI isn't just silicon. It's **8 layers of technology** that must work together. Think of it like a building: the foundation (silicon) holds up the floors above it (firmware, OS, drivers), which hold up the penthouse (your AI application).
 
 ```
-               L1          L2          L3          L4          L5          L6          L7          L8
-            Application  Compiler   Runtime &   Firmware    Hardware      RTL &      Physical     Fab &
-            & Framework  & Graph     Driver      & OS      Architecture   Logic      Implement.  Packaging
-            ───────────┬───────────┬───────────┬───────────┬───────────┬───────────┬───────────┬───────────
-Phase 1        ░░░     │           │    ░░░    │    ░░░    │    ███    │    ███    │           │
-Phase 2                │           │    ░░░    │    ███    │           │           │           │     ░
-Phase 3        ███     │           │           │           │           │           │           │
-Phase 4A               │           │    ███    │           │    ██░    │    ███    │           │
-Phase 4B               │           │    ███    │    ██░    │    ░░░    │           │           │     ░
-Phase 4C       ░░░     │    ███    │    ░░░    │           │           │           │           │
-Phase 5        ░░░     │    ░░░    │    ░░░    │           │    ███    │    ██░    │    ██░    │    ░░░
-            ───────────┴───────────┴───────────┴───────────┴───────────┴───────────┴───────────┴───────────
+  ┌─────────────────────────────────────┐
+  │  L1  AI App & Framework             │  ← PyTorch model, your code runs here
+  │  L2  ML Compiler                    │  ← turns model into chip instructions
+  │  L3  Runtime & Driver               │  ← OS talks to the GPU/chip
+  │  L4  Firmware & OS                  │  ← boots the device, manages resources
+  │  L5  Hardware Architecture          │  ← the chip's blueprint (systolic arrays, HBM)
+  │  L6  RTL & Logic Design             │  ← describes the chip in hardware language
+  │  L7  Physical Implementation        │  ← places transistors on silicon
+  │  L8  Fabrication & Packaging        │  ← the foundry makes the physical chip
+  └─────────────────────────────────────┘
+```
 
-███ = primary coverage    ██░ = strong supporting    ░░░ = background    (blank) = minimal
+| Layer | Plain English | Technologies |
+|:-----:|---------------|-------------|
+| **L1** | Where your AI model lives and runs | PyTorch, ONNX, TensorRT, MLOps |
+| **L2** | Translates the model into efficient chip instructions | MLIR, TVM, LLVM, Triton |
+| **L3** | The bridge between software and the chip | CUDA runtime, kernel drivers, APIs |
+| **L4** | The firmware that boots and controls the device | FreeRTOS, embedded Linux, bootloaders |
+| **L5** | How the chip is architected internally | Systolic arrays, HBM memory, NoC |
+| **L6** | Writing the chip's logic in hardware code | SystemVerilog, FPGA, verification |
+| **L7** | Physically placing circuits on a chip | Place & route, timing, EDA tools |
+| **L8** | Sending to a foundry and getting chips back | TSMC process, CoWoS, packaging |
+
+> **L1–L6:** Full hands-on projects throughout this curriculum.
+> **L7–L8:** Conceptual with guided labs (OpenROAD, TinyTapeout).
+
+---
+
+## Where Do I Start?
+
+**Pick your entry point based on where you are today:**
+
+```
+Coming from software / ML?
+  → Start at Phase 1 (C++ and Parallel Computing) then Phase 3 (AI)
+
+Coming from embedded / firmware?
+  → Start at Phase 1 (Computer Architecture) then Phase 2 (Embedded Systems)
+
+Already know CUDA and ML frameworks?
+  → Jump to Phase 4 (your track: FPGA, Jetson, or ML Compiler)
+
+Targeting chip design?
+  → Follow Phase 1 → 2 → 4A → 5F in order
 ```
 
 ---
 
-## 5-Phase Curriculum
+## The 5-Phase Curriculum
 
-### Phase 1: Digital Foundations (6–12 months)
+### Phase 1 — Digital Foundations
+*Learn the language of hardware. Go from logic gates to writing GPU code.*
 
-<small>*The language of hardware — from gates and Verilog to CUDA kernels.*</small>
-
-| Topic | Key Skills | Layer |
-|-------|------------|:-----:|
-| [**Digital Design and HDL**](Phase%201%20-%20Foundational%20Knowledge/1.%20Digital%20Design%20and%20Hardware%20Description%20Languages/Guide.md) | Number systems, logic, memory; Verilog, testbenches, synthesis | L6 |
-| [**Computer Architecture**](Phase%201%20-%20Foundational%20Knowledge/2.%20Computer%20Architecture%20and%20Hardware/Guide.md) | ISA, pipelines, caches, OoO, coherence; modern CPUs/GPUs/memory | L5 |
-| [**Operating Systems**](Phase%201%20-%20Foundational%20Knowledge/3.%20Operating%20Systems/Guide.md) | Processes, threads, scheduling, memory management, drivers | L3/L4 |
-| [**C++ and Parallel Computing**](Phase%201%20-%20Foundational%20Knowledge/4.%20C%2B%2B%20and%20Parallel%20Computing/Guide.md) | C++ & SIMD · OpenMP & oneTBB · CUDA & SIMT · ROCm & HIP · OpenCL & SYCL | L1/L3 |
-
-### Phase 2: Embedded Systems (6–12 months)
-
-<small>*The boards and buses that sit next to inference — MCUs, RTOS, and embedded Linux.*</small>
-
-| Topic | Key Skills | Layer |
-|-------|------------|:-----:|
-| [**Embedded Software**](Phase%202%20-%20Embedded%20Systems/2.%20Embedded%20Software/Guide.md) | ARM Cortex-M, FreeRTOS, SPI/UART/I2C/CAN, power, OTA | L4 |
-| [**Embedded Linux**](Phase%202%20-%20Embedded%20Systems/3.%20Embedded%20Linux/Guide.md) | Yocto, PetaLinux, kernel, rootfs | L3/L4 |
-
-### Phase 3: Artificial Intelligence (6–12 months)
-
-<small>*The workloads your hardware must run.* Core + two tracks. &nbsp;·&nbsp; *Hub:* [**Phase 3 — Artificial Intelligence**](Phase%203%20-%20Artificial%20Intelligence/Guide.md)</small>
-
-**Core (mandatory):**
-
-| # | Topic | Layer |
-|---|-------|:-----:|
-| 1 | [**Neural Networks**](Phase%203%20-%20Artificial%20Intelligence/1.%20Neural%20Networks/Guide.md) — MLPs, CNNs, training, backpropagation | L1 |
-| 2 | [**Deep Learning Frameworks**](Phase%203%20-%20Artificial%20Intelligence/2.%20Deep%20Learning%20Frameworks/Guide.md) — [micrograd](Phase%203%20-%20Artificial%20Intelligence/2.%20Deep%20Learning%20Frameworks/micrograd/Guide.md) → [PyTorch](Phase%203%20-%20Artificial%20Intelligence/2.%20Deep%20Learning%20Frameworks/PyTorch/Guide.md) → [tinygrad](Phase%203%20-%20Artificial%20Intelligence/2.%20Deep%20Learning%20Frameworks/tinygrad/Guide.md) | L1/L2 |
-
-**Track A — Hardware & Edge AI** (→ Phase 4):
-
-| # | Topic | Layer |
-|---|-------|:-----:|
-| 3 | [**Computer Vision**](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/3.%20Computer%20Vision/Guide.md) — detection, segmentation, 3D vision, OpenCV | L1 |
-| 4 | [**Sensor Fusion**](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/4.%20Sensor%20Fusion/Guide.md) — camera/LiDAR/IMU, Kalman, BEVFusion | L1 |
-| 5 | [**Voice AI**](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/5.%20Voice%20AI/Guide.md) — STT (Whisper), TTS (Piper), VAD, keyword spotting | L1 |
-| 6 | [**Edge AI & Model Optimization**](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/6.%20Edge%20AI%20and%20Model%20Optimization/Guide.md) — quantization, pruning, deployment | L1 |
-
-**Track B — Agentic AI & ML Engineering** (→ Phase 5 HPC/GenAI):
-
-| # | Topic | Layer |
-|---|-------|:-----:|
-| 3 | [**Agentic AI & GenAI**](Phase%203%20-%20Artificial%20Intelligence/Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/3.%20Agentic%20AI%20and%20GenAI/Guide.md) — LLM agents, RAG, tool use | L1 |
-| 4 | [**ML Engineering & MLOps**](Phase%203%20-%20Artificial%20Intelligence/Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/4.%20ML%20Engineering%20and%20MLOps/Guide.md) — training pipelines, model serving | L1 |
-| 5 | [**LLM Application Development**](Phase%203%20-%20Artificial%20Intelligence/Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/5.%20LLM%20Application%20Development/Guide.md) — fine-tuning, RAG architecture | L1 |
+| Module | What you'll learn |
+|--------|------------------|
+| [Digital Design & HDL](Phase%201%20-%20Foundational%20Knowledge/1.%20Digital%20Design%20and%20Hardware%20Description%20Languages/Guide.md) | How digital logic works; write Verilog, simulate circuits |
+| [Computer Architecture](Phase%201%20-%20Foundational%20Knowledge/2.%20Computer%20Architecture%20and%20Hardware/Guide.md) | How CPUs and GPUs work internally — pipelines, caches, memory |
+| [Operating Systems](Phase%201%20-%20Foundational%20Knowledge/3.%20Operating%20Systems/Guide.md) | Processes, memory, scheduling, device drivers |
+| [C++ & Parallel Computing](Phase%201%20-%20Foundational%20Knowledge/4.%20C%2B%2B%20and%20Parallel%20Computing/Guide.md) | SIMD, OpenMP, oneTBB, **CUDA**, ROCm, OpenCL/SYCL |
 
 ---
 
-### Phase 4: Hardware Deployment & Compilation (6–12 months each)
+### Phase 2 — Embedded Systems
+*Get hands-on with real hardware: microcontrollers, sensors, and embedded Linux.*
 
-<small>*Deploy AI on real silicon and learn how compilers bridge models to hardware.*</small>
+| Module | What you'll learn |
+|--------|------------------|
+| [Embedded Software](Phase%202%20-%20Embedded%20Systems/2.%20Embedded%20Software/Guide.md) | ARM Cortex-M, FreeRTOS, communication buses (SPI/I2C/CAN), power management |
+| [Embedded Linux](Phase%202%20-%20Embedded%20Systems/3.%20Embedded%20Linux/Guide.md) | Build custom Linux for embedded devices with Yocto and PetaLinux |
+
+---
+
+### Phase 3 — Artificial Intelligence
+*Understand the AI workloads your hardware must run. Two tracks — pick one or both.*
+
+**Core (everyone does these):**
+
+| Module | What you'll learn |
+|--------|------------------|
+| [Neural Networks](Phase%203%20-%20Artificial%20Intelligence/1.%20Neural%20Networks/Guide.md) | How neural networks learn — backprop, CNNs, transformers from scratch |
+| [Deep Learning Frameworks](Phase%203%20-%20Artificial%20Intelligence/2.%20Deep%20Learning%20Frameworks/Guide.md) | micrograd → PyTorch → tinygrad: understand what frameworks actually do |
+
+**Track A — Hardware & Edge AI** *(leads to Phase 4A/B)*
+
+| Module | What you'll learn |
+|--------|------------------|
+| [Computer Vision](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/3.%20Computer%20Vision/Guide.md) | Object detection, segmentation, 3D vision, OpenCV |
+| [Sensor Fusion](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/4.%20Sensor%20Fusion/Guide.md) | Fuse camera + LiDAR + IMU; Kalman filters, BEVFusion |
+| [Voice AI](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/5.%20Voice%20AI/Guide.md) | Speech-to-text (Whisper), TTS, wake-word detection |
+| [Edge AI & Optimization](Phase%203%20-%20Artificial%20Intelligence/Track%20A%20-%20Hardware%20and%20Edge%20AI/6.%20Edge%20AI%20and%20Model%20Optimization/Guide.md) | Quantization, pruning, deploying models on constrained devices |
+
+**Track B — Agentic AI & ML Engineering** *(leads to Phase 4C / Phase 5)*
+
+| Module | What you'll learn |
+|--------|------------------|
+| [Agentic AI & GenAI](Phase%203%20-%20Artificial%20Intelligence/Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/3.%20Agentic%20AI%20and%20GenAI/Guide.md) | Build LLM agents, RAG systems, tool-using AI |
+| [ML Engineering & MLOps](Phase%203%20-%20Artificial%20Intelligence/Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/4.%20ML%20Engineering%20and%20MLOps/Guide.md) | Training pipelines, model serving, monitoring |
+| [LLM Application Development](Phase%203%20-%20Artificial%20Intelligence/Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/5.%20LLM%20Application%20Development/Guide.md) | Fine-tuning, RAG architecture, production LLM apps |
+
+---
+
+### Phase 4 — Hardware Deployment & Compilation
+*Deploy AI on real chips. Three specialized tracks — choose based on your target role.*
 
 #### Track A — Xilinx FPGA
+*Design hardware accelerators and deploy AI on programmable chips.*
 
-| Topic | Key Skills | Layer |
-|-------|------------|:-----:|
-| [**Xilinx FPGA Development**](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/1.%20Xilinx%20FPGA%20Development/Guide.md) | Vivado, IP, timing, ILA/VIO | L6 |
-| [**Zynq UltraScale+ MPSoC**](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/2.%20Zynq%20UltraScale%2B%20MPSoC/Guide.md) | PS/PL, Linux on Zynq | L5/L6 |
-| [**Advanced FPGA Design**](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/3.%20Advanced%20FPGA%20Design/Guide.md) | CDC, floorplanning, power, PR | L6 |
-| [**HLS**](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/4.%20High-Level%20Synthesis%20%28HLS%29/Guide.md) | C→RTL, dataflow, pipelining | L5/L6 |
-| [**Runtime & Drivers**](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/5.%20Runtime%20and%20Driver%20Development/Guide.md) | XRT, DMA, kernel drivers, Vitis AI/FINN | L3 |
-| [**Projects**](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/6.%20Projects/Wireless-Video-FPGA.md) | 1080p→4K wireless video (VCU, MIPI, TDMA) | L3–L6 |
+| Module | What you'll learn |
+|--------|------------------|
+| [FPGA Development](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/1.%20Xilinx%20FPGA%20Development/Guide.md) | Vivado, IP cores, timing constraints, hardware debugging |
+| [Zynq MPSoC](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/2.%20Zynq%20UltraScale%2B%20MPSoC/Guide.md) | Combine ARM CPU + FPGA fabric on one chip |
+| [Advanced FPGA Design](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/3.%20Advanced%20FPGA%20Design/Guide.md) | Clock domain crossing, floorplanning, power |
+| [HLS (High-Level Synthesis)](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/4.%20High-Level%20Synthesis%20%28HLS%29/Guide.md) | Write C++ → get hardware automatically |
+| [Runtime & Drivers](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/5.%20Runtime%20and%20Driver%20Development/Guide.md) | Linux driver for your FPGA, DMA, Vitis AI |
+| [Projects](Phase%204%20-%20Track%20A%20-%20Xilinx%20FPGA/6.%20Projects/Wireless-Video-FPGA.md) | Build a 4K wireless video pipeline end-to-end |
 
 #### Track B — NVIDIA Jetson
+*Ship AI products on NVIDIA's embedded GPU platform.*
 
-| Topic | Key Skills | Layer |
-|-------|------------|:-----:|
-| [**Jetson Platform**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/1.%20Nvidia%20Jetson%20Platform/Guide.md) | Orin Nano, JetPack 6.2.2, L4T, CUDA | L3 |
-| [**Carrier Board**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/2.%20Custom%20Carrier%20Board%20Design%20and%20Bring-Up/Guide.md) | Schematic, PCB, thermal, bring-up | L5 |
-| [**L4T Customization**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/3.%20L4T%20Customization/Guide.md) | Rootfs, kernel/DT, OTA | L3/L4 |
-| [**FSP Firmware**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/4.%20FSP%20%28Firmware%20Support%20Package%29%20Customization/Guide.md) | FreeRTOS on SPE/AON | L4 |
-| [**App Development**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/5.%20Application%20Development/Guide.md) | ML/AI, ROS 2, multimedia | L1/L3 |
-| [**Security & OTA**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/6.%20Security%20and%20OTA/Guide.md) | Secure boot, OP-TEE, A/B OTA | L4 |
-| [**Manufacturing**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/7.%20Compliance%20and%20Manufacturing/Guide.md) | FCC/CE, DFM, production flash | L8 |
-| [**Runtime & Drivers**](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/8.%20Runtime%20and%20Driver%20Development/Guide.md) | CUDA runtime, TensorRT, DLA, DeepStream | L3 |
+| Module | What you'll learn |
+|--------|------------------|
+| [Jetson Platform](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/1.%20Nvidia%20Jetson%20Platform/Guide.md) | JetPack, L4T, GPU on Orin — get up and running |
+| [Carrier Board Design](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/2.%20Custom%20Carrier%20Board%20Design%20and%20Bring-Up/Guide.md) | Design your own PCB that hosts a Jetson module |
+| [L4T Customization](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/3.%20L4T%20Customization/Guide.md) | Custom Linux kernel, device tree, OTA updates |
+| [Firmware (FSP)](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/4.%20FSP%20%28Firmware%20Support%20Package%29%20Customization/Guide.md) | FreeRTOS on the safety co-processor |
+| [AI Application Dev](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/5.%20Application%20Development/Guide.md) | ML inference, ROS 2, real-time video on Jetson |
+| [Security & OTA](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/6.%20Security%20and%20OTA/Guide.md) | Secure boot, encrypted storage, over-the-air updates |
+| [Manufacturing](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/7.%20Compliance%20and%20Manufacturing/Guide.md) | FCC/CE compliance, production flashing, DFM |
+| [TensorRT & DLA](Phase%204%20-%20Track%20B%20-%20Nvidia%20Jetson/8.%20Runtime%20and%20Driver%20Development/Guide.md) | Optimize models for Jetson's GPU and neural accelerator |
 
 #### Track C — ML Compiler
+*Learn how AI models are compiled and optimized into chip instructions.*
 
-| Part | Key Skills | Layer |
-|------|------------|:-----:|
-| [**Compiler Fundamentals**](Phase%204%20-%20Track%20C%20-%20ML%20Compiler%20and%20Graph%20Optimization/Guide.md) | Graph IR, LLVM, MLIR, TVM/tinygrad, custom backends | L2 |
-| [**DL Inference Optimization**](Phase%204%20-%20Track%20C%20-%20ML%20Compiler%20and%20Graph%20Optimization/DL%20Inference%20Optimization/Guide.md) | Triton, CUTLASS, Flash-Attention, TensorRT-LLM, quantization | L1/L2 |
-
----
-
-### Phase 5: Specialization Tracks (ongoing)
-
-| Track | Focus | Guide |
-|-------|-------|-------|
-| **A: GPU Infrastructure** | Nvidia GPU (NCCL, NVLink) · AMD GPU (ROCm, HIP, MI300X) | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/1.%20GPU%20Infrastructure/Guide.md) |
-| **B: HPC** | [CUDA-X Libraries](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/2.%20High%20Performance%20Computing/CUDA-X%20Libraries/Guide.md): 40+ GPU-accelerated libraries | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/2.%20High%20Performance%20Computing/Guide.md) |
-| **C: Edge AI** | Efficient nets, quantization, Holoscan, real-time pipelines | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/3.%20Edge%20AI/Guide.md) |
-| **D: Robotics** | Nav2, MoveIt, planning | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Robotics/Guide.md) |
-| **E: Autonomous Vehicles** | openpilot, tinygrad, BEV, safety, [Lauterbach](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/5.%20Autonomous%20Vehicles/6.%20Lauterbach%20TRACE32%20Debug/Guide.md) | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/5.%20Autonomous%20Vehicles/Guide.md) |
-| **F: AI Chip Design** | Systolic arrays, dataflow, tinygrad↔hardware, ASIC path | [Guide →](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/6.%20AI%20Chip%20Design/Guide.md) |
+| Module | What you'll learn |
+|--------|------------------|
+| [Compiler Fundamentals](Phase%204%20-%20Track%20C%20-%20ML%20Compiler%20and%20Graph%20Optimization/Guide.md) | How MLIR, TVM, and LLVM work; build a custom backend |
+| [DL Inference Optimization](Phase%204%20-%20Track%20C%20-%20ML%20Compiler%20and%20Graph%20Optimization/DL%20Inference%20Optimization/Guide.md) | Triton kernels, Flash-Attention, TensorRT-LLM, quantization |
 
 ---
 
-## Layer → Job Title Quick Reference
+### Phase 5 — Specialization
+*Go deep in one area. These tracks are ongoing and expand continuously.*
 
-| Layer | Job titles | Primary phases |
-|:-----:|-----------|---------------|
-| **L1** | ML Inference Eng · Edge AI Eng · Agentic AI Eng · GenAI Eng · MLOps Eng | Phase 3, 4B+C |
-| **L2** | AI Compiler Eng · Graph Optimization Eng · Kernel Eng | Phase 4C |
-| **L3** | GPU Runtime Eng · Linux Kernel Eng · Embedded Linux BSP Eng | Phase 4A§5, 4B§8 |
-| **L4** | Firmware Eng · Embedded SW Eng · Embedded Linux Eng · IoT Eng | Phase 2, 4B§4 |
-| **L5** | AI Accelerator Architect · SoC Platform Eng | Phase 1§2, 4A, 5F |
-| **L6** | RTL Design Eng · FPGA Eng · DV Eng | Phase 1§1, 4A |
-| **L7** | *Theory: OpenROAD, GDS flow* | Phase 5F |
-| **L8** | *Theory: chiplets, CoWoS, TinyTapeout* | Phase 5F |
-
-**Cross-layer roles:**
-- **Autonomous Vehicles HW/SW Engineer** — L1 through L4 (Phase 4B + Phase 5E)
-- **AI Hardware Engineer (Full-Stack)** — L1 through L6 (the signature role this roadmap targets)
+| Track | What you'll specialize in | Guide |
+|-------|--------------------------|-------|
+| **GPU Infrastructure** | Multi-GPU systems, NVLink, NCCL, AMD ROCm/HIP, MI300X | [→](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/1.%20GPU%20Infrastructure/Guide.md) |
+| **High-Performance Computing** | 40+ CUDA-X libraries: cuBLAS, cuDNN, NVSHMEM and more | [→](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/2.%20High%20Performance%20Computing/Guide.md) |
+| **Edge AI** | Efficient model architectures, Holoscan, real-time pipelines | [→](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/3.%20Edge%20AI/Guide.md) |
+| **Robotics** | ROS 2, Nav2, MoveIt, motion planning | [→](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/4.%20Robotics/Guide.md) |
+| **Autonomous Vehicles** | openpilot, BEV perception, functional safety, hardware debug | [→](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/5.%20Autonomous%20Vehicles/Guide.md) |
+| **AI Chip Design** | Systolic arrays, dataflow architectures, tinygrad↔hardware, ASIC flow | [→](Phase%205%20-%20Advanced%20Topics%20and%20Specialization/6.%20AI%20Chip%20Design/Guide.md) |
 
 ---
 
-## Reference Projects
+## What Jobs Does This Lead To?
 
-| Project | What it teaches | Used in |
-|---------|----------------|---------|
-| [**tinygrad**](https://github.com/tinygrad/tinygrad) | Minimal DL framework — IR, scheduler, BEAM, backends | Phase 3, 4C, 5E |
-| [**openpilot**](https://github.com/commaai/openpilot) | Production ADAS — camera→ISP→modeld→planning→CAN | Phase 4B, 5E |
+| Target Role | Key Layers | Recommended Path |
+|-------------|-----------|-----------------|
+| **ML Inference Engineer** | L1 | Phase 3 → Phase 4C |
+| **Edge AI Engineer** | L1 | Phase 3 Track A → Phase 4B |
+| **AI Compiler Engineer** | L2 | Phase 1 → Phase 4C → Phase 5B |
+| **GPU Runtime Engineer** | L3 | Phase 1 (CUDA) → Phase 4A/B §Runtime |
+| **Firmware / Embedded Engineer** | L4 | Phase 1 → Phase 2 → Phase 4B |
+| **AI Accelerator Architect** | L5 | Phase 1 → Phase 4A → Phase 5F |
+| **RTL / FPGA Design Engineer** | L6 | Phase 1 (HDL) → Phase 4A |
+| **Autonomous Vehicles Engineer** | L1–L4 | Phase 3 Track A → Phase 4B → Phase 5E |
+| **AI Hardware Engineer (Full-Stack)** | L1–L6 | Full curriculum — the signature role this roadmap targets |
+
+---
+
+## Reference Projects Used Throughout
+
+| Project | Why it's used |
+|---------|--------------|
+| [**tinygrad**](https://github.com/tinygrad/tinygrad) | A tiny DL framework (~2,500 lines) — shows exactly how frameworks, compilers, and hardware backends connect |
+| [**openpilot**](https://github.com/commaai/openpilot) | Real-world ADAS software — shows how perception, ML, and hardware work together in production |
 
 ---
 
 ## Additional Resources
 
-- [**Roles & Market Analysis**](Roles%20and%20Market%20Analysis.md) — 23 sub-layers, salary data, job postings, remote %, hiring priorities
+- [**Roles & Market Analysis**](Roles%20and%20Market%20Analysis.md) — 23 sub-roles, salary data, job postings, remote %, hiring priorities
 
 ---
 
 <div align="center" markdown="1">
 
-**A community-driven educational roadmap for AI hardware engineering.** · [Star ⭐](https://github.com/ai-hpc/ai-hardware-engineer-roadmap) if you find this useful
+**A community-driven educational roadmap for AI hardware engineering.**
+
+[⭐ Star this repo](https://github.com/ai-hpc/ai-hardware-engineer-roadmap) if you find it useful — it helps others discover it.
 
 </div>
