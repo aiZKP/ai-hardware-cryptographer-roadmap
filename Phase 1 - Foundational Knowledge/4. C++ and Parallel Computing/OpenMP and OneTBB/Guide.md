@@ -145,18 +145,43 @@ Each thread gets its own private copy of `sum` (initialized to 0). After the loo
 
 Every variable referenced inside a parallel region is either **shared** (one copy, all threads see it) or **private** (each thread has its own copy). OpenMP's default: variables declared outside the region are shared.
 
+**No** — `private` and `firstprivate` are mutually exclusive for the same variable. A variable can only appear in one clause. They are alternatives that differ only in initialization:
+
 ```cpp
-int x = 10;       // shared by default (dangerous if written!)
-int result = 0;   // shared — we want to write it safely with reduction
+int x = 10;
+
+// Option A — private(x): each thread gets its own x, value is UNINITIALIZED
+// Use when: you assign x before reading it inside the loop anyway
+#pragma omp parallel for private(x)
+for (int i = 0; i < N; i++) {
+    x = compute(i);   // x is assigned first → uninitialized value never read → safe
+    a[i] *= x;
+}
+
+// Option B — firstprivate(x): each thread gets its own x, initialized to 10
+// Use when: you read x before assigning it (need the original value)
+#pragma omp parallel for firstprivate(x)
+for (int i = 0; i < N; i++) {
+    a[i] = x + i;    // x is read first → needs the initial value 10 → must use firstprivate
+    x = compute(i);  // then overwritten — fine, it's private
+}
+```
+
+**Rule:** use `private` when you always write before read. Use `firstprivate` when you need the original value inside the loop.
+
+A realistic example combining multiple clauses (each variable appears in **exactly one** clause):
+
+```cpp
+int x = 10;
+int result = 0;
 
 #pragma omp parallel for \
-    shared(a, b, c, N)   \   // explicit: shared across all threads
-    private(x)            \   // each thread gets its own x (uninitialized)
-    firstprivate(x)       \   // each thread gets a copy of x initialized to 10
-    reduction(+:result)
+    shared(a, b, c, N)  \   // read-only arrays — safe to share
+    firstprivate(x)      \   // each thread starts with x=10, then may modify it
+    reduction(+:result)      // each thread accumulates privately, merged at end
 for (int i = 0; i < N; i++) {
-    x = compute(i);           // safe: each thread has its own x
-    result += a[i] * b[i];
+    x += i % 3;              // safe: each thread has its own x
+    result += a[i] * x;
 }
 ```
 
