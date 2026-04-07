@@ -781,14 +781,14 @@ g++ -O2 -std=c++17 -fopenmp fib_benchmark.cpp -ltbb -o fib_benchmark
 ./fib_benchmark
 ```
 
-**Expected output (8-core machine, fib(42)):**
+**Expected output (8-core machine, fib(50)):**
 
 ```
-fib(42) = 267914296   [threads available: 8]
+fib(50) = 12586269025   [threads available: 8, cutoff: 20]
 
-serial         1840.3 ms  (baseline)
-openmp          310.5 ms  (5.93x speedup)
-onetbb          295.1 ms  (6.24x speedup)
+serial        42318.7 ms  (baseline)
+openmp         6891.2 ms  (6.14x speedup)
+onetbb         6204.8 ms  (6.82x speedup)
 ```
 
 **Why the speedup is sub-linear:**

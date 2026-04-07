@@ -68,7 +68,8 @@ double time_ms(Fn&& fn) {
 }
 
 int main() {
-    const int N = 42;
+    const int N = 50;   // fib(50) = 12,586,269,025 — fits in long long
+                        // serial: ~30–60 s; parallel: ~5–10 s on 8 cores
     long long r_serial, r_omp, r_tbb;
 
     // Warm up: first call pays library init and branch-predictor training cost
