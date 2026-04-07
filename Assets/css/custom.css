@@ -21,6 +21,20 @@
   line-height: 1.15;
 }
 
+/* Content paragraphs — always left-aligned */
+.md-content__inner > p {
+  text-align: left;
+}
+
+/* Standalone bold label lines (e.g. "You will learn to:") */
+.md-typeset p > strong:only-child {
+  display: inline-block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--md-primary-fg-color);
+}
+
 /* Banner image */
 .md-content__inner > p > img[alt="AI Hardware Engineer Roadmap"] {
   display: block;
