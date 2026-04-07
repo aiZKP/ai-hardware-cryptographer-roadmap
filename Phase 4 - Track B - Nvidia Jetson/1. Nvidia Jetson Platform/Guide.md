@@ -317,6 +317,163 @@ They run their own firmware loaded during boot. Linux communicates with them via
 
 Jetson is closer to smartphone architecture than PC — understanding this distinction is key to working effectively with the platform.
 
+### 1.13 Reading a Real First-Boot Log
+
+Below is an annotated walkthrough of an actual Orin Nano 8GB first boot (JetPack 36.4.3, SD card, 2025-01-08 firmware). Every line you will see here is normal — understanding what each section means prevents hours of unnecessary debugging.
+
+#### UEFI prompt (before kernel)
+
+```
+Jetson System firmware version 36.4.3-gcid-38968081 date 2025-01-08
+ESC   to enter Setup.
+F11   to enter Boot Manager Menu.
+Enter to continue boot.
+L4TLauncher: Attempting Direct Boot
+EFI stub: Booting Linux Kernel...
+EFI stub: Using DTB from configuration table
+EFI stub: Loaded initrd from LINUX_EFI_INITRD_MEDIA_GUID device path
+EFI stub: Exiting boot services...
+```
+
+- **36.4.3** = L4T (Linux for Tegra) version. Maps to JetPack 6.1.
+- **L4TLauncher** = NVIDIA's EFI application that selects A/B slot and hands off to the kernel.
+- **EFI stub** = the kernel's built-in EFI loader. DTB and initrd are loaded here, before Linux takes over.
+
+#### CPU and memory
+
+```
+[    0.000000] Machine model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+[    0.000000] Linux version 5.15.148-tegra
+[    0.000000] Memory: 7517560K/8133248K available (... 353544K reserved, 262144K cma-reserved)
+[    0.000000] Reserved memory: created CMA memory pool at 0x000000024a000000, size 256 MiB
+[    0.000000] NUMA: Faking a node at [mem 0x0000000080000000-0x0000000277ffffff]
+```
+
+- **7.17 GB available of 8 GB** — ~615 MB consumed by reserved carveouts (BPMP, OP-TEE, firmware blobs, SMMU tables).
+- **256 MB CMA** — used for GPU and V4L2 zero-copy camera buffers. Configurable in device tree.
+- **NUMA faking** — Orin is a single-node SoC; Linux creates a synthetic NUMA node to satisfy the kernel's NUMA APIs.
+
+```
+[    0.005418] CPU1: Booted secondary processor 0x0000000100
+[    0.005935] CPU2: Booted secondary processor 0x0000000200
+[    0.006368] CPU3: Booted secondary processor 0x0000000300
+[    0.008843] CPU4: Booted secondary processor 0x0000010200
+[    0.009374] CPU5: Booted secondary processor 0x0000010300
+[    0.009461] smp: Brought up 1 node, 6 CPUs
+```
+
+6 cores confirmed. CPUs 0–3 are in cluster 0 (MPIDR `0x0000_00XX`); CPUs 4–5 are in cluster 1 (MPIDR `0x0001_02XX`). This matters for CPU affinity — isolating latency-critical threads to one cluster avoids cross-cluster coherence traffic.
+
+#### Security state
+
+```
+[    0.000000] secureboot: Secure boot disabled
+[    0.000000] CPU features: detected: Spectre-v4
+[    0.000000] CPU features: detected: Spectre-BHB
+[    0.000000] CPU features: kernel page table isolation forced ON by KASLR
+[    0.000000] CPU features: detected: Kernel page table isolation (KPTI)
+```
+
+- **Secure boot disabled** — expected on the developer kit out of the box. Enabling it requires fuse programming (covered in the Security section).
+- **Spectre mitigations active** — KPTI and SSBS are on. Small performance cost (~2–5% on syscall-heavy workloads); do not disable in production.
+
+```
+[    3.321122] optee: probing for conduit method.
+[    3.321179] optee: revision 4.2 (d78bc5fa)
+[    3.380504] optee: dynamic shared memory is enabled
+[    3.380768] optee: initialized driver
+```
+
+OP-TEE (Trusted Execution Environment) runs even with secure boot disabled. It provides the secure-world side for key storage, secure storage, and cryptographic operations.
+
+```
+I/TC: WARNING: Failed to get monotonic counter for REE FS, using 0
+I/TC: WARNING: Failed to commit dirh counter 2
+```
+
+> These two OP-TEE warnings appear on every developer kit with secure boot disabled. They mean the secure storage anti-rollback counter cannot be committed to a hardware one-time counter — which requires secure boot fuses to be blown. **Not a bug. Ignore in development.**
+
+#### SMMU (IOMMU)
+
+```
+arm-smmu 8000000.iommu: SMMUv2 with:
+  stage 1 translation, stage 2 translation, nested translation
+  stream matching with 128 register groups
+  128 context banks
+  Stage-1: 48-bit VA -> 48-bit IPA
+  Stage-2: 48-bit IPA -> 48-bit PA
+```
+
+Three SMMUv2 instances serve different peripheral groups. The SMMU enforces DMA isolation — a misbehaving peripheral cannot read arbitrary physical memory. Relevant when writing custom kernel drivers or DMA engines.
+
+#### RTCPU IVC warnings
+
+```
+tegra-ivc-bus bc00000.rtcpu:ivc-bus:echo@0: ivc channel driver missing
+tegra-ivc-bus bc00000.rtcpu:ivc-bus:ivccapture@4: ivc channel driver missing
+```
+
+> These appear when no CSI camera is attached and the `tegra-camrtc` camera real-time engine has nothing to control. **Normal with no camera connected.** They disappear once you attach a camera and load the full V4L2 camera stack.
+
+#### Storage and partitions
+
+```
+[    3.909550] mmc0: new ultra high speed SDR104 SDXC card at address 0001
+[    3.910216] mmcblk0: mmc0:0001 SD16G 117 GiB
+[    3.918828] GPT:Primary header thinks Alt. header is not at the end of the disk.
+[    3.918831] GPT:47044607 != 245759999
+[    3.918837] GPT: Use GNU Parted to correct GPT errors.
+[    3.918855]  mmcblk0: p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15
+```
+
+The GPT warning is expected after flashing: the flash tool writes a partition table sized for the minimum image, but the physical card is much larger. Fix it to use the full card capacity:
+
+```bash
+# On the Jetson (after first boot)
+sudo parted /dev/mmcblk0 ---pretend-input-tty resizepart 1 Yes 100%
+sudo resize2fs /dev/mmcblk0p1
+```
+
+15 partitions is normal for Orin Nano — they include A/B kernel, DTB, firmware blobs, and the rootfs APP partition (p1).
+
+#### nvmap page pool
+
+```
+nvmap_page_pool_init: nvmap page pool size: 243839 pages (952 MB)
+```
+
+nvmap pre-allocates 952 MB of zeroed pages for GPU and multimedia allocations. This comes out of available RAM. On an 8 GB device under memory pressure, reduce it via the `nvmap_pagepoolsize` kernel parameter.
+
+#### First-boot USB serial prompt
+
+```
+[   24.092716] Please complete system configuration setup on the serial port
+               provided by Jetson's USB device mode connection. e.g. /dev/ttyACMx
+```
+
+The Jetson exposes a USB gadget serial port (ACM) during first-boot setup. Connect from the host:
+
+```bash
+sudo screen /dev/ttyACM0 115200
+# or
+sudo minicom -D /dev/ttyACM0 -b 115200
+```
+
+Walk through the Ubuntu initial-setup wizard (locale, user creation, etc.). This only appears once.
+
+#### Boot timing summary (from the log)
+
+| Milestone | Timestamp |
+|-----------|-----------|
+| UEFI hands off to kernel | 0.000 s |
+| All 6 CPUs online | 0.009 s |
+| Kernel drivers loaded | ~3.5 s |
+| Rootfs mounted (mmcblk0p1) | 7.9 s |
+| systemd started | 8.2 s |
+| USB serial config prompt | 24.1 s |
+
+Total cold boot to usable shell: **~25 seconds** from SD card. NVMe reduces this to ~15 seconds.
+
 ---
 
 ## 2. Jetson Hardware Overview
