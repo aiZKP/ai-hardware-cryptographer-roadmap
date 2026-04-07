@@ -19,6 +19,7 @@ Every AI model — GPT, Stable Diffusion, your self-driving car — runs on **sp
 This is a **free, community-driven curriculum** that teaches you to do exactly that. It covers the full stack from the AI application at the top down to the chip design at the bottom — organized as a self-paced learning roadmap with guides, projects, and curated resources.
 
 **You will learn to:**
+
 - Write GPU kernels and parallel code that runs at hardware speed
 - Deploy AI models on real embedded hardware (NVIDIA Jetson, Xilinx FPGA)
 - Understand how ML compilers turn PyTorch into chip instructions

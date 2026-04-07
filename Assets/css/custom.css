@@ -9,7 +9,7 @@
   padding-top: 1.2rem;
 }
 
-/* ── Hero section ─────────────────────────────── */
+/* ── Hero H1 ──────────────────────────────────── */
 .md-content__inner > h1:first-of-type,
 .md-typeset h1 {
   font-size: 2.0rem !important;
@@ -21,36 +21,13 @@
   line-height: 1.15;
 }
 
-/* Tagline paragraph directly under hero H1 */
-.md-content__inner > p:first-of-type strong {
-  font-size: 1.05rem;
-  font-weight: 500;
-}
-
-/* Center the badge row */
-.md-content__inner > p:has(img[src*="shields.io"]) {
-  text-align: center;
-  margin: 0.5rem 0 1rem;
-}
-
 /* Banner image */
 .md-content__inner > p > img[alt="AI Hardware Engineer Roadmap"] {
   display: block;
   margin: 0 auto 0.5rem;
-  max-width: min(720px, 100%);
+  max-width: min(680px, 100%);
   border-radius: 14px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.13);
-}
-
-/* ── Intro paragraph ──────────────────────────── */
-.md-content__inner > p:nth-of-type(3) {
-  font-size: 1.05rem;
-  line-height: 1.75;
-  text-align: center;
-  max-width: 760px;
-  margin: 0 auto 1.8rem;
-  color: var(--md-typeset-color);
-  opacity: 0.9;
 }
 
 /* ── Horizontal rule ──────────────────────────── */
@@ -60,17 +37,12 @@
 }
 
 /* ── Headings ─────────────────────────────────── */
-.md-typeset h1 {
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
 .md-typeset h2 {
   font-weight: 700;
   letter-spacing: -0.01em;
   border-bottom: 2px solid var(--md-primary-fg-color);
-  padding-bottom: 0.35rem;
-  margin-top: 2.2rem;
+  padding-bottom: 0.4rem;
+  margin-top: 2rem;
   margin-bottom: 1rem;
 }
 
@@ -105,11 +77,11 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   background: var(--md-typeset-table-color);
   border-bottom: 2px solid var(--md-primary-fg-color);
   padding: 0.6rem 0.85rem;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .md-typeset table:not([class]) td {
@@ -147,15 +119,15 @@
 
 .md-typeset pre code {
   font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
-  font-size: 0.78em;
-  line-height: 1.5;
+  font-size: 0.8em;
+  line-height: 1.55;
 }
 
 /* ── Blockquotes as callouts ──────────────────── */
 .md-typeset blockquote {
   border-left: 4px solid var(--md-primary-fg-color);
   background: var(--md-admonition-bg-color);
-  padding: 0.75rem 1.2rem;
+  padding: 0.75rem 1.2rem 0.75rem 1.4rem;
   border-radius: 0 8px 8px 0;
   margin: 1.2rem 0;
   font-size: 0.93rem;
@@ -180,7 +152,7 @@
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: 0.01em;
-  opacity: 0.82;
+  opacity: 0.88;
 }
 
 .md-tabs__link--active,
@@ -195,7 +167,7 @@
 }
 
 .md-nav__link {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
 }
 
 /* ── Header ───────────────────────────────────── */
@@ -255,10 +227,18 @@
   }
 }
 
-/* ── Mobile ───────────────────────────────────── */
+/* ── Tablet (≤ 960px) ─────────────────────────── */
+@media screen and (max-width: 960px) {
+  .md-typeset table:not([class]) {
+    font-size: 0.82rem;
+  }
+}
+
+/* ── Mobile (≤ 768px) ─────────────────────────── */
 @media screen and (max-width: 768px) {
-  .md-content__inner > h1:first-of-type {
-    font-size: 1.6rem;
+  .md-content__inner > h1:first-of-type,
+  .md-typeset h1 {
+    font-size: 1.6rem !important;
   }
 
   .md-typeset table:not([class]) {
@@ -268,6 +248,33 @@
   .md-typeset table:not([class]) th,
   .md-typeset table:not([class]) td {
     padding: 0.35rem 0.5rem;
+  }
+
+  .md-header__button.md-logo img,
+  .md-header__button.md-logo svg {
+    height: 1.8rem !important;
+  }
+}
+
+/* ── Small phone (≤ 480px) ────────────────────── */
+@media screen and (max-width: 480px) {
+  .md-content__inner > h1:first-of-type,
+  .md-typeset h1 {
+    font-size: 1.35rem !important;
+    letter-spacing: -0.02em;
+  }
+
+  .md-typeset table:not([class]) {
+    font-size: 0.72rem;
+  }
+
+  .md-typeset table:not([class]) th,
+  .md-typeset table:not([class]) td {
+    padding: 0.28rem 0.4rem;
+  }
+
+  .md-typeset pre code {
+    font-size: 0.72em;
   }
 }
 
