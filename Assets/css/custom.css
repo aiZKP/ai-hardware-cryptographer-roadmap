@@ -29,10 +29,11 @@
 /* Standalone bold label lines (e.g. "You will learn to:") */
 .md-typeset p > strong:only-child {
   display: inline-block;
-  font-size: 0.95rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
-  color: var(--md-primary-fg-color);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-default-fg-color--light);
 }
 
 /* Banner image */
