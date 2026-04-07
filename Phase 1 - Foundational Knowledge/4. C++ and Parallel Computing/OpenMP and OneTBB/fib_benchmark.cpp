@@ -19,9 +19,11 @@ using Ms    = std::chrono::duration<double, std::milli>;
 
 // Below this depth, run sequentially.
 // Avoids task-creation overhead on trivial work.
-// Optimal range: 20–25 on most machines.
+// CUTOFF=25 is optimal for fib(50) on most machines:
+//   too low → too many tiny tasks, scheduler overhead dominates
+//   too high → not enough tasks to keep threads busy
 #ifndef CUTOFF_VAL
-static constexpr int CUTOFF = 20;
+static constexpr int CUTOFF = 25;
 #else
 static constexpr int CUTOFF = CUTOFF_VAL;
 #endif

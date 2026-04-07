@@ -781,14 +781,14 @@ g++ -O2 -std=c++17 -fopenmp fib_benchmark.cpp -ltbb -o fib_benchmark
 ./fib_benchmark
 ```
 
-**Expected output (8-core machine, fib(50)):**
+**Measured output (4-core machine, fib(50), CUTOFF=25):**
 
 ```
-fib(50) = 12586269025   [threads available: 8, cutoff: 20]
+fib(50) = 12586269025   [threads available: 4, cutoff: 25]
 
-serial        42318.7 ms  (baseline)
-openmp         6891.2 ms  (6.14x speedup)
-onetbb         6204.8 ms  (6.82x speedup)
+serial        31887.7 ms  (baseline)
+openmp        14057.1 ms  (2.27x speedup)
+onetbb         9616.4 ms  (3.32x speedup)
 ```
 
 **Why the speedup is sub-linear:**
@@ -804,16 +804,24 @@ The theoretical maximum with `T` threads is `T×` speedup. In practice:
 
 oneTBB's work-stealing scheduler adapts better when branches complete at different rates, which is why it typically edges out OpenMP on irregular recursion.
 
-**CUTOFF sensitivity** — try different values:
+**CUTOFF sensitivity** — measured on a 4-core machine with fib(50):
 
 ```bash
-# Recompile with different cutoff and compare
-g++ -O2 -std=c++17 -fopenmp -DCUTOFF=15 fib_benchmark.cpp -ltbb -o fib_b15 && ./fib_b15
-g++ -O2 -std=c++17 -fopenmp -DCUTOFF=20 fib_benchmark.cpp -ltbb -o fib_b20 && ./fib_b20
-g++ -O2 -std=c++17 -fopenmp -DCUTOFF=25 fib_benchmark.cpp -ltbb -o fib_b25 && ./fib_b25
+for c in 20 25 30 35 40; do
+  g++ -O2 -std=c++17 -fopenmp -DCUTOFF_VAL=$c fib_benchmark.cpp -ltbb -o fib_b$c
+  echo "=== CUTOFF=$c ===" && ./fib_b$c
+done
 ```
 
-Replace `static constexpr int CUTOFF = 20;` with `static constexpr int CUTOFF = CUTOFF_VAL;` and add `-DCUTOFF_VAL=N` to the compile line, or just edit the source directly. CUTOFF=20–25 is optimal on most machines — below 15, task overhead dominates; above 30, you underutilize threads on small inputs.
+| CUTOFF | Tasks spawned | OpenMP speedup | oneTBB speedup |
+|--------|--------------|----------------|----------------|
+| 20 | ~830 K | 1.15x | 2.42x |
+| 25 | ~26 K | **2.27x** | **3.32x** |
+| 30 | ~830 | 1.93x | 3.01x |
+| 35 | ~26 | 2.32x | 2.79x |
+| 40 | ~1 | 1.83x | 2.78x |
+
+CUTOFF=25 is the sweet spot: enough tasks to keep all threads busy, few enough that scheduling overhead doesn't dominate. OpenMP is more sensitive to CUTOFF than oneTBB because work-stealing adapts automatically to load imbalance.
 
 ---
 
