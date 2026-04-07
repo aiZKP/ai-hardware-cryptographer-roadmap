@@ -1076,33 +1076,53 @@ Each leaf calls `body(subrange, 0LL)` — the identity `0LL` means every thread 
 
 ### 3.3 `parallel_scan` — Prefix Sum
 
-Parallel prefix scan: each element `out[i] = f(out[i-1], in[i])`.
+A prefix sum (scan) gives every output element the running total up to that point:
+
+```
+input:  [ 1,  2,  3,  4,  5 ]
+output: [ 1,  3,  6, 10, 15 ]
+         ↑   ↑   ↑   ↑   ↑
+         1  1+2 1+2+3 ...
+```
+
+Naively this is sequential — each output depends on the previous one. `parallel_scan` breaks it into two passes so chunks run in parallel:
+
+```
+Pass 1 — "pre-scan" (is_final = false):
+  Chunk A [0..2]: partial sum = 1+2+3 = 6       (don't write output yet)
+  Chunk B [3..4]: partial sum = 4+5   = 9       (don't write output yet)
+
+Pass 2 — "final scan" (is_final = true):
+  Chunk A [0..2]: carry-in = 0  → write 1, 3, 6
+  Chunk B [3..4]: carry-in = 6  → write 10, 15
+
+Combine: TBB calls combine(6, 9) = 15 to pass carry-in to Chunk B
+```
+
+The body lambda runs **twice per chunk** — once without writing (building partial sums), once with the correct carry-in (filling output). The `is_final` flag tells the body which pass it is.
 
 ```cpp
 #include "oneapi/tbb/parallel_scan.h"
 
-// Parallel inclusive prefix sum
 std::vector<float> in(N), out(N);
 
-parallel_scan(
-    blocked_range<int>(0, N),
-    0.0f,                                         // initial value
-    [&](const blocked_range<int>& r, float running, bool is_final) {
+tbb::parallel_scan(
+    tbb::blocked_range<int>(0, N),
+    0.0f,                   // identity value (carry-in for first chunk)
+    [&](const tbb::blocked_range<int>& r, float running, bool is_final) {
         for (int i = r.begin(); i < r.end(); i++) {
             running += in[i];
             if (is_final)
-                out[i] = running;
+                out[i] = running;   // only write on second pass
         }
-        return running;
+        return running;             // hand partial sum to TBB
     },
-    [](float a, float b) { return a + b; }       // combine
+    [](float a, float b) { return a + b; }   // how to merge two partial sums
 );
 // out[i] = in[0] + in[1] + ... + in[i]
 ```
 
-**`is_final`:** The scan body runs twice per chunk — once to compute partial sums (not final), once with the carry-in to fill output. `is_final == true` means "write to output now".
-
-Use cases: cumulative sums, exclusive scan for compaction, CDF computation.
+Use cases: cumulative sums, exclusive scan for stream compaction, computing CDF from a histogram.
 
 ---
 
@@ -1165,7 +1185,25 @@ parallel_for_each(roots.begin(), roots.end(),
 
 ### 3.6 `parallel_pipeline` — Assembly Line
 
-Pipeline parallelism: data flows through stages. Parallel stages process multiple items concurrently; serial stages maintain order.
+A pipeline is a sequence of stages where each item flows through all stages in order. Unlike a plain `parallel_for` (all items do the same thing), a pipeline lets **different items be at different stages at the same time** — exactly like a factory assembly line.
+
+```
+Without pipeline (serial):          With pipeline (3 items in-flight):
+  Item 1: read → process → write
+  Item 2: read → process → write    read₁ ──► process₁ ──► write₁
+  Item 3: read → process → write    read₂ ──► process₂ ──► write₂
+  (one item at a time)              read₃ ──► process₃ ──► write₃
+                                    (all happening simultaneously)
+```
+
+The key constraint: a **serial** stage runs one item at a time (order preserved). A **parallel** stage runs multiple items simultaneously (order not preserved). You choose per-stage.
+
+```
+Stage 1 (serial_in_order)   Stage 2 (parallel)     Stage 3 (serial_in_order)
+  File reading                 CPU transform           Writing results
+  One file at a time           4 items at once         Must write in order
+  ← can't parallelize          ← CPU-bound here →      ← must be ordered →
+```
 
 ```cpp
 #include "oneapi/tbb/pipeline.h"
@@ -1263,14 +1301,25 @@ tg2.wait();
 
 ### 3.8 `enumerable_thread_specific` — Per-Thread Storage
 
-One of the most important oneTBB features for avoiding false sharing and locks. Gives each thread its own copy of a variable.
+The problem with shared accumulators: every thread writes to the same memory location, causing data races or expensive lock contention.
+
+```
+threads → single hist[]         threads → own hist[]
+  T0: hist[42]++  ─┐              T0: local_hist.local()[42]++   (no contention)
+  T1: hist[42]++  ─┼─ race!       T1: local_hist.local()[42]++   (no contention)
+  T2: hist[42]++  ─┘              T2: local_hist.local()[42]++   (no contention)
+                                                    ↓
+                                  merge all copies at the end
+```
+
+Each thread gets its own isolated copy. They never touch each other during the parallel phase. At the end you iterate over all copies and combine them.
 
 **Problem without it:**
 
 ```cpp
 // WRONG: all threads write to the same histogram → data race
 std::vector<int> hist(256, 0);
-parallel_for(0, N, [&](int i) {
+tbb::parallel_for(0, N, [&](int i) {
     hist[image[i]]++;   // race condition!
 });
 ```
