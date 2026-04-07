@@ -169,31 +169,141 @@ for (int i = 0; i < N; i++) {
 
 **Rule:** use `private` when you always write before read. Use `firstprivate` when you need the original value inside the loop.
 
-A realistic example combining multiple clauses (each variable appears in **exactly one** clause):
+#### When `private` is the right choice
+
+Use `private` when the variable is **purely a scratch/temp** — it gets completely overwritten at the start of every iteration, so the uninitialized value never matters:
 
 ```cpp
-int x = 10;
-int result = 0;
+char buf[64];        // scratch buffer — we always snprintf before using it
+float tmp;           // intermediate result — always assigned before read
+int  row, col;       // 2D indices derived from i — always computed fresh
 
-#pragma omp parallel for \
-    shared(a, b, c, N)  \   // read-only arrays — safe to share
-    firstprivate(x)      \   // each thread starts with x=10, then may modify it
-    reduction(+:result)      // each thread accumulates privately, merged at end
+// All three are scratch: always written first → private is correct
+#pragma omp parallel for private(buf, tmp, row, col)
 for (int i = 0; i < N; i++) {
-    x += i % 3;              // safe: each thread has its own x
-    result += a[i] * x;
+    row = i / COLS;                       // written first
+    col = i % COLS;                       // written first
+    tmp = heavy_compute(matrix[row][col]); // written first
+    snprintf(buf, sizeof(buf), "(%d,%d)=%.2f", row, col, tmp);  // written first
+    store_result(i, buf, tmp);
 }
 ```
 
-| Clause | Meaning |
-|--------|---------|
-| `shared(var)` | All threads share one copy — reads OK, writes need sync |
-| `private(var)` | Each thread gets its own copy, **uninitialized** |
-| `firstprivate(var)` | Each thread gets its own copy, **initialized** from original |
-| `lastprivate(var)` | Private during loop, value from last iteration copied back after |
-| `reduction(op:var)` | Private accumulator per thread, combined with `op` at end |
+Think of it this way: **if you would declare the variable *inside* the loop body, it belongs in `private`**. `private` is just moving a loop-local variable outside (maybe because you need it in the pragma or it's a fixed-size buffer).
 
-> **Rule of thumb:** If all threads only read a variable → `shared`. If each thread writes it independently → `private`. If they accumulate into it → `reduction`.
+```cpp
+// These are equivalent:
+
+// Version A — variable declared inside loop (naturally private, no clause needed)
+#pragma omp parallel for
+for (int i = 0; i < N; i++) {
+    float tmp = a[i] * b[i];   // each iteration's own tmp
+    result[i] = tmp + c[i];
+}
+
+// Version B — variable declared outside, made private with clause
+float tmp;
+#pragma omp parallel for private(tmp)
+for (int i = 0; i < N; i++) {
+    tmp = a[i] * b[i];         // same effect
+    result[i] = tmp + c[i];
+}
+```
+
+> **Prefer Version A** when possible — declare scratch variables inside the loop body. Use `private` only when you *must* declare the variable outside (e.g., fixed-size arrays, C99 VLAs, or compatibility constraints).
+
+---
+
+#### `lastprivate` — Getting the Value from the Last Iteration
+
+`lastprivate` is private during the loop, but after the loop ends, the value from the **sequentially last iteration** (highest `i`) is copied back to the original variable.
+
+**The problem it solves:** after a parallel loop, you sometimes need to know what a variable held in the final iteration — as if the loop ran serially.
+
+```cpp
+// Imagine you're sweeping x from 0.0 to 1.0 and computing sin(x) at each step.
+// After the loop, you want sin(x) at the last step — i.e., sin(x_max).
+
+const int N  = 1000;
+const double dx = 1.0 / (N - 1);
+
+double x      = 0.0;   // current x value
+double sin_x  = 0.0;   // sin at current x
+
+#pragma omp parallel for lastprivate(x, sin_x)
+for (int i = 0; i < N; i++) {
+    x     = i * dx;          // each iteration computes its own x
+    sin_x = std::sin(x);     // and its own sin_x
+    output[i] = sin_x;
+}
+
+// After the loop:
+// x     = (N-1) * dx  = 1.0        ← value from i = N-1 (last iteration)
+// sin_x = sin(1.0)    ≈ 0.8415     ← value from i = N-1 (last iteration)
+printf("At x=%.4f, sin(x)=%.4f\n", x, sin_x);
+```
+
+**What each thread sees vs what you get back:**
+
+```
+Thread 0 processes i = 0..249:
+  last x in its range = 249 * dx = 0.249
+  last sin_x          = sin(0.249)
+
+Thread 1 processes i = 250..499:
+  last x in its range = 499 * dx = 0.499
+  last sin_x          = sin(0.499)
+
+Thread 2 processes i = 500..749:
+  last x  = 0.749,  sin_x = sin(0.749)
+
+Thread 3 processes i = 750..999:   ← sequentially last range
+  last x  = 999 * dx = 1.0        ← THIS gets copied back
+  sin_x   = sin(1.0)              ← THIS gets copied back
+
+After join: x = 1.0, sin_x = sin(1.0) — as if the loop ran serially
+```
+
+> **`lastprivate` copies from the thread that handled the highest `i`**, not the thread that finished last in wall-clock time. The result is deterministic regardless of scheduling.
+
+**Common real use cases:**
+
+| Pattern | Why `lastprivate` |
+|---------|------------------|
+| Running total / recurrence after a sweep | Need final accumulated value |
+| Finding the last element matching a condition | Carry the match out of the loop |
+| Mesh traversal — record position of last node processed | Node index/coords after full sweep |
+| Numerical integration — endpoint value needed post-loop | Value of integrand at upper bound |
+
+**`lastprivate` + `firstprivate` on the same variable** — this *is* legal (they are not the same clause):
+
+```cpp
+double x = 0.5;   // starting x
+
+// firstprivate: each thread starts with x = 0.5
+// lastprivate:  after loop, x = value from last iteration
+#pragma omp parallel for firstprivate(x) lastprivate(x)
+for (int i = 0; i < N; i++) {
+    x = x * 0.99 + i * dx;   // reads x (needs firstprivate) and updates it
+    output[i] = x;
+}
+// x here = value of x after i = N-1, with each thread having started at 0.5
+```
+
+---
+
+#### Full Clause Reference
+
+| Clause | Initialized? | Written back after loop? | Use when |
+|--------|:-----------:|:------------------------:|---------|
+| `shared(var)` | — (one copy) | — (always live) | Read-only inside loop, or safely written with sync |
+| `private(var)` | **No** | No | Scratch — always written before read |
+| `firstprivate(var)` | **Yes** (from original) | No | Needs original value inside loop |
+| `lastprivate(var)` | No | **Yes** (from last `i`) | Need loop's final value after it ends |
+| `firstprivate` + `lastprivate` | **Yes** | **Yes** | Needs original value AND final value |
+| `reduction(op:var)` | Yes (identity) | Yes (combined) | Accumulate across all iterations |
+
+> **Rule of thumb:** If all threads only read → `shared`. Scratch variable → `private`. Needs original value → `firstprivate`. Need value after loop ends → `lastprivate`. Accumulate → `reduction`.
 
 ---
 
