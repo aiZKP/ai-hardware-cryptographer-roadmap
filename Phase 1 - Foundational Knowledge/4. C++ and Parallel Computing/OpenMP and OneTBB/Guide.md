@@ -1833,17 +1833,62 @@ parallel_for()  → returns normally (no exception thrown)
 
 ### 3.16 Work Isolation
 
-By default, a thread waiting on an inner `parallel_for` may execute tasks from the outer scope. Use `this_task_arena::isolate` to prevent this:
+TBB's work-stealing scheduler is aggressive: when a thread finishes a task and is waiting on an inner `parallel_for`, it doesn't idle — it looks for *any* available task in the pool, including tasks from the outer loop. This is great for throughput but dangerous when inner and outer tasks share data.
 
-```cpp
-this_task_arena::isolate([&]{
-    parallel_for(0, N, [](int i) { /* inner work */ });
-});
-// Inner loop uses only threads from the current arena,
-// not tasks from outer parallel regions
+```
+WITHOUT isolate:
+  Outer task i=0 launches inner parallel_for (10 tasks)
+  Outer task i=0's thread waits → steals outer task i=3
+  Now i=0's thread is running i=3 while i=0's inner tasks run on other threads
+  If inner tasks read/write data[i=0...] and outer task i=3 does too → race
+
+WITH isolate:
+  Outer task i=0 launches inner parallel_for inside isolate()
+  Inner tasks are visible ONLY to threads already inside the isolate block
+  Outer threads cannot steal them → no interleaving → safe
 ```
 
-Use when inner and outer work share data structures that can't be accessed concurrently.
+**When you need isolation — three questions:**
+
+1. Does the inner loop write to data that outer tasks also touch?
+2. Is that data not protected by a lock?
+3. Are outer and inner tasks running at the same time?
+
+If all three: use `isolate`.
+
+```cpp
+#include <oneapi/tbb/parallel_for.h>
+#include <oneapi/tbb/this_task_arena.h>
+
+std::vector<int> data(100, 0);
+
+tbb::parallel_for(0, 10, [&](int i) {
+    // outer task owns data[i*10 ... i*10+9]
+    // inner tasks write into exactly that range
+    // → must not be stolen by another outer task's thread
+
+    tbb::this_task_arena::isolate([&] {
+        tbb::parallel_for(0, 10, [&](int j) {
+            data[i*10 + j] += 1;   // safe: isolated from other outer tasks
+        });
+    });
+});
+```
+
+**Without `isolate`:** Thread running outer `i=2` could steal inner tasks belonging to outer `i=7`, then write into `data[20..29]` while `i=2`'s thread is somewhere else writing into `data[20..29]` — data race.
+
+**With `isolate`:** Inner tasks of `i=2` stay inside the isolate block. Only the thread that entered the block (and any helpers *it* spawns internally) can run those inner tasks.
+
+**When NOT to isolate:**
+
+If the inner loop works on independent data (no sharing with outer tasks), isolation only hurts performance — it prevents free threads from helping with the inner work. Leave it out.
+
+| Situation | Use `isolate`? | Reason |
+|-----------|---------------|--------|
+| Inner tasks write to shared outer data | Yes | Prevent data race |
+| Inner tasks read-only from shared data | Usually no | Reads are safe to steal |
+| Inner tasks work on fully independent data | No | Let threads steal freely — faster |
+| Need deterministic per-outer-task execution order | Yes | Isolate forces strict containment |
 
 ---
 
