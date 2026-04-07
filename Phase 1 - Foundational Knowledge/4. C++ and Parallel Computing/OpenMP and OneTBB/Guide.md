@@ -1487,81 +1487,133 @@ input_port<1>(idx).try_put(3.14f);  // send float
 
 ### 3.11 Concurrent Containers
 
-Thread-safe containers for parallel access — no external locking needed.
+**The problem:** standard containers (`std::vector`, `std::map`, `std::queue`) have no internal locking. If two threads write at the same time, you get data corruption, crashes, or silently wrong results.
 
-#### `concurrent_hash_map`
-
-```cpp
-#include "oneapi/tbb/concurrent_hash_map.h"
-
-concurrent_hash_map<std::string, int> freq;
-
-parallel_for_each(words.begin(), words.end(), [&](const std::string& w) {
-    concurrent_hash_map<std::string, int>::accessor acc;  // write lock
-    freq.insert(acc, w);   // acc locks this bucket
-    acc->second++;         // safe: bucket locked by accessor
-});                        // acc destructor releases the lock
-
-// Read-only access: const_accessor (shared lock, multiple readers OK)
-concurrent_hash_map<std::string, int>::const_accessor cacc;
-if (freq.find(cacc, "hello"))
-    printf("hello appears %d times\n", cacc->second);
+```
+std::vector<int> v;                // NOT thread-safe
+parallel_for(0, N, [&](int i) {
+    v.push_back(i);                // ← data race: undefined behaviour
+});
 ```
 
-`accessor` (write lock) and `const_accessor` (read lock) give per-bucket locking — much finer granularity than a single `std::mutex` over a `std::unordered_map`.
+The naive fix — wrapping everything in a `std::mutex` — works but serialises every access. TBB's concurrent containers solve this with fine-grained internal locking or lock-free algorithms:
+
+```
+std::vector + one global mutex     tbb::concurrent_vector
+  Thread 0 writes → LOCK            Thread 0 writes ──┐
+  Thread 1 waits...                  Thread 1 writes ──┤ all at once
+  Thread 2 waits...                  Thread 2 writes ──┘
+  (serialised)                       (concurrent, safe)
+```
+
+> Only use concurrent containers when multiple threads genuinely need to share the same container. If each thread works on its own data, a plain `std::vector` per thread (or `enumerable_thread_specific`) is faster.
 
 #### `concurrent_vector`
 
-Safe for concurrent `push_back` and element access. Iterators and references remain valid after growth.
+Like `std::vector` but safe for concurrent `push_back`. Iterators and references stay valid after growth — unlike `std::vector` which may reallocate.
 
 ```cpp
 #include "oneapi/tbb/concurrent_vector.h"
 
-concurrent_vector<Result> results;
+tbb::concurrent_vector<int> results;
 
-parallel_for(0, N, [&](int i) {
+tbb::parallel_for(0, N, [&](int i) {
     if (passes_filter(i))
-        results.push_back(compute(i));  // thread-safe
+        results.push_back(compute(i));   // safe from any thread
 });
-// results has all passing items (order not guaranteed)
+// results holds all passing items; order is non-deterministic
 ```
 
+When to use: collecting results from a parallel filter where you don't know how many items will pass.
+
 #### `concurrent_queue` / `concurrent_bounded_queue`
+
+Classic producer-consumer queue. `try_pop` is non-blocking (returns false if empty); `pop` on `concurrent_bounded_queue` blocks until an item arrives.
 
 ```cpp
 #include "oneapi/tbb/concurrent_queue.h"
 
-concurrent_queue<WorkItem> queue;
+tbb::concurrent_queue<WorkItem> q;
 
-// Producer thread (can be called from multiple threads)
-queue.push(item);
+// Producer threads — can all push simultaneously
+q.push(item_a);
+q.push(item_b);
 
-// Consumer thread (non-blocking)
+// Consumer threads — non-blocking
 WorkItem item;
-if (queue.try_pop(item)) {
-    process(item);
-}
+if (q.try_pop(item))
+    process(item);   // got one
 
-// Bounded queue — push blocks when full (backpressure)
-concurrent_bounded_queue<WorkItem> bounded(100);  // max 100 items
-bounded.push(item);   // blocks if full
-bounded.pop(item);    // blocks if empty
+// Bounded variant — adds backpressure (push blocks when full)
+tbb::concurrent_bounded_queue<WorkItem> bounded(100);
+bounded.push(item);   // blocks if 100 items already queued
+bounded.pop(item);    // blocks if queue is empty
 ```
+
+When to use: streaming pipelines where producers and consumers run at different rates.
+
+#### `concurrent_hash_map`
+
+High-concurrency key-value store. Uses per-bucket locking — only the bucket being written is locked, so unrelated keys never contend.
+
+```cpp
+#include "oneapi/tbb/concurrent_hash_map.h"
+
+tbb::concurrent_hash_map<std::string, int> freq;
+
+tbb::parallel_for_each(words.begin(), words.end(), [&](const std::string& w) {
+    tbb::concurrent_hash_map<std::string, int>::accessor acc;  // write lock
+    freq.insert(acc, w);   // locks only the bucket for key w
+    acc->second++;         // safe: this thread owns the bucket
+});                        // accessor destructor releases the lock
+
+// Read-only (shared lock — many readers can hold this simultaneously)
+tbb::concurrent_hash_map<std::string, int>::const_accessor cacc;
+if (freq.find(cacc, "hello"))
+    printf("hello: %d\n", cacc->second);
+```
+
+`accessor` = write lock (exclusive). `const_accessor` = read lock (shared). Multiple threads can hold `const_accessor` on the same key simultaneously.
+
+#### `concurrent_unordered_map`
+
+Simpler API — drop-in for `std::unordered_map`, no accessor needed. Individual insertions and lookups are thread-safe, but iteration while modifying is not.
+
+```cpp
+#include "oneapi/tbb/concurrent_unordered_map.h"
+
+tbb::concurrent_unordered_map<int, int> m;
+
+tbb::parallel_for(0, N, [&](int i) {
+    m.insert({i, i * i});    // safe
+    // m[i] = i * i;         // also safe for insert; avoid for update
+});
+```
+
+Use `concurrent_hash_map` when you need read-modify-write atomicity (e.g., incrementing a counter). Use `concurrent_unordered_map` when you only insert-or-lookup with no partial updates.
 
 #### `concurrent_priority_queue`
 
 ```cpp
 #include "oneapi/tbb/concurrent_priority_queue.h"
 
-concurrent_priority_queue<int> pq;
-
-pq.push(10);
-pq.push(5);
-pq.push(20);
+tbb::concurrent_priority_queue<int> pq;
+pq.push(10); pq.push(5); pq.push(20);
 
 int top;
-pq.try_pop(top);  // top = 20 (max by default)
+pq.try_pop(top);   // top = 20 (max-heap by default)
 ```
+
+#### Container comparison
+
+| Container | Analogy | Key operation | Use for |
+|-----------|---------|---------------|---------|
+| `concurrent_vector` | Shared notepad | `push_back` | Collecting parallel results |
+| `concurrent_queue` | Shared inbox | `push` / `try_pop` | Producer-consumer pipelines |
+| `concurrent_bounded_queue` | Inbox with size limit | blocking `push`/`pop` | Backpressure control |
+| `concurrent_hash_map` | Shared dictionary (with door locks per entry) | `accessor` read-modify-write | Word counts, shared caches |
+| `concurrent_unordered_map` | Shared dictionary (simpler) | `insert` / `find` | Insert-once lookup tables |
+| `concurrent_priority_queue` | Shared task queue sorted by priority | `push` / `try_pop` | Priority scheduling |
 
 ---
 
@@ -1589,43 +1641,75 @@ Most impactful when many threads frequently allocate/free small objects (task ob
 
 ### 3.13 `task_arena` — Control Thread Pool
 
-`task_arena` lets you isolate work into a dedicated thread pool, control thread count, and bind to specific NUMA nodes.
+By default, TBB creates one global thread pool that uses all hardware threads. Every `parallel_for`, `parallel_reduce`, etc. draws from that pool. `task_arena` lets you create a **separate, bounded execution zone** with its own concurrency limit and optionally pinned to specific NUMA nodes.
+
+```
+Default (global arena):          With task_arena:
+  All 16 hardware threads          arena(4) → max 4 threads
+  shared by everything             Work inside it can't steal
+  ← any parallel_for steals        from the global pool
+     from any other
+```
+
+**`task_arena` does NOT create new OS threads.** TBB's worker threads can participate in multiple arenas. What the arena controls is how many of them are *allowed in* at once.
+
+#### Basic usage — limit parallelism
 
 ```cpp
 #include "oneapi/tbb/task_arena.h"
+#include "oneapi/tbb/parallel_for.h"
 
-// Create a pool of 4 threads (instead of using the global pool)
-task_arena arena(4);
+tbb::task_arena arena(2);   // at most 2 threads
 
-arena.execute([&]{
-    parallel_for(0, N, [&](int i) {
-        c[i] = a[i] + b[i];
+arena.execute([&] {
+    tbb::parallel_for(0, 1000, [](int i) {
+        // runs with at most 2 threads regardless of core count
+        do_work(i);
     });
 });
-// parallel_for ran on at most 4 threads inside arena
+```
 
-// NUMA-aware: pin arena to socket 1
-task_arena numa_arena(task_arena::constraints{}
-    .set_numa_id(1)           // socket 1
-    .set_max_concurrency(8)   // 8 threads
+Useful when your program shares the CPU with a GPU or another process and you want to leave headroom.
+
+#### Two independent subsystems
+
+```cpp
+tbb::task_arena physics(4);   // physics simulation: 4 threads
+tbb::task_arena render(4);    // rendering: 4 threads
+
+// Launch both concurrently — they draw from separate thread budgets
+// No work-stealing between them
+std::thread t1([&]{ physics.execute([&]{ parallel_for(0, N, sim_body);    }); });
+std::thread t2([&]{ render.execute( [&]{ parallel_for(0, M, render_body); }); });
+t1.join(); t2.join();
+```
+
+Without arenas, TBB's global pool would intermix work from both subsystems — threads doing physics could be stolen away to help with rendering mid-frame. Arenas prevent that.
+
+#### NUMA-aware pinning (multi-socket servers)
+
+```cpp
+tbb::task_arena numa_arena(
+    tbb::task_arena::constraints{}
+        .set_numa_id(1)            // bind to NUMA socket 1
+        .set_max_concurrency(8)    // use up to 8 threads from that socket
 );
 
 numa_arena.execute([&]{
-    parallel_for(0, N, body);
+    parallel_for(0, N, body);     // threads stay on socket 1's cores
 });
+// Data allocated on socket 1 memory is accessed locally → lower latency
 ```
 
-**Isolation:** Work inside `arena.execute()` does not mix with work in the global arena. This is important when you have multiple independent parallel subsystems that shouldn't steal from each other.
+#### When to use `task_arena`
 
-```cpp
-// Two independent subsystems with separate thread pools
-task_arena system_a(4), system_b(4);
-
-// These run in their own isolated pools — no work stealing between them
-std::thread t1([&]{ system_a.execute([&]{ parallel_for(0, N, body_a); }); });
-std::thread t2([&]{ system_b.execute([&]{ parallel_for(0, N, body_b); }); });
-t1.join(); t2.join();
-```
+| Scenario | Why `task_arena` helps |
+|----------|----------------------|
+| CPU + GPU running simultaneously | Limit CPU threads so GPU isn't starved for PCIe bandwidth |
+| UI application with background processing | Prevent background `parallel_for` from consuming all cores |
+| Multiple independent subsystems | Isolate them so one can't steal from the other |
+| NUMA system (multi-socket server) | Pin arenas to sockets to keep data access local |
+| Debugging: make parallel code deterministic | `task_arena(1)` forces single-thread execution |
 
 ---
 
