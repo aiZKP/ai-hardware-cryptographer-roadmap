@@ -31,11 +31,11 @@ This is a **free, community-driven curriculum** that teaches you to do exactly t
 
 | Background | What you'll get from this |
 |------------|--------------------------|
-| **Software engineer** wanting to go deeper into AI infrastructure | CUDA, parallel computing, ML compilers, GPU runtimes |
-| **ML / AI engineer** who wants to understand the hardware | How chips work, why quantization matters, how to optimize inference |
-| **Embedded / firmware engineer** moving into AI products | AI workloads, edge deployment, Jetson, sensor fusion |
-| **Computer science student** aiming at AI hardware roles | A structured curriculum from foundations to specialization |
-| **Hardware engineer** adding AI/software skills | Neural networks, CUDA, ML frameworks, model optimization |
+| Software engineer wanting to go deeper into AI infrastructure | CUDA, parallel computing, ML compilers, GPU runtimes |
+| ML / AI engineer who wants to understand the hardware | How chips work, why quantization matters, how to optimize inference |
+| Embedded / firmware engineer moving into AI products | AI workloads, edge deployment, Jetson, sensor fusion |
+| Computer science student aiming at AI hardware roles | A structured curriculum from foundations to specialization |
+| Hardware engineer adding AI/software skills | Neural networks, CUDA, ML frameworks, model optimization |
 
 ---
 

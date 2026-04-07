@@ -114,10 +114,6 @@
   background: var(--md-accent-fg-color--transparent);
 }
 
-/* First column bold — layer labels, platform names */
-.md-typeset table:not([class]) td:first-child {
-  font-weight: 600;
-}
 
 /* ── Code blocks ──────────────────────────────── */
 .md-typeset code {
