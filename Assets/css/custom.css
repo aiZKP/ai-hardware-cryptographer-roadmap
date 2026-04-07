@@ -212,10 +212,10 @@
 .md-header__button.md-logo img,
 .md-header__button.md-logo svg {
   fill: currentcolor;
-  display: block;
-  height: 2.4rem;
-  width: auto;
-  border-radius: 6px;
+  display: block !important;
+  height: 2.4rem !important;
+  width: auto !important;
+  border-radius: 6px !important;
 }
 
 /* ── Footer ───────────────────────────────────── */
