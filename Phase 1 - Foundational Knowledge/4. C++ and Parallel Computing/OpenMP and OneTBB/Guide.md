@@ -2045,6 +2045,126 @@ input_port<0>(idx).try_put(42);     // send int
 input_port<1>(idx).try_put(3.14f);  // send float
 ```
 
+#### Complete Example — Real-Time Video Inference Pipeline
+
+A practical AI video pipeline: read frames, preprocess in parallel, run inference, reorder to original sequence, limit memory, display.
+
+```
+  input_node ──► broadcast ──► preprocess (parallel) ──► join ──► inference
+                                                                       │
+  display ◄── limiter ◄── sequencer ◄── postprocess ◄─────────────────┘
+```
+
+```cpp
+#include "oneapi/tbb/flow_graph.h"
+#include <cstdio>
+#include <tuple>
+#include <vector>
+using namespace oneapi::tbb::flow;
+
+struct Frame {
+    int           id;             // sequence number for reordering
+    std::vector<float> pixels;   // raw pixel data
+};
+
+struct Detection {
+    int   frame_id;
+    float confidence;
+    int   class_id;
+};
+
+// ── Simulated pipeline functions ─────────────────────────────────────────────
+Frame      read_frame(int id)          { return {id, std::vector<float>(224*224*3, 0.5f)}; }
+Frame      resize_normalize(Frame f)   { /* resize to 224×224, normalize [0,1] */ return f; }
+Frame      color_convert(Frame f)      { /* BGR → RGB */ return f; }
+Detection  run_inference(std::tuple<Frame,Frame> t) {
+    // both preprocessed versions available — use whichever suits your model
+    const Frame& f = std::get<0>(t);
+    return {f.id, 0.95f, 1};
+}
+Detection  draw_boxes(Detection d)     { printf("frame %d  class=%d  conf=%.2f\n",
+                                                d.frame_id, d.class_id, d.confidence);
+                                         return d; }
+void       display_or_save(Detection d){ /* write to screen or file */ }
+
+int main() {
+    const int TOTAL_FRAMES = 20;
+    const int MAX_INFLIGHT  = 8;   // limiter: max frames queued at once
+
+    graph g;
+
+    // ── Stage 1: source — emit frames one at a time ───────────────────────────
+    int frame_counter = 0;
+    input_node<Frame> source(g, [&](oneapi::tbb::flow_control& fc) -> Frame {
+        if (frame_counter >= TOTAL_FRAMES) { fc.stop(); return {}; }
+        return read_frame(frame_counter++);
+    });
+
+    // ── Stage 2: broadcast — send each frame to both preprocess branches ──────
+    broadcast_node<Frame> broadcast(g);
+
+    // ── Stage 3: parallel preprocess branches ────────────────────────────────
+    function_node<Frame, Frame> preprocess_a(g, unlimited, resize_normalize);
+    function_node<Frame, Frame> preprocess_b(g, unlimited, color_convert);
+
+    // ── Stage 4: join — wait for both preprocessed versions ──────────────────
+    join_node<std::tuple<Frame, Frame>> join(g);
+
+    // ── Stage 5: inference — CPU/GPU model (parallel across frames) ──────────
+    function_node<std::tuple<Frame,Frame>, Detection> inference(g, unlimited, run_inference);
+
+    // ── Stage 6: postprocess — draw bounding boxes ───────────────────────────
+    function_node<Detection, Detection> postprocess(g, unlimited, draw_boxes);
+
+    // ── Stage 7: sequencer — restore original frame order ────────────────────
+    sequencer_node<Detection> sequencer(g,
+        [](const Detection& d) -> size_t { return d.frame_id; }
+    );
+
+    // ── Stage 8: limiter — bound memory: max MAX_INFLIGHT frames in-flight ───
+    limiter_node<Detection> limiter(g, MAX_INFLIGHT);
+
+    // ── Stage 9: sink — display or write to file ──────────────────────────────
+    function_node<Detection, continue_msg> sink(g, serial,
+        [&](const Detection& d) -> continue_msg {
+            display_or_save(d);
+            return {};
+        }
+    );
+
+    // ── Wire the graph ────────────────────────────────────────────────────────
+    make_edge(source,        broadcast);
+    make_edge(broadcast,     preprocess_a);
+    make_edge(broadcast,     preprocess_b);
+    make_edge(preprocess_a,  input_port<0>(join));
+    make_edge(preprocess_b,  input_port<1>(join));
+    make_edge(join,          inference);
+    make_edge(inference,     postprocess);
+    make_edge(postprocess,   sequencer);
+    make_edge(sequencer,     limiter);
+    make_edge(limiter,       sink);
+    make_edge(sink,          limiter.decrement);  // release token when frame is done
+
+    // ── Run ───────────────────────────────────────────────────────────────────
+    source.activate();     // start emitting frames
+    g.wait_for_all();      // block until all frames are processed
+}
+```
+
+**Why each node is necessary:**
+
+| Node | Role | Why it's needed |
+|------|------|----------------|
+| `input_node` | Reads frames | Serial I/O source |
+| `broadcast_node` | Fan-out | Sends same frame to both preprocess branches |
+| `preprocess_a/b` | Parallel | Resize and color convert run simultaneously |
+| `join_node` | Fan-in | Inference needs both versions before starting |
+| `inference` | Parallel | Different frames infer independently |
+| `postprocess` | Parallel | Draw boxes — independent per frame |
+| `sequencer_node` | Reorder | Parallel inference may finish out of order |
+| `limiter_node` | Backpressure | Prevents 1000 frames buffering in RAM while display is slow |
+| `sink` | Output | Serial write to screen/file |
+
 > **Always call `g.wait_for_all()`** before the graph object is destroyed. Destroying a live graph is undefined behavior.
 
 ---
