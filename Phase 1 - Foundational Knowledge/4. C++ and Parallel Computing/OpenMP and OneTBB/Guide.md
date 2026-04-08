@@ -1723,66 +1723,64 @@ tg2.wait();
 
 ### 2.8 Per-Thread Storage — `enumerable_thread_specific`
 
-The problem with shared accumulators: every thread writes to the same memory location, causing data races or expensive lock contention.
+When multiple threads update the same data structure (histogram, accumulator, buffer), you have three options:
+
+| Approach | Mechanism | Problem |
+|----------|-----------|---------|
+| Shared variable | Nothing | Data race — undefined behavior |
+| Mutex | `std::mutex` + lock | Serializes threads — kills parallelism |
+| `atomic` | Hardware instruction | Only works for a single integer/float, not a vector |
+| **ETS** | **Per-thread copy** | **No contention at all — each thread owns its data** |
+
+ETS gives every thread its own private copy. Threads never touch each other's data during the parallel phase. At the end, you iterate over all copies and merge them once.
 
 ```
-threads → single hist[]         threads → own hist[]
-  T0: hist[42]++  ─┐              T0: local_hist.local()[42]++   (no contention)
-  T1: hist[42]++  ─┼─ race!       T1: local_hist.local()[42]++   (no contention)
-  T2: hist[42]++  ─┘              T2: local_hist.local()[42]++   (no contention)
-                                                    ↓
-                                  merge all copies at the end
+parallel phase:                          merge phase:
+  T0 → local_hist[0] ──────────────────► global_hist
+  T1 → local_hist[1] ──────────────────►     +=
+  T2 → local_hist[2] ──────────────────►     +=
+  T3 → local_hist[3] ──────────────────►     +=
+  (zero contention)                     (single-threaded, once)
 ```
 
-Each thread gets its own isolated copy. They never touch each other during the parallel phase. At the end you iterate over all copies and combine them.
-
-**Problem without it** (same data race as section 2.2 — multiple threads writing to the same location):
+**Histogram — wrong vs right:**
 
 ```cpp
-// WRONG: all threads write to the same histogram → data race
+// WRONG: data race — multiple threads increment the same bin
 std::vector<int> hist(256, 0);
 tbb::parallel_for(0, N, [&](int i) {
-    hist[image[i]]++;   // race condition!
+    hist[image[i]]++;   // T0 and T1 may both read 5, both write 6 → lost update
 });
-```
 
-**Fix with `enumerable_thread_specific`:**
-
-```cpp
+// RIGHT: each thread has its own histogram, merge once at the end
 #include "oneapi/tbb/enumerable_thread_specific.h"
 
-// Each thread gets its own private histogram
 enumerable_thread_specific<std::vector<int>> local_hist(
-    []{ return std::vector<int>(256, 0); }  // factory: how to create each copy
+    []{ return std::vector<int>(256, 0); }  // factory called once per thread
 );
 
-parallel_for(0, N, [&](int i) {
+tbb::parallel_for(0, N, [&](int i) {
     local_hist.local()[image[i]]++;   // .local() returns THIS thread's copy
 });
 
-// Combine all per-thread histograms into one
 std::vector<int> global_hist(256, 0);
-for (auto& h : local_hist) {          // iterate over all thread-local copies
+for (auto& h : local_hist)           // one entry per thread that called .local()
     for (int k = 0; k < 256; k++)
         global_hist[k] += h[k];
-}
 ```
 
-**Mechanics:**
-- `.local()` returns a reference to this thread's copy. Creates it on first call.
-- Iterating over `local_hist` gives one copy per thread that called `.local()`.
-- Zero lock contention during the parallel phase.
-
-**Another example — thread-local sum:**
+**Thread-local sum:**
 
 ```cpp
 enumerable_thread_specific<float> thread_sum(0.0f);
 
-parallel_for(blocked_range<int>(0, N), [&](const blocked_range<int>& r) {
-    float& my_sum = thread_sum.local();
-    for (int i = r.begin(); i < r.end(); i++)
-        my_sum += a[i];
-});
+tbb::parallel_for(tbb::blocked_range<int>(0, N),
+    [&](const tbb::blocked_range<int>& r) {
+        float& my = thread_sum.local();
+        for (int i = r.begin(); i < r.end(); i++)
+            my += a[i];
+    }
+);
 
 float total = 0.0f;
 for (float s : thread_sum) total += s;
@@ -1791,17 +1789,19 @@ for (float s : thread_sum) total += s;
 **Construction options:**
 
 ```cpp
-// Default-constructed value
-enumerable_thread_specific<int> ets1;          // each copy = int{}
+enumerable_thread_specific<int> ets1;         // default-constructed: int{} = 0
+enumerable_thread_specific<int> ets2(42);     // value-initialized: each copy = 42
 
-// Value-initialized
-enumerable_thread_specific<int> ets2(42);      // each copy = 42
-
-// Factory function (for non-copyable or expensive init)
+// Factory for non-trivial types (vector, map, custom objects)
 enumerable_thread_specific<std::vector<int>> ets3(
-    []{ return std::vector<int>(1024, 0); }
+    []{ return std::vector<int>(1024, 0); }   // called once per thread on first .local()
 );
 ```
+
+**Key mechanics:**
+- `.local()` creates the copy on first call for that thread, returns a reference on subsequent calls
+- Range-for over an ETS object iterates over all copies that were actually created
+- If a thread never calls `.local()`, no copy is created for it — no wasted memory
 
 ---
 
