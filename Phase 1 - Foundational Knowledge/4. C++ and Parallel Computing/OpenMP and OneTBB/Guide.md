@@ -618,6 +618,46 @@ result = fib(50);
 | `taskwait` | Suspends the current task until all child tasks finish |
 | `single` | Only one thread spawns tasks; the rest execute them. Without it, every thread would spawn the full tree → exponential task explosion |
 
+**How the recursion tree maps to tasks — `fib(6)` example:**
+
+`fib(6)` produces 25 nodes total. Each internal node above the cutoff becomes a task; leaves (`fib(0)`, `fib(1)`) return immediately.
+
+```
+fib(6)                                ← T0 spawns fib(5) and fib(4), then taskwait
+├─ fib(5)                             ← T1 picks up, spawns fib(4) and fib(3)
+│  ├─ fib(4)                          ← T2 picks up, spawns fib(3) and fib(2)
+│  │  ├─ fib(3)                       ← T3 picks up, spawns fib(2) and fib(1)
+│  │  │  ├─ fib(2) → fib(1)+fib(0)   ← returns 1 immediately (leaf)
+│  │  │  └─ fib(1)                    ← returns 1 immediately (leaf)
+│  │  └─ fib(2) → fib(1)+fib(0)      ← returns 1 immediately (leaf)
+│  └─ fib(3)
+│     ├─ fib(2) → fib(1)+fib(0)
+│     └─ fib(1)
+└─ fib(4)                             ← T2 (or T3) steals this after finishing above
+   ├─ fib(3)
+   │  ├─ fib(2) → fib(1)+fib(0)
+   │  └─ fib(1)
+   └─ fib(2) → fib(1)+fib(0)
+```
+
+**Execution flow with 4 threads:**
+
+```
+time →
+
+T0: [spawn fib(5), fib(4)] [taskwait........] [return 5+3=8]
+T1: [fib(5): spawn fib(4),fib(3)] [taskwait] [return 3+2=5]
+T2: [fib(4): spawn fib(3),fib(2)] [taskwait] [return 2+1=3] [steal fib(4)→return 3]
+T3: [fib(3): spawn fib(2),fib(1)] [return 1+0+1=2]          [fib(3)→return 2]
+     ↑                                ↑
+  tasks created                 threads steal work
+  and queued                    as soon as they're idle
+```
+
+**Key insight — `single` does not bottleneck:**  T0 spawns only the top two tasks (`fib(n-1)` and `fib(n-2)`), then immediately hits `taskwait` and is available to execute other tasks. By the time T0 is done spawning, T1–T3 are already recursively creating and consuming the subtrees. No thread ever sits idle as long as the queue has work.
+
+For `fib(50)` with cutoff=25, the recursion produces ~fib(25) ≈ 75,000 tasks above the cutoff — more than enough to keep any number of cores busy.
+
 ---
 
 ### 1.12 Thread Info and Environment
