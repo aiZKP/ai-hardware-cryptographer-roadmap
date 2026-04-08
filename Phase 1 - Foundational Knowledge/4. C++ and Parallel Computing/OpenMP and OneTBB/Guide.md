@@ -2045,6 +2045,25 @@ input_port<0>(idx).try_put(42);     // send int
 input_port<1>(idx).try_put(3.14f);  // send float
 ```
 
+#### Starter Template — Linear Video Pipeline
+
+A minimal but complete linear pipeline: source → limiter → preprocess → inference → postprocess → sequencer → output. Copy [`video_pipeline_template.cpp`](video_pipeline_template.cpp), replace the four stub functions, and it's ready to run.
+
+```
+input_node → limiter → preprocess → inference → postprocess → sequencer → output
+                ▲                                                               │
+                └───────────────────── decrement ◄──────────────────────────────┘
+```
+
+Limiter is placed **before** preprocessing so no more than `MAX_INFLIGHT` frames ever enter the pipeline. The `decrement` edge feeds back from the output stage to release one slot each time a frame completes.
+
+```bash
+g++ -O2 -std=c++17 video_pipeline_template.cpp -ltbb -o video_pipeline
+./video_pipeline
+```
+
+---
+
 #### Complete Example — Real-Time Video Inference Pipeline
 
 A practical AI video pipeline: read frames, preprocess in parallel, run inference, reorder to original sequence, limit memory, display.
