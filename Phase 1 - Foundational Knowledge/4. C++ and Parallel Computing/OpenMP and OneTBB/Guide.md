@@ -1834,7 +1834,33 @@ Use `combinable` when you just want a thread-local accumulator. Use `enumerable_
 
 ### 2.10 Flow Graph — Data Flow and Dependence Graphs
 
-For expressing complex parallel patterns as a graph of nodes and edges. The runtime automatically runs nodes when their inputs are ready — no manual synchronization.
+For expressing complex parallel patterns as a graph of nodes and edges. The runtime automatically runs nodes when their inputs are ready — no manual synchronization needed.
+
+```
+Node   = a worker (function, buffer, join, split, ...)
+Edge   = a channel that carries data tokens between nodes
+Token  = one unit of data flowing through the graph
+
+            try_put(5)
+                │
+         ┌──────┴──────┐
+         ▼             ▼
+   ┌──────────┐   ┌──────────┐   ← run in parallel (unlimited concurrency)
+   │  square  │   │   cube   │
+   │  x → x² │   │  x → x³  │
+   └────┬─────┘   └────┬─────┘
+        │ port 0        │ port 1
+        └──────┬────────┘
+               ▼
+         ┌──────────┐             ← waits for one token on each port
+         │   join   │
+         └────┬─────┘
+              ▼
+         ┌──────────┐             ← serial (concurrency = 1)
+         │  printer │
+         │ (sq, cu) │
+         └──────────┘
+```
 
 ```cpp
 #include "oneapi/tbb/flow_graph.h"
@@ -1866,6 +1892,73 @@ square.try_put(5);
 cube.try_put(5);
 
 g.wait_for_all();  // always wait before graph goes out of scope
+```
+
+**ML example — parallel feature extraction with fan-out/join:**
+
+Extract three independent features from each input frame, then combine and score:
+
+```
+                    ┌─────────────────┐
+         frame ──►  │  broadcast_node │
+                    └────┬───────┬────┘
+                         │       │       │
+                    ┌────┴──┐ ┌──┴───┐ ┌─┴─────┐
+                    │  HOG  │ │  LBP │ │  DCT  │   ← parallel feature extractors
+                    └────┬──┘ └──┬───┘ └─┬─────┘
+                         └───────┴────────┘
+                                 │
+                           ┌─────┴─────┐
+                           │   join    │           ← wait for all three features
+                           └─────┬─────┘
+                                 │
+                           ┌─────┴─────┐
+                           │  scorer   │           ← combine features → score
+                           └───────────┘
+```
+
+```cpp
+struct Frame  { std::vector<float> data; };
+struct Score  { float value; };
+
+graph g;
+
+// Fan-out: send each frame to all three extractors simultaneously
+broadcast_node<Frame> broadcast(g);
+
+function_node<Frame, std::vector<float>> hog(g, unlimited,
+    [](const Frame& f) { return extract_hog(f); });
+function_node<Frame, std::vector<float>> lbp(g, unlimited,
+    [](const Frame& f) { return extract_lbp(f); });
+function_node<Frame, std::vector<float>> dct(g, unlimited,
+    [](const Frame& f) { return extract_dct(f); });
+
+// Fan-in: wait for all three features before scoring
+using FeatureTuple = std::tuple<std::vector<float>,
+                                std::vector<float>,
+                                std::vector<float>>;
+join_node<FeatureTuple> join(g);
+
+function_node<FeatureTuple, Score> scorer(g, unlimited,
+    [](const FeatureTuple& t) {
+        return score(std::get<0>(t), std::get<1>(t), std::get<2>(t));
+    }
+);
+
+// Wire
+make_edge(broadcast, hog);
+make_edge(broadcast, lbp);
+make_edge(broadcast, dct);
+make_edge(hog, input_port<0>(join));
+make_edge(lbp, input_port<1>(join));
+make_edge(dct, input_port<2>(join));
+make_edge(join, scorer);
+
+// Process frames
+for (auto& frame : frames)
+    broadcast.try_put(frame);
+
+g.wait_for_all();
 ```
 
 #### All Key Node Types
