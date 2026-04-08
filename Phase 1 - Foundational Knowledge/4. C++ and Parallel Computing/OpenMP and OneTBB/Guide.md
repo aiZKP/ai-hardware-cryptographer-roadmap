@@ -1204,88 +1204,72 @@ float result = parallel_deterministic_reduce(
 // Floating-point result identical on every run
 ```
 
-#### Complete Example 3 — Monte Carlo π Estimation
+#### Complete Example 3 — Mean Squared Error (MSE)
 
-Monte Carlo π estimation is a classic parallel workload: throw random points at a unit square, count how many land inside the quarter-circle, then estimate π from the ratio.
-
-```
-  1 ┤        ╭──────╮
-    │      ╭─╯      │
-    │    ╭─╯  ●●●   │   ● = inside circle  (x²+y² ≤ 1)
-    │  ╭─╯ ●●●●●●●  │   ○ = outside circle
-    │ ─╯ ●●●●●●●●●  │
-    │  ○○○●●●●●●●●  │
-    │  ○○○○●●●●●●●  │
-    │  ○○○○○●●●●●   │
-  0 ┼──────────────── 1
-       π ≈ 4 × (hits / total)
-```
-
-**`parallel_reduce` lambda form — complete example:**
+MSE is computed after every forward pass during training: sum `(pred - target)²` over all samples, divide by N. Each element is independent — a direct parallel reduction.
 
 ```cpp
 #include <oneapi/tbb.h>
 #include <iostream>
-#include <random>
+#include <vector>
 
 int main() {
-    const size_t N = 10'000'000;
+    const int N = 10'000'000;
 
-    // parallel_reduce<Range, Value>(range, identity, body, combine)
-    //
-    //  body(range, running_value) → new_value   (reduce a chunk)
-    //  combine(a, b)              → merged      (merge two chunk results)
-    long long hits = oneapi::tbb::parallel_reduce(
-        oneapi::tbb::blocked_range<size_t>(0, N),
+    // Simulated model predictions and ground-truth targets
+    std::vector<float> pred(N), target(N);
+    for (int i = 0; i < N; ++i) {
+        pred[i]   = static_cast<float>(i % 100) / 100.0f;        // [0.00, 0.99]
+        target[i] = static_cast<float>((i + 1) % 100) / 100.0f;  // [0.01, 1.00]
+    }
 
-        0LL,          // identity — each thread starts its partial count at 0
+    // parallel_reduce arguments:
+    //   1. range    — what to iterate over
+    //   2. identity — each thread's partial sum starts at 0
+    //   3. body     — reduce a subrange into a partial sum
+    //   4. combine  — merge two partial sums into one
+    float sum_sq = oneapi::tbb::parallel_reduce(
+        oneapi::tbb::blocked_range<int>(0, N),
 
-        // ── body: called once per subrange, on the thread that owns it ──
-        [](const oneapi::tbb::blocked_range<size_t>& r, long long init) {
-            // Construct a separate RNG per invocation.
-            // A single shared mt19937 would need a mutex on every call,
-            // serializing the whole loop. Per-thread RNGs = zero contention.
-            std::mt19937 rng(std::random_device{}());
-            std::uniform_real_distribution<double> dist(0.0, 1.0);
+        0.0f,   // identity
 
-            for (size_t i = r.begin(); i < r.end(); ++i) {
-                double x = dist(rng), y = dist(rng);
-                if (x*x + y*y <= 1.0) ++init;   // accumulate into running total
+        [&](const oneapi::tbb::blocked_range<int>& r, float init) {
+            for (int i = r.begin(); i < r.end(); ++i) {
+                float diff = pred[i] - target[i];
+                init += diff * diff;
             }
-            return init;   // hand partial count back to TBB
+            return init;
         },
 
-        // ── combine: called to merge two partial counts into one ──
-        std::plus<long long>{}
+        std::plus<float>{}   // combine
     );
 
-    double pi = 4.0 * hits / N;
-    std::cout << "Estimated π = " << pi << "\n";
-    // Typical output: Estimated π = 3.14159...
+    float mse = sum_sq / N;
+    std::cout << "MSE = " << mse << "\n";   // ~0.003267
 }
 ```
 
 **How TBB splits and joins the work:**
 
 ```
-           parallel_reduce(blocked_range(0, 10M), 0LL, body, combine)
+           parallel_reduce(blocked_range(0, 10M), 0.0f, body, combine)
                               [0 … 10,000,000)
                              /                \
                             /                  \
                 [0 … 5,000,000)          [5,000,000 … 10M)
                /               \         /               \
        [0…2.5M)           [2.5M…5M)  [5M…7.5M)     [7.5M…10M)
-       hits=1,963k        hits=1,964k hits=1,963k   hits=1,964k
+       sum=8,167.5        sum=8,167.5 sum=8,167.5   sum=8,167.5
               \               /         \               /
            combine(a,b) = a+b           combine(a,b) = a+b
-               hits=3,927k                  hits=3,927k
+               sum=16,335.0                 sum=16,335.0
                           \                 /
                            combine(a,b) = a+b
-                               hits=7,854k
-                           π ≈ 4×7,854k/10M ≈ 3.1416
+                               sum=32,670.0
+                           MSE = 32,670.0 / 10M ≈ 0.003267
 ```
 
-Each leaf calls `body(subrange, 0LL)` — the identity `0LL` means every thread starts counting from zero. After all leaves finish, TBB walks back up the tree calling `combine` to sum the partial counts.
+Each leaf calls `body(subrange, 0.0f)` — the identity `0.0f` means every thread's partial sum starts at zero. After all leaves finish, TBB walks back up the tree calling `combine` to sum the partial results.
 
 ---
 
