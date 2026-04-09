@@ -33,6 +33,7 @@
 | [tao-toolkit/](tao-toolkit/Guide.md) | NVIDIA TAO Toolkit — fine-tune NGC pre-trained models, prune, QAT, export to TensorRT, and deploy on Jetson without writing a training loop |
 | [small-object-detection-jetson/](small-object-detection-jetson/Guide.md) | **Project:** Small object detection on Jetson — full walkthrough using VisDrone2019-DET, YOLOv8, best practices, and DeepStream deployment |
 | [non-contact-monitoring-edge/](non-contact-monitoring-edge/Guide.md) | **Project:** Non-contact monitoring — RGB/Depth + thermal fusion, 0.8–3 Hz micro-fluctuation extraction (EVM, bandpass), edge deployment, BLE/MQTT IoT |
+| [llm-optimization-jetson/](llm-optimization-jetson/Guide.md) | **Guide:** LLM optimization on Jetson — quantization (AWQ/GGUF), model selection, KV cache management, FlashAttention, TensorRT-LLM, speculative decoding, memory budgeting |
 
 ---
 
