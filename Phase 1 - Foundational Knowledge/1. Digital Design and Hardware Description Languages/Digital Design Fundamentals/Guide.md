@@ -2,6 +2,287 @@
 
 The circuits inside every AI accelerator — tensor cores, SRAM banks, systolic arrays — are built from the same primitives covered here. This guide takes you from bits to memory hierarchies, with deliberate attention to the representations and building blocks that show up every day in hardware design.
 
+Before diving into the technical building blocks, let's understand the big picture: how a chip idea becomes a physical piece of silicon.
+
+---
+
+## 0. From Design to Silicon — How Chips Are Made
+
+### 0.1 The Tapeout Flow
+
+"Tapeout" is the moment a chip design team hands off the final design files to a foundry (TSMC, Samsung, Intel Foundry, GlobalFoundries) for manufacturing. The name comes from the old days when designs were literally written to magnetic tape. Today it means delivering a set of verified GDSII/OASIS files — the geometric description of every transistor, wire, and via on the chip.
+
+The full journey from idea to working silicon:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        CHIP DESIGN FLOW                                 │
+│                                                                         │
+│  Specification                                                          │
+│      │                                                                  │
+│      ▼                                                                  │
+│  Architecture Design          "What does the chip do?"                  │
+│      │                        ISA, block diagram, memory map            │
+│      ▼                                                                  │
+│  RTL Design (Verilog/VHDL)    "Describe behavior in HDL"                │
+│      │                        modules, FSMs, datapaths                  │
+│      ▼                                                                  │
+│  Functional Verification      "Does the RTL match the spec?"            │
+│      │                        testbenches, UVM, formal verification     │
+│      ▼                                                                  │
+│  Logic Synthesis              "Convert RTL to gates"                    │
+│      │                        tool: Synopsys Design Compiler            │
+│      │                        input: RTL + standard cell library        │
+│      │                        output: gate-level netlist                │
+│      ▼                                                                  │
+│  Place and Route (PnR)        "Put gates on chip, connect wires"        │
+│      │                        tool: Cadence Innovus / Synopsys ICC2     │
+│      │                        floorplan → placement → CTS → routing     │
+│      ▼                                                                  │
+│  Sign-off Checks              "Is it manufacturable and correct?"        │
+│      │   ├── Timing (STA)     static timing analysis, all corners       │
+│      │   ├── DRC              design rule check (min spacing, width)    │
+│      │   ├── LVS              layout vs schematic (geometry = netlist?) │
+│      │   ├── ERC              electrical rule check                     │
+│      │   └── IR drop / EM     power integrity, electromigration         │
+│      ▼                                                                  │
+│  ★ TAPEOUT ★                  "Ship GDSII to foundry"                   │
+│      │                                                                  │
+│      ▼                                                                  │
+│  Fabrication (TSMC etc.)      12–18 weeks for advanced nodes            │
+│      │                                                                  │
+│      ▼                                                                  │
+│  Packaging & Test             die → package → burn-in → final test      │
+│      │                                                                  │
+│      ▼                                                                  │
+│  Silicon Bring-up             first boot, characterization              │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 0.2 RTL to Gates: Logic Synthesis
+
+You write hardware in Verilog or VHDL — a behavioral description of what each register, MUX, and ALU does. The synthesis tool (Synopsys Design Compiler is the industry standard) maps this to actual logic gates from a **standard cell library** provided by the foundry.
+
+```
+Your RTL (Verilog):                     Synthesized gates:
+
+  assign y = a & b | c;        →       NAND2 → INV → NOR2 → ...
+                                        (mapped to TSMC N5 cell library)
+
+  always @(posedge clk)
+    if (en) q <= d;             →       DFF with enable (EDFCND2)
+```
+
+A standard cell library contains hundreds of pre-designed, pre-characterized cells:
+
+| Cell type          | Examples                              |
+|--------------------|---------------------------------------|
+| Logic gates        | INV, NAND2, NAND3, NOR2, AOI22, MUX2 |
+| Sequential         | DFF, DFF with reset, DFF with enable  |
+| Buffers/drivers    | BUF, CLKBUF, CLKINV                  |
+| Special            | Tie-high, tie-low, filler cells       |
+
+Each cell comes with:
+- **Layout** (geometric shapes for each process layer)
+- **Timing model** (.lib) — delay, setup, hold at various voltage/temperature corners
+- **Power model** — leakage + switching power
+- **Parasitic model** — capacitance, resistance
+
+The synthesis tool optimizes for your constraints — typically timing (target clock frequency), area, and power — making trade-offs like using faster (larger) cells on critical paths and slower (smaller) cells elsewhere.
+
+### 0.3 Place and Route
+
+After synthesis, you have a netlist: a list of ~billion gates and their connections. Place and route turns this into a physical layout.
+
+```
+Step 1: Floorplanning
+  ┌──────────────────────────────────┐
+  │  ┌──────┐  ┌────────┐  ┌──────┐ │
+  │  │ SRAM │  │Compute │  │ SRAM │ │
+  │  │Block │  │ Core   │  │Block │ │
+  │  └──────┘  └────────┘  └──────┘ │
+  │  ┌────────────────────────────┐  │
+  │  │        I/O ring            │  │
+  │  └────────────────────────────┘  │
+  └──────────────────────────────────┘
+  Decide where major blocks go, power grid, pin placement
+
+Step 2: Placement
+  Standard cells placed in rows between power rails (VDD/VSS)
+  ┌─VDD─────────────────────────────┐
+  │ [NAND][INV][DFF][BUF][MUX]...  │
+  ├─VSS─────────────────────────────┤
+  │ [NOR][AOI][DFF][INV][NAND]...  │
+  ├─VDD─────────────────────────────┤
+  │ ...                             │
+  └─────────────────────────────────┘
+
+Step 3: Clock Tree Synthesis (CTS)
+  Build a balanced tree of clock buffers so CLK arrives
+  at every flip-flop within ~50ps skew
+
+Step 4: Routing
+  Connect all signals using metal layers (M1–M15+ on advanced nodes)
+  Lower metals: short local wires
+  Upper metals: long global wires, power distribution
+```
+
+### 0.4 Fabrication at TSMC
+
+Once the GDSII file arrives at the foundry, it goes through photolithography — printing the design layer by layer onto a silicon wafer.
+
+```
+Wafer cross-section (simplified, TSMC N5):
+
+  ══════════  Metal 15 (thick, global power/signal)
+     ...      (13 more metal layers)
+  ──────────  Metal 2
+  ──────────  Metal 1 (thin, local connections)
+  ──────────  Contact layer
+  ▓▓▓▓▓▓▓▓▓  Gate (FinFET or GAA nanosheet at N3/N2)
+  ░░░░░░░░░  Fin / channel
+  ▒▒▒▒▒▒▒▒▒  Silicon substrate (300mm wafer)
+
+Each layer requires:
+  1. Deposit material (metal, oxide, etc.)
+  2. Spin photoresist
+  3. Expose with EUV light through reticle (mask)
+  4. Develop (remove exposed/unexposed resist)
+  5. Etch pattern into material
+  6. Strip remaining resist
+  7. Repeat for next layer (~80-100 mask steps for N5)
+```
+
+**Process node comparison (as of 2025–2026):**
+
+| Node     | Foundry      | Transistor type  | Density (MTr/mm²) | Used in               |
+|----------|-------------|------------------|--------------------|------------------------|
+| N7       | TSMC        | FinFET           | ~91                | A100, AMD Zen 2        |
+| N5       | TSMC        | FinFET           | ~171               | H100, Apple M2, Zen 4  |
+| N4P      | TSMC        | FinFET           | ~180               | B100/B200              |
+| N3E      | TSMC        | FinFET           | ~208               | Apple M4, Vera (2026)  |
+| N2       | TSMC (2025) | GAA nanosheet    | ~250+              | Next-gen AI chips       |
+| 20A/18A  | Intel       | RibbonFET (GAA)  | ~200+              | Intel next-gen          |
+| 2nm      | Samsung     | GAA              | ~200+              | Foundry customers       |
+
+**FinFET vs GAA (Gate-All-Around):**
+
+```
+FinFET (N7–N3):                     GAA Nanosheet (N2 and below):
+
+      Gate                              Gate (wraps all sides)
+     ┌───┐                            ┌─────────────┐
+     │   │                            │ ┌─────────┐ │
+     │ F │  ← gate wraps             │ │nanosheet│ │  ← gate wraps
+     │ I │     3 sides                │ └─────────┘ │     ALL 4 sides
+     │ N │                            │ ┌─────────┐ │
+     │   │                            │ │nanosheet│ │  (stacked sheets)
+     └─┬─┘                            │ └─────────┘ │
+       │                              └──────┬──────┘
+  ─────┴─────                         ───────┴───────
+   substrate                            substrate
+
+GAA advantage: better electrostatic control → less leakage,
+               higher drive current, better scaling below 3nm
+```
+
+### 0.5 Packaging
+
+The raw die is cut from the wafer and placed into a package that provides:
+- Electrical connections (power, ground, I/O signals)
+- Mechanical protection
+- Heat dissipation path
+
+```
+Modern AI chip packaging (CoWoS — Chip on Wafer on Substrate):
+
+        ┌─── Heat spreader / lid ───┐
+        │                           │
+   ┌────┴──────┬───────┬──────┬─────┴───┐
+   │  HBM      │  GPU  │  HBM │  HBM    │  ← dies on interposer
+   │  stack     │  die  │ stack│  stack   │
+   └───┬────────┴───┬───┴──────┴────┬────┘
+       │   Silicon interposer       │      ← passive routing layer
+   ┌───┴────────────┴───────────────┴────┐
+   │         Organic substrate           │  ← BGA ball grid below
+   └─────────────────────────────────────┘
+                  │││││
+            solder balls → PCB
+
+CoWoS enables:
+  - GPU die + HBM stacks on same interposer (short, wide buses)
+  - 1024-bit HBM interface (impossible with PCB traces)
+  - H100: ~814mm² GPU die + 6× HBM3 stacks on ~2× larger interposer
+```
+
+**Packaging technologies comparison:**
+
+| Package       | Description                              | Used in                    |
+|---------------|------------------------------------------|----------------------------|
+| Wire bond     | Gold wires from die pads to package leads| Low-cost, legacy chips      |
+| Flip-chip     | Solder bumps, die face-down              | CPUs, GPUs (standard)       |
+| 2.5D (CoWoS)  | Multiple dies on silicon interposer     | AI GPUs (H100, MI300X)      |
+| 3D stacking   | Dies stacked vertically with TSVs       | HBM, AMD 3D V-Cache         |
+| Chiplets       | Multiple small dies in one package      | AMD EPYC, Intel Ponte Vecchio|
+
+### 0.6 Testing and Yield
+
+Not every die on a wafer works — defects from particles, lithography errors, and process variation kill some transistors.
+
+```
+300mm wafer with ~100 GPU dies:
+
+  ┌─────────────────────────────┐
+  │   ○ ○ ○ ○ ○ ○ ○ ○ ○        │
+  │  ○ ● ○ ○ ● ○ ○ ○ ○ ○      │    ○ = good die
+  │ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○     │    ● = defective die
+  │  ○ ○ ○ ● ○ ○ ○ ○ ○ ○      │
+  │ ○ ○ ○ ○ ○ ○ ● ○ ○ ○ ○     │    Edge dies = partial/wasted
+  │  ○ ○ ○ ○ ○ ○ ○ ○ ○ ○      │
+  │   ○ ○ ○ ○ ○ ○ ○ ○ ○       │    Yield = good dies / total dies
+  └─────────────────────────────┘
+
+  H100 die: ~814mm²  →  ~60 dies per 300mm wafer
+  At 80% yield → ~48 good dies per wafer
+  Wafer cost at N5: ~$16,000–$20,000
+  Cost per good die: ~$330–$415 (before packaging, test, profit margin)
+```
+
+**Defect tolerance — binning and salvage:**
+
+NVIDIA harvests partially defective dies by disabling broken SMs:
+- H100 SXM: 132 SMs designed, 114 enabled (disable 18 defective ones)
+- This dramatically improves effective yield
+
+**Test flow:**
+
+```
+1. Wafer sort (probe test)    — test each die on wafer, mark bad dies
+2. Die singulation            — cut wafer into individual dies
+3. Packaging                  — bond good dies into packages
+4. Final test (ATE)           — automated test at speed, burn-in
+5. Binning                    — sort by max frequency / power tier
+                                (e.g., RTX 4090 vs 4080 = same die, different bin)
+```
+
+### 0.7 Timeline and Cost
+
+A modern AI chip from architecture to production:
+
+| Phase                    | Duration        | Key deliverable            |
+|--------------------------|-----------------|----------------------------|
+| Architecture & spec      | 3–6 months      | Microarchitecture document |
+| RTL design               | 12–18 months    | Verilog/VHDL codebase      |
+| Verification             | Overlaps RTL    | 60–70% of total effort     |
+| Synthesis + PnR          | 3–6 months      | GDSII layout               |
+| Tapeout → first silicon  | 3–4 months      | Engineering samples (ES)   |
+| Validation & bring-up    | 3–6 months      | Working chips              |
+| **Total**                | **~2–3 years**  | Production silicon         |
+
+**Cost to design a chip at N5:** $300M–$500M+ (including EDA tools, IP licenses, masks, engineering team). This is why only a handful of companies (NVIDIA, AMD, Apple, Google, etc.) design leading-edge chips — the economics require massive volume to amortize the NRE (Non-Recurring Engineering) cost.
+
+> **Why this matters for AI hardware engineers:** understanding the tapeout flow tells you *why* design decisions are made the way they are. When an architect chooses a simpler pipeline over a faster but more complex one, it's often because verification effort scales superlinearly with complexity. When NVIDIA uses the same die for multiple GPU tiers (binning), it's yield economics. When HBM is on an interposer instead of on-package DRAM, it's because the 1024-bit bus is physically impossible with PCB routing. Every section in this guide — from Boolean algebra through MIPS pipelines — is a building block in this flow.
+
 ---
 
 ## 1. Number Systems
@@ -1301,6 +1582,9 @@ Ideal speedup from N-stage pipeline = N (limited by hazard stalls)
 | *Computer Organization and Design* — Patterson & Hennessy | Textbook | RISC-V, memory hierarchy, pipelining |
 | *Digital Design and Computer Architecture: ARM Edition* — Harris & Harris | Textbook | Single-cycle + pipelined processor, HDL |
 | *Modern VLSI Design* — Wolf | Textbook | CMOS, timing, place-and-route |
+| *CMOS VLSI Design* — Weste & Harris | Textbook | Transistor-level design, layout, fabrication |
+| Sam Zeloof (YouTube) | Video | DIY semiconductor fab — see the process hands-on |
+| Chips and Cheese (chipsandcheese.com) | Blog | Deep dives into real chip microarchitectures |
 | Nandland (nandland.com) | Online | FPGA/Verilog/VHDL hands-on |
 | EEVblog / Ben Eater | Video | Intuition for digital circuits, breadboard CPU |
 | JEDEC JESD79-5B (DDR5 spec) | Spec | DRAM timing parameters |
@@ -1323,3 +1607,4 @@ Ideal speedup from N-stage pipeline = N (limited by hazard stalls)
 | **Single-cycle MIPS in Verilog** | Datapath, control unit, ALU, register file | Complete processor from gates to ISA |
 | **Pipelined MIPS in Verilog** | Pipeline registers, forwarding, hazard detection | Understand CPI, stalls, bypassing |
 | **Cache simulator (Python/C++)** | Direct-map vs set-assoc, LRU, miss rates | Memory hierarchy intuition |
+| **RTL-to-GDS with OpenLane** | Synthesis, PnR, DRC/LVS, SkyWater PDK | Experience the full tapeout flow (open-source) |
