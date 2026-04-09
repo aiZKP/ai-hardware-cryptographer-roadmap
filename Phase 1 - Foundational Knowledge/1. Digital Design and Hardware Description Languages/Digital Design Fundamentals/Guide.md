@@ -957,12 +957,349 @@ Fix: pad shared memory arrays by one element
 
 ---
 
+## 6. MIPS Processor Design
+
+Building a processor from the components in sections 1–5 is the definitive digital design exercise. MIPS is the standard teaching ISA because its fixed 32-bit instruction format maps cleanly onto hardware. We build up from a single-cycle datapath through a 5-stage pipeline — the same pipeline that every modern processor (including GPU shader cores) descends from.
+
+### 6.1 MIPS ISA Subset
+
+A minimal core supports three instruction formats:
+
+```
+R-type (register):   [opcode 6][rs 5][rt 5][rd 5][shamt 5][funct 6]
+I-type (immediate):  [opcode 6][rs 5][rt 5][imm 16]
+J-type (jump):       [opcode 6][address 26]
+```
+
+**Key instructions for the datapath:**
+
+| Instruction | Format | Operation                    | Example              |
+|-------------|--------|------------------------------|----------------------|
+| `add`       | R      | rd = rs + rt                 | `add $t0, $s1, $s2` |
+| `sub`       | R      | rd = rs − rt                 | `sub $t0, $s1, $s2` |
+| `and`       | R      | rd = rs & rt                 | `and $t0, $s1, $s2` |
+| `or`        | R      | rd = rs \| rt                | `or  $t0, $s1, $s2` |
+| `slt`       | R      | rd = (rs < rt) ? 1 : 0      | `slt $t0, $s1, $s2` |
+| `lw`        | I      | rt = Mem[rs + imm]           | `lw  $t0, 4($s1)`   |
+| `sw`        | I      | Mem[rs + imm] = rt           | `sw  $t0, 4($s1)`   |
+| `beq`       | I      | if (rs == rt) PC += imm<<2  | `beq $s1, $s2, L1`  |
+| `addi`      | I      | rt = rs + sign_ext(imm)      | `addi $t0, $s1, 10` |
+| `j`         | J      | PC = {PC[31:28], addr, 2'b0}| `j   target`        |
+
+**Register file — 32 registers, $0 hardwired to zero:**
+
+```
+$zero ($0)  = always 0          $t0-$t9  = temporaries
+$at   ($1)  = assembler temp    $s0-$s7  = saved (callee-preserved)
+$v0-$v1     = return values     $sp ($29)= stack pointer
+$a0-$a3     = arguments         $ra ($31)= return address
+```
+
+### 6.2 Single-Cycle Datapath
+
+Every instruction completes in one clock cycle. The datapath connects the building blocks from sections 3–5:
+
+```
+                            ┌────────────────────────────────────────────────────┐
+                            │                    Control Unit                    │
+                            │  (opcode, funct → RegDst, ALUSrc, MemtoReg,       │
+                            │   RegWrite, MemRead, MemWrite, Branch, ALUOp, Jump)│
+                            └──────┬──────┬──────┬──────┬──────┬──────┬─────────┘
+                                   │      │      │      │      │      │
+  ┌──────┐    ┌──────────┐   ┌─────┴──┐  MUX   MUX    │      │      │
+  │      │    │ Register │   │        │   │     │      │      │      │
+  │  PC  ├──►│  File    ├──►│  ALU   ├───┘     │    ┌─┴──┐   │      │
+  │      │    │ (32×32)  │   │        │         └───►│Data│   │      │
+  └──┬───┘    │          │   └────────┘              │Mem │   │      │
+     │        │  rd1─────┼───► A                     │    │   │      │
+     │        │  rd2─────┼───► B / MUX ◄── imm       │    │   │      │
+     ▼        └──────────┘                           └────┘   │      │
+ ┌──────┐                                                     │      │
+ │Instr │                                                     │      │
+ │ Mem  │◄────────────────────────────────────────────────────┘      │
+ └──────┘                                                            │
+     │                                                               │
+     └─── PC+4 / branch target / jump target ◄──────────────────────┘
+```
+
+**Datapath walk-through for `lw $t0, 8($s1)`:**
+
+```
+Cycle:
+  1. Fetch:     Instr Mem[PC] → instruction word
+  2. Decode:    rs=$s1(17), rt=$t0(8), imm=8
+                Register File reads: rd1 = Reg[17] = value of $s1
+  3. Execute:   ALU computes: $s1 + sign_ext(8) = address
+  4. Memory:    Data Mem[address] → loaded word
+  5. Writeback: MUX selects memory output → Reg[8] ($t0)
+  6. PC update: PC ← PC + 4
+
+All in ONE cycle. Clock period = longest path (lw: through Instr Mem + Reg File + ALU + Data Mem + MUX).
+```
+
+**Control signals for each instruction type:**
+
+| Signal    | R-type | `lw`  | `sw`  | `beq` | `addi`| `j`   |
+|-----------|--------|-------|-------|-------|-------|-------|
+| RegDst    | 1 (rd) | 0 (rt)| X     | X     | 0 (rt)| X     |
+| ALUSrc    | 0 (rt) | 1 (imm)| 1 (imm)| 0 (rt)| 1 (imm)| X  |
+| MemtoReg  | 0 (ALU)| 1 (Mem)| X     | X     | 0 (ALU)| X   |
+| RegWrite  | 1      | 1     | 0     | 0     | 1     | 0     |
+| MemRead   | 0      | 1     | 0     | 0     | 0     | 0     |
+| MemWrite  | 0      | 0     | 1     | 0     | 0     | 0     |
+| Branch    | 0      | 0     | 0     | 1     | 0     | 0     |
+| Jump      | 0      | 0     | 0     | 0     | 0     | 1     |
+| ALUOp     | 10     | 00    | 00    | 01    | 00    | XX    |
+
+**ALU control** — two-level decode:
+
+```
+ALUOp (from main control) + funct field (from instruction) → ALU operation
+
+ALUOp=00 → ADD  (lw, sw, addi: address calculation)
+ALUOp=01 → SUB  (beq: compare by subtraction)
+ALUOp=10 → look at funct:
+             funct=100000 → ADD
+             funct=100010 → SUB
+             funct=100100 → AND
+             funct=100101 → OR
+             funct=101010 → SLT
+```
+
+### 6.3 Single-Cycle Timing Problem
+
+The single-cycle design's clock period equals the slowest instruction:
+
+```
+lw critical path:
+  Instr Mem  +  Reg Read  +  ALU  +  Data Mem  +  Reg Write MUX
+    200ps    +   150ps    + 200ps +   200ps    +     25ps
+  = 775ps  →  max freq ≈ 1.29 GHz
+
+But EVERY instruction — even a simple add (375ps) — takes 775ps.
+  add waste:  775 - 375 = 400ps idle per add
+```
+
+This wastes significant time on fast instructions. The solution: pipelining.
+
+### 6.4 Five-Stage Pipeline
+
+Break the datapath into 5 stages, each taking one clock cycle. Pipeline registers separate stages:
+
+```
+Stage 1       Stage 2        Stage 3       Stage 4        Stage 5
+  IF             ID             EX            MEM             WB
+┌──────┐    ┌──────────┐   ┌────────┐    ┌────────┐    ┌──────────┐
+│Instr │    │ Register │   │        │    │  Data  │    │  Write   │
+│Fetch │ ►REG► Decode  │►REG► ALU  │►REG►Memory │►REG► Back    │
+│      │    │ + Read   │   │        │    │        │    │          │
+└──────┘    └──────────┘   └────────┘    └────────┘    └──────────┘
+  PC+4       rs, rt, imm   ALU result   Mem data       rd ← result
+  instr      control sigs  branch addr
+
+Clock period = max(stage delay) + register overhead
+             = 200ps + 20ps = 220ps  →  max freq ≈ 4.5 GHz
+Throughput = 1 instruction per 220ps (vs 775ps single-cycle → 3.5× faster)
+Latency = 5 × 220ps = 1100ps per instruction (worse, but throughput wins)
+```
+
+**Pipeline timing diagram — 5 instructions flowing through:**
+
+```
+Time (cycles):  1     2     3     4     5     6     7     8     9
+Instr 1:       IF    ID    EX    MEM   WB
+Instr 2:             IF    ID    EX    MEM   WB
+Instr 3:                   IF    ID    EX    MEM   WB
+Instr 4:                         IF    ID    EX    MEM   WB
+Instr 5:                               IF    ID    EX    MEM   WB
+
+After cycle 5, one instruction completes EVERY cycle.
+Steady-state CPI = 1 (Cycles Per Instruction).
+```
+
+### 6.5 Pipeline Hazards
+
+Three types of hazards break the ideal CPI = 1:
+
+#### Data Hazards
+
+A later instruction reads a register that an earlier instruction hasn't written yet:
+
+```
+add $s0, $t0, $t1    # WB writes $s0 in cycle 5
+sub $t2, $s0, $t3    # ID reads $s0 in cycle 3 — STALE value!
+
+Time:      1     2     3     4     5
+add:      IF    ID    EX    MEM   WB ← $s0 written here
+sub:            IF    ID ←reads $s0 here (old value!)
+```
+
+**Solution 1 — Forwarding (bypassing):** route the ALU result directly back to the ALU input without waiting for WB:
+
+```
+                       ┌──────── forward path ────────┐
+                       │                               │
+add:   IF    ID    EX ─┤─ MEM    WB                    │
+sub:         IF    ID  ─┘─ EX ◄──┘  MEM    WB
+                           ↑
+                    ALU gets $s0 from EX/MEM register
+                    instead of register file
+
+Forwarding unit checks: if (EX/MEM.rd == ID/EX.rs) → forward EX/MEM.ALUresult
+```
+
+**Solution 2 — Load-use hazard (forwarding can't fix):**
+
+```
+lw  $s0, 0($t0)    # data available after MEM (cycle 4)
+add $t2, $s0, $t1  # EX needs $s0 in cycle 3 — too early!
+
+Must stall (insert bubble) for 1 cycle:
+
+Time:      1     2     3     4     5     6
+lw:       IF    ID    EX    MEM   WB
+add:            IF    ID   stall  EX    MEM    WB
+                       ↑          ↑
+                   hazard      forward from MEM/WB register
+                  detected
+```
+
+The stall costs 1 cycle. Compilers reorder instructions to fill the load-delay slot when possible.
+
+#### Control Hazards
+
+Branch outcome isn't known until EX (or MEM), but the next instruction is already fetched:
+
+```
+beq $s0, $s1, target   # branch resolved in EX (cycle 3)
+add ...                 # fetched in cycle 2 — might be wrong path!
+or  ...                 # fetched in cycle 3 — might be wrong path!
+```
+
+**Solutions:**
+
+| Strategy           | Penalty  | Hardware cost | Description                          |
+|--------------------|----------|---------------|--------------------------------------|
+| Stall (flush)      | 1–2 cycles| Minimal      | Kill wrong-path instructions         |
+| Branch prediction  | 0 if correct | Moderate  | Predict taken/not-taken              |
+| Delayed branch     | 0        | Compiler      | Always execute next instruction (MIPS) |
+| Early branch resolution | 1 cycle | MUX in ID | Move comparison to ID stage          |
+
+**Static prediction:** predict not-taken (sequential fetch). If wrong, flush 1 instruction.
+
+**Dynamic prediction (branch history table):**
+
+```
+1-bit predictor: remember last outcome → predict same
+  Problem: loops always mispredict twice (entering and exiting)
+
+2-bit saturating counter:
+  States: Strongly Taken (11) → Weakly Taken (10) → Weakly Not (01) → Strongly Not (00)
+  Must mispredict twice to switch direction → better loop behavior
+```
+
+#### Structural Hazards
+
+Two stages need the same hardware unit in the same cycle (e.g., single memory for both IF and MEM):
+
+```
+Solution: use separate instruction memory and data memory (Harvard architecture)
+          or use a multi-ported cache
+```
+
+The classic MIPS pipeline uses separate instruction and data memories — no structural hazards in the base design.
+
+### 6.6 Complete Pipelined Datapath
+
+```
+ ┌─────┐  IF/ID  ┌─────┐  ID/EX  ┌─────┐ EX/MEM ┌─────┐ MEM/WB ┌─────┐
+ │     │  reg    │     │  reg    │     │  reg   │     │  reg   │     │
+ │ IF  ├────────►│ ID  ├────────►│ EX  ├───────►│ MEM ├───────►│ WB  │
+ │     │         │     │         │     │        │     │        │     │
+ └──┬──┘         └──┬──┘         └──┬──┘        └─────┘        └──┬──┘
+    │               │               │                              │
+    │            ┌──┴──┐         ┌──┴──┐                           │
+    │            │Hazard│        │Fwd  │                           │
+    │            │Detect│        │Unit │◄──────────────────────────┘
+    │            └──┬──┘        └─────┘         (forward paths)
+    │               │
+    │          stall/flush
+    │
+  ┌─┴──────────────────────────┐
+  │   PC MUX                    │
+  │   (PC+4 / branch / jump)   │
+  └────────────────────────────┘
+
+Pipeline registers store ALL signals needed by later stages:
+  IF/ID:  instruction, PC+4
+  ID/EX:  control signals, rs data, rt data, sign-ext imm, rd/rt dest
+  EX/MEM: control signals, ALU result, rt data (for sw), dest register
+  MEM/WB: control signals, ALU result OR memory data, dest register
+```
+
+**Forwarding unit logic (simplified):**
+
+```
+// Forward from EX/MEM stage
+if (EX/MEM.RegWrite && EX/MEM.rd != 0 && EX/MEM.rd == ID/EX.rs)
+    ForwardA = EX/MEM.ALUresult
+
+// Forward from MEM/WB stage
+if (MEM/WB.RegWrite && MEM/WB.rd != 0 && MEM/WB.rd == ID/EX.rs
+    && !(EX/MEM.RegWrite && EX/MEM.rd == ID/EX.rs))   // EX/MEM has priority
+    ForwardA = MEM/WB.WriteData
+
+// Same logic for ForwardB (rt input)
+```
+
+**Hazard detection unit (load-use stall):**
+
+```
+if (ID/EX.MemRead && (ID/EX.rt == IF/ID.rs || ID/EX.rt == IF/ID.rt))
+    stall pipeline:
+      - IF/ID register holds (re-decode same instruction)
+      - insert NOP into ID/EX (bubble)
+      - PC holds (re-fetch same PC+4)
+```
+
+### 6.7 Performance Metrics
+
+```
+Execution time = IC × CPI × T_clk
+
+  IC    = Instruction Count (depends on ISA and compiler)
+  CPI   = Cycles Per Instruction (depends on pipeline + hazards)
+  T_clk = Clock period (depends on critical path in longest stage)
+
+Single-cycle:  CPI = 1,  T_clk = 775ps    →  time/instr = 775ps
+Pipelined:     CPI ≈ 1.2 (stalls + flushes), T_clk = 220ps
+               →  time/instr = 264ps  →  ~2.9× speedup
+
+Ideal speedup from N-stage pipeline = N (limited by hazard stalls)
+5-stage MIPS: ideal 5×, typical 3–4× in practice
+```
+
+**CPI breakdown example (gcc on MIPS):**
+
+| Component      | CPI contribution |
+|----------------|-----------------|
+| Base            | 1.0            |
+| Load-use stalls | +0.05         |
+| Branch mispredicts | +0.12      |
+| Cache misses    | +0.07         |
+| **Total CPI**   | **1.24**      |
+
+> **AI hardware connection:** GPU shader cores use a much deeper pipeline (20+ stages in modern GPUs) but hide latency through massive thread-level parallelism (TLP) rather than branch prediction. When a warp stalls on a cache miss, the scheduler switches to another ready warp — same principle as pipeline interleaving, but across thousands of threads instead of individual instructions. The MIPS 5-stage pipeline is the conceptual foundation: once you understand forwarding, hazards, and CPI, the GPU's approach is a natural extension.
+
+---
+
 ## Resources
 
 | Resource | Type | Focus |
 |----------|------|-------|
 | *Digital Design and Computer Architecture* — Harris & Harris | Textbook | Gates through ISA, HDL examples |
 | *Computer Organization and Design* — Patterson & Hennessy | Textbook | RISC-V, memory hierarchy, pipelining |
+| *Digital Design and Computer Architecture: ARM Edition* — Harris & Harris | Textbook | Single-cycle + pipelined processor, HDL |
 | *Modern VLSI Design* — Wolf | Textbook | CMOS, timing, place-and-route |
 | Nandland (nandland.com) | Online | FPGA/Verilog/VHDL hands-on |
 | EEVblog / Ben Eater | Video | Intuition for digital circuits, breadboard CPU |
@@ -983,4 +1320,6 @@ Fix: pad shared memory arrays by one element
 | **LFSR-based PRNG** | Shift registers, XOR feedback, polynomial | BIST, test stimulus generation |
 | **4-state FSM (Moore + Mealy)** | State encoding, next-state logic | Control unit design pattern |
 | **Tiled matrix multiply (CUDA)** | Shared memory, bank conflict, tiling | Connect theory to GPU programming |
+| **Single-cycle MIPS in Verilog** | Datapath, control unit, ALU, register file | Complete processor from gates to ISA |
+| **Pipelined MIPS in Verilog** | Pipeline registers, forwarding, hazard detection | Understand CPI, stalls, bypassing |
 | **Cache simulator (Python/C++)** | Direct-map vs set-assoc, LRU, miss rates | Memory hierarchy intuition |
