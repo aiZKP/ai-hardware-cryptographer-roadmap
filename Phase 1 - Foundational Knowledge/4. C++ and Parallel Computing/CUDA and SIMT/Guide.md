@@ -110,6 +110,7 @@ The SM is the fundamental execution unit. All threads in one block run on **one 
 | 2020 | Ampere | 8.0 / 8.6 | 3rd gen Tensor Cores, TF32, BF16, MIG, sparsity | A100, RTX 3090 |
 | 2022 | Hopper | 9.0 | 4th gen Tensor Cores, TMA, Thread Block Clusters, FP8, Transformer Engine | H100 |
 | 2024 | Blackwell | 10.x | 5th gen Tensor Cores, FP4, NVLink 5, confidential compute | B100, B200 |
+| 2026 | Vera | 12.x | Vera CPU + Rubin GPU on one package, NVLink 6, FP4/FP6 | Vera |
 
 ---
 
@@ -1075,6 +1076,7 @@ __global__ void my_kernel(float* data, int N) { ... }
 | Ampere | 8.6 | RTX 3090, A10 | ✓ | ✓ | — | — | — |
 | Hopper | 9.0 | H100 | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Blackwell | 10.x | B100, B200 | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Vera | 12.x | Vera | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 **SM resource limits (selected):**
 
