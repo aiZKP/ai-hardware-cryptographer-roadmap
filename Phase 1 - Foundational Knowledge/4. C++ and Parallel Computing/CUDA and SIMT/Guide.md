@@ -86,20 +86,123 @@ GPU Die
 
 ### 3.2 The Streaming Multiprocessor (SM)
 
-The SM is the fundamental execution unit. All threads in one block run on **one SM**. The SM executes warps — groups of 32 threads.
+The SM is the fundamental execution unit. All threads in one block run on **one SM**. The SM executes warps — groups of 32 threads that run the same instruction in lockstep (SIMT).
 
 ![H100 SM internal diagram](../../../Assets/images/h100-sm-diagram.png)
 
 *H100 SM: 4 warp schedulers, 128 FP32 CUDA cores, 4 Tensor Cores (4th gen), 256 KB register file, up to 228 KB shared mem / L1. Source: NVIDIA*
 
-**H100 SM internals:**
-- **4 warp schedulers** — each selects one ready warp per cycle to issue
-- **8 dispatch units** — issue 2 instructions per warp scheduler per cycle
-- **128 FP32 CUDA cores** — execute floating-point operations
-- **64 INT32 units** — integer arithmetic (can run simultaneously with FP32)
-- **4 Tensor Cores (4th gen)** — matrix multiply-accumulate for ML workloads
-- **256 KB register file** — fastest memory, compiler-allocated per thread
-- **228 KB unified data cache** — partitioned into shared memory + L1 (configurable)
+**H100 SM components:**
+
+| Component | Count | Role |
+|-----------|-------|------|
+| Warp schedulers | 4 | Each selects one ready warp per cycle |
+| Dispatch units | 8 (2 per scheduler) | Issue instructions to execution units |
+| FP32 CUDA cores | 128 | Floating-point arithmetic |
+| INT32 units | 64 | Integer arithmetic — runs **simultaneously** with FP32 |
+| Tensor Cores (4th gen) | 4 | Matrix multiply-accumulate (MMA) for ML |
+| Register file | 256 KB | Per-thread fastest storage, compiler-allocated |
+| Shared mem / L1 | 228 KB | Configurable split between the two |
+
+**Execution pipeline — how a kernel actually runs:**
+
+```
+kernel launch
+     │
+     ▼
+Threads grouped into warps (32 threads each)
+     │
+     ▼
+Warp Schedulers (×4) — each cycle, pick one ready warp
+     │   A warp is "ready" when:
+     │     - all operands are available
+     │     - no memory stall
+     │     - no data dependency
+     ▼
+Dispatch Units (×8) — issue 2 instructions per scheduler per cycle
+     │   → 4 × 2 = up to 8 instructions issued per clock cycle
+     ▼
+Execution Units
+     ├── FP32 cores  — floating-point ops (add, mul, fma)
+     ├── INT32 units — integer ops, address calculation  ← runs in parallel with FP32
+     └── Tensor Cores — MMA: D = A×B + C in one instruction
+     │
+     ▼
+Register file (results written back per-thread)
+Shared memory / L1 (for loads/stores)
+```
+
+**Latency hiding — the core GPU performance mechanism:**
+
+GPU memory latency is ~hundreds of cycles. Instead of stalling, the scheduler instantly switches to another ready warp:
+
+```
+cycle:   1    2    3    ...  200   201  202
+Warp 0:  [issue load] ──── stalled waiting for memory ────► [use result]
+Warp 1:       [execute] [execute] [execute] ...
+Warp 2:                 [execute] [execute] ...
+Warp 3:                           [execute] ...
+         ↑
+    While warp 0 waits, warps 1–3 fill the execution units — zero idle cycles
+```
+
+This is why GPUs require **thousands of in-flight threads**: more threads = more warps = more latency hiding capacity. A kernel with too few threads leaves the SM partially idle.
+
+**FP32 + INT32 dual execution:**
+
+FP32 cores and INT32 units can issue in the same cycle. A common pattern in GPU kernels is computing a float result while simultaneously computing the next memory address:
+
+```
+cycle N:   FP32: result[i] = a[i] * b[i]
+           INT32: next_addr = base + (i+1) * stride   ← free — uses different units
+```
+
+**Tensor Core operation:**
+
+A Tensor Core computes a 16×16 matrix multiply-accumulate in one instruction:
+
+```
+D = A × B + C     (D, A, B, C are 16×16 tiles)
+```
+
+vs CUDA core equivalent: 16×16×16 = 4,096 multiply-adds → 4,096 separate FP32 instructions. One Tensor Core instruction replaces thousands of scalar ops.
+
+**Register file and occupancy tradeoff:**
+
+```
+256 KB register file shared by all warps on the SM
+
+Thread uses 32 registers:  256 KB / (32 regs × 4 B) = 2048 threads max → 64 warps
+Thread uses 64 registers:  256 KB / (64 regs × 4 B) = 1024 threads max → 32 warps
+Thread uses 128 registers: 256 KB / (128 regs × 4 B) = 512 threads max → 16 warps
+
+Fewer active warps → less latency hiding → lower occupancy → lower throughput
+```
+
+The compiler minimizes register usage to keep occupancy high. Check with `nvcc --ptxas-options=-v` to see per-kernel register count.
+
+**Shared memory / L1 split (Hopper):**
+
+```
+228 KB total ← configurable at kernel launch
+├── Shared memory: 0 / 8 / 16 / 32 / 64 / 100 / 132 / 164 / 196 / 228 KB
+└── L1 cache:      remainder
+
+More shared memory → better for kernels with thread cooperation (matmul tiling)
+More L1            → better for streaming workloads with irregular access
+```
+
+Set with: `cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, size)`
+
+**Common SM-level bottlenecks:**
+
+| Bottleneck | Cause | Fix |
+|------------|-------|-----|
+| Warp divergence | Threads in same warp take different branches → half the units idle | Restructure code to minimize per-thread branching |
+| Memory latency not hidden | Too few warps per SM (low occupancy) | Reduce registers/shared mem per thread, increase block size |
+| Register pressure | Too many live variables → spill to local memory (slow) | Reduce variable scope, use `__launch_bounds__` |
+| Bank conflicts | Multiple threads access same shared memory bank | Pad shared arrays or stagger access patterns |
+| Uncoalesced global access | Threads access non-contiguous addresses → multiple transactions | Ensure thread N accesses element N (stride-1 access) |
 
 ### 3.3 GPU Architecture Generations
 
