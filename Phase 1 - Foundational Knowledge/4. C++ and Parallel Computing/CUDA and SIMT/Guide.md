@@ -204,7 +204,140 @@ Set with: `cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemoryS
 | Bank conflicts | Multiple threads access same shared memory bank | Pad shared arrays or stagger access patterns |
 | Uncoalesced global access | Threads access non-contiguous addresses → multiple transactions | Ensure thread N accesses element N (stride-1 access) |
 
-### 3.3 GPU Architecture Generations
+### 3.3 Warp Scheduler, L0 Cache, and Dual-Issue
+
+**Warp scheduler internals:**
+
+Each of the 4 schedulers owns a subset of the SM's active warps and runs the same decision loop every clock cycle:
+
+```
+every cycle, for each scheduler:
+  1. scan assigned warps
+  2. filter: keep only warps where all operands are ready (scoreboard check)
+  3. pick one ready warp (typically greedy-then-oldest policy)
+  4. issue up to 2 independent instructions from that warp → dispatch units
+```
+
+The **scoreboard** tracks register readiness. When an instruction is issued, its destination registers are marked "pending". Once the result is written back, the registers are cleared. Any warp that tries to read a pending register is stalled and skipped that cycle — no explicit hardware lock needed.
+
+```
+Warp A issues: r4 = r0 * r1   → r4 marked PENDING
+Warp A issues: r5 = r4 + r2   → r4 still PENDING → warp A STALLED
+Scheduler     → skips warp A, picks warp B instead (zero-cost switch)
+...N cycles later...
+r4 result written back → r4 cleared → warp A becomes READY again
+```
+
+**Warp pool partitioning (H100 example):**
+
+```
+SM: up to 64 warps active (2048 threads ÷ 32)
+  Scheduler 0 → warps  0–15
+  Scheduler 1 → warps 16–31
+  Scheduler 2 → warps 32–47
+  Scheduler 3 → warps 48–63
+```
+
+Each scheduler is independent — its stalls do not block the other three.
+
+**L0 instruction cache:**
+
+Between the warp scheduler and the instruction memory sits a tiny per-scheduler L0 cache. It holds decoded instructions for the active warps assigned to that scheduler.
+
+```
+Warp scheduler
+      │
+      ▼
+  L0 cache (hit → ~0 cycles)
+      │ miss
+      ▼
+  L1 instruction cache
+      │ miss
+      ▼
+  L2 → HBM  (expensive)
+```
+
+L0 is rarely discussed but critical: without it, every instruction issue would require an L1 read, capping throughput. In practice, L0 hit rates are very high because GPU code has high instruction reuse (same loop body issued to thousands of warps).
+
+**CUDA core — what it is and isn't:**
+
+A CUDA core is a single-precision ALU. It executes one FP32 operation per cycle for one thread's data:
+
+```
+supported: add, mul, fma(a,b,c) = a×b+c, min, max, comparison
+not its job: memory loads/stores (load-store units), scheduling (warp scheduler), matrix ops (Tensor Cores)
+```
+
+FMA (`fused multiply-add`) is the dominant operation in AI workloads — it performs `a×b+c` in one instruction with a single rounding step, which is both faster and more numerically accurate than separate mul + add.
+
+Threads run as a warp of 32. The 128 FP32 cores process all 32 threads of a warp in parallel (128 ÷ 32 = 4 warps' worth of FP32 ops can be in-flight simultaneously across the cores):
+
+```
+instruction: C[i] = A[i] * B[i] + D[i]   (FMA for all 32 threads)
+                 │
+    ┌────────────┼─────────────┐
+    T0→core 0   T1→core 1  ...  T31→core 31   ← all execute same cycle
+```
+
+**Dual-issue — when two instructions issue in one cycle:**
+
+Each warp scheduler can issue up to 2 instructions per cycle to different execution units. This is **not** two ops on the same unit — it's exploiting independent pipelines simultaneously.
+
+```
+✓  FP32 + INT32       → different pipelines, no conflict
+✓  FP32 + load/store  → different units
+✓  INT32 + Tensor Core→ different units
+
+✗  FP32 + FP32        → same pipeline, serialized
+✗  dependent ops      → second reads register written by first, must wait
+```
+
+Concrete dual-issue example — computing a value while calculating the next index:
+
+```
+cycle N, warp A, instruction slot 1:  r4 = r0 * r1        (FP32 → CUDA cores)
+cycle N, warp A, instruction slot 2:  r5 = r2 + 1         (INT32 → integer units)
+                                            ↑ free — uses a completely separate pipeline
+```
+
+The compiler (NVCC → ptxas) schedules instruction order to maximize dual-issue opportunities. You can inspect the result with `cuobjdump --dump-sass binary.cubin` — back-to-back independent FP32+INT32 pairs indicate successful dual-issue scheduling.
+
+**Instruction-level vs warp-level parallelism:**
+
+```
+warp-level parallelism (TLP):            instruction-level parallelism (ILP):
+  many warps in flight                     independent instructions within one warp
+  hides memory latency                     fills multiple pipelines per cycle
+  requires high occupancy                  requires dependency-free code sequences
+
+  T0 T1 T2 ... T63  ← different warps     x = a*b;   ← FP32
+  all in scheduler                         y = c+d;   ← also FP32 (serialized)
+  switch on stall                          i = n+1;   ← INT32 (can dual-issue with either)
+```
+
+Both matter. TLP is the primary mechanism (latency hiding); ILP squeezes extra throughput when warps are available.
+
+**Cycle-level summary — one SM, one clock:**
+
+```
+clock edge
+    │
+    ├─ Scheduler 0: picks warp A → issues FP32 + INT32 to dispatch units
+    ├─ Scheduler 1: picks warp C → issues FP32 to dispatch units (warp B stalled)
+    ├─ Scheduler 2: picks warp E → issues Tensor Core op
+    └─ Scheduler 3: all warps stalled (memory) → issues nothing this cycle
+
+dispatch units → route to:
+    FP32 cores  (×128) → execute 32-thread FMA
+    INT32 units (×64)  → execute 32-thread add
+    Tensor Core (×4)   → execute 16×16 MMA
+
+register file → results written back → scoreboards updated → stalled warps unblock
+```
+
+Maximum theoretical: 4 schedulers × 2 instructions = **8 instructions issued per clock cycle** on one SM.
+
+### 3.4 GPU Architecture Generations
 
 | Generation | Architecture | Compute Cap | Key Feature | Example GPU |
 |------------|-------------|-------------|-------------|-------------|
