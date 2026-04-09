@@ -1,138 +1,986 @@
-﻿**1. Number Systems (Beyond Binary)**
+# Digital Design Fundamentals
 
-* **Advanced Number Representation:**
-    * **Signed Number Representations:**  Master different representations for signed numbers, including sign-magnitude, one's complement, and two's complement. Understand the advantages and disadvantages of each, and how they impact arithmetic operations.
-    * **Floating-Point Numbers:**  Dive into the IEEE 754 standard for floating-point representation. Explore how to represent real numbers with varying precision and dynamic range, and understand the implications for accuracy and rounding errors.
-    * **Error Detection and Correction Codes (Advanced):**  Go beyond basic parity checks and explore more powerful error detection and correction codes, such as Hamming codes, Reed-Solomon codes, and cyclic redundancy checks (CRCs). Understand their applications in data storage, communication, and memory systems.
+The circuits inside every AI accelerator — tensor cores, SRAM banks, systolic arrays — are built from the same primitives covered here. This guide takes you from bits to memory hierarchies, with deliberate attention to the representations and building blocks that show up every day in hardware design.
 
-* **Number Systems in Hardware:**
-    * **Binary Coded Decimal (BCD):**  Learn about BCD representation, where each decimal digit is encoded with a 4-bit binary code. Understand its applications in displays, calculators, and other systems that interact with decimal numbers.
-    * **Gray Codes:**  Explore Gray codes, where consecutive values differ by only one bit. Understand their advantages in applications like position encoders and analog-to-digital converters (ADCs).
-    * **Residue Number Systems (RNS):**  Investigate RNS, a non-weighted number system that can offer advantages in certain arithmetic operations, particularly modular arithmetic and parallel processing.
+---
 
-**Resources:**
+## 1. Number Systems
 
-* **"Computer System Architecture" by M. Morris Mano:**  A classic textbook that covers number systems, computer arithmetic, and digital logic design in detail.
-* **"Digital Design: Principles and Practices" by John F. Wakerly:**  A comprehensive guide to digital design, including number systems, Boolean algebra, and logic circuits.
-* **Online Courses on Digital Electronics:**  Explore online courses that cover number systems and their applications in digital systems.
+### 1.1 Binary, Hexadecimal, and Positional Notation
 
-**Projects:**
+Every number in a digital system is a pattern of bits. Positional notation makes the value of each bit depend on its position:
 
-* **Implement a Floating-Point Arithmetic Unit:**  Design a hardware unit that can perform basic floating-point operations (addition, subtraction, multiplication) using the IEEE 754 standard.
-* **Build a BCD Adder/Subtractor:**  Create a circuit that can perform addition and subtraction on BCD-encoded numbers.
-* **Design a Gray Code Counter:**  Implement a counter that outputs Gray code sequences, and explore its applications in position encoding or ADC design.
+```
+Decimal 173  =  1×10² + 7×10¹ + 3×10⁰
+Binary 10101101  =  1×2⁷ + 0×2⁶ + 1×2⁵ + 0×2⁴ + 1×2³ + 1×2² + 0×2¹ + 1×2⁰
+               =  128 + 32 + 8 + 4 + 1  =  173
+Hex 0xAD       =  10×16¹ + 13×16⁰  =  160 + 13  =  173
+```
 
+Hex is used everywhere in hardware because one hex digit maps exactly to four bits — easier to read, easier to type.
 
-**2. Boolean Algebra and Logic Gates (Advanced)**
+```
+Binary group:  1010  1101
+Hex digit:      A     D      →  0xAD
+```
 
-* **Beyond Karnaugh Maps:**
-    * **Quine-McCluskey Algorithm:**  Master the Quine-McCluskey algorithm, a systematic method for minimizing Boolean expressions with a large number of variables.
-    * **Espresso Heuristic Logic Minimizer:**  Explore the Espresso algorithm, a heuristic approach to logic minimization that can often find near-optimal solutions for complex Boolean functions.
-    * **Binary Decision Diagrams (BDDs):**  Learn about BDDs, a data structure for representing Boolean functions that can be used for efficient manipulation and analysis.
+**Conversion drill** (do these by hand until they feel automatic):
 
-* **Logic Families and Technologies:**
-    * **CMOS (Complementary Metal-Oxide-Semiconductor) Logic:**  Dive deeper into CMOS logic, the dominant technology for modern digital circuits. Understand its characteristics, advantages, and limitations.
-    * **Other Logic Families:**  Explore other logic families, such as TTL (Transistor-Transistor Logic) and ECL (Emitter-Coupled Logic), and their historical significance.
-    * **Emerging Logic Technologies:**  Investigate emerging logic technologies, such as quantum-dot cellular automata (QCA) and spintronics, which may revolutionize digital design in the future.
+| Decimal | Binary     | Hex  |
+|---------|-----------|------|
+| 0       | 0000 0000 | 0x00 |
+| 127     | 0111 1111 | 0x7F |
+| 128     | 1000 0000 | 0x80 |
+| 255     | 1111 1111 | 0xFF |
+| 256     | 0001 0000 0000 | 0x100 |
 
-* **Fault Tolerance and Testability:**
-    * **Fault Modeling and Simulation:**  Learn how to model faults in digital circuits and simulate their effects on circuit behavior.
-    * **Design for Testability (DFT):**  Explore DFT techniques, such as scan chains and built-in self-test (BIST), to improve the testability of your designs.
-    * **Fault-Tolerant Design:**  Investigate techniques for designing fault-tolerant systems that can continue operating correctly in the presence of faults.
+### 1.2 Signed Integers: Two's Complement
 
-**Resources:**
+Three ways to represent negative numbers have been tried in hardware. Only one survived.
 
-* **"Digital Design and Computer Architecture" by David Harris and Sarah Harris:**  A modern textbook that covers digital design principles, logic families, and advanced topics like fault tolerance.
-* **"Introduction to VLSI Systems" by Carver Mead and Lynn Conway:**  A classic book that provides a deep understanding of VLSI design and CMOS technology.
-* **Research Papers on Logic Synthesis and Optimization:**  Explore research papers on advanced logic synthesis and optimization techniques.
+| Scheme          | +5       | −5       | Problem                          |
+|-----------------|----------|----------|----------------------------------|
+| Sign-magnitude  | 0000 0101 | 1000 0101 | Two zeros (+0, −0); complex adder |
+| One's complement | 0000 0101 | 1111 1010 | Two zeros; end-around carry      |
+| **Two's complement** | **0000 0101** | **1111 1011** | One zero; same adder for add/sub |
 
-**Projects:**
+**Two's complement rule:** flip all bits, add 1.
 
-* **Implement a Fault-Tolerant System:**  Design a system that can tolerate faults in its components, such as a triple modular redundancy (TMR) system or a system with error detection and correction codes.
-* **Optimize a Complex Logic Function:**  Use advanced logic minimization techniques to optimize a complex Boolean function for area, delay, or power consumption.
-* **Explore a Non-CMOS Logic Family:**  Implement a simple circuit using a non-CMOS logic family (e.g., TTL) and compare its characteristics to CMOS.
+```
++5  =  0000 0101
+flip   1111 1010
++1     1111 1011   ← this is −5 in 8-bit two's complement
+```
 
+**Verify by addition** — a correct negation adds to zero:
 
-**3. Combinational Logic Design (Building Blocks)**
+```
+  0000 0101   (+5)
++ 1111 1011   (−5)
+-----------
+  0000 0000   (0, carry out discarded)  ✓
+```
 
-* **Arithmetic Logic Units (ALUs) (Advanced):**
-    * **Pipelined ALUs:**  Design pipelined ALUs to increase throughput by overlapping the execution of multiple operations.
-    * **Floating-Point ALUs:**  Implement ALUs that can perform floating-point arithmetic operations.
-    * **ALU Design for Specific Applications:**  Explore the design of ALUs optimized for specific applications, such as digital signal processing (DSP) or cryptography.
+**Range** for N-bit two's complement: −2^(N−1) to +2^(N−1) − 1.
+For 8-bit: −128 to +127. For 32-bit: −2,147,483,648 to +2,147,483,647.
 
-* **Code Converters and Decoders (Advanced):**
-    * **Error-Correcting Codes:**  Implement decoders for error-correcting codes, such as Hamming codes or Reed-Solomon codes.
-    * **Priority Encoders:**  Design priority encoders that can identify the highest priority input among multiple inputs.
-    * **Code Converters for Different Number Systems:**  Create code converters that can convert between different number systems, such as binary to BCD or Gray code to binary.
+**Sign extension** — when widening a value (e.g., INT8 → INT32), copy the sign bit into all new high bits:
 
-* **Programmable Logic Devices (PLDs):**
-    * **Programmable Logic Arrays (PLAs):**  Learn about PLAs and how they can be used to implement combinational logic functions.
-    * **Programmable Array Logic (PALs):**  Explore PALs, a simpler type of PLD that offers a fixed AND array and a programmable OR array.
-    * **Complex Programmable Logic Devices (CPLDs):**  Understand the architecture and applications of CPLDs, which consist of multiple interconnected PLDs.
+```
+INT8  −5  =  1111 1011
+INT32 −5  =  1111 1111 1111 1111 1111 1111 1111 1011
+                ↑ all new bits filled with sign bit (1)
+```
 
-**Resources:**
+> **AI hardware connection:** matrix multiply accumulate units (MMA/WMMA) operate on INT8 with INT32 accumulators. The sign extension from INT8 to INT32 is automatic in hardware, but matters when you mix signed/unsigned operands.
 
-* **"Computer Organization and Design: The Hardware/Software Interface" by David A. Patterson and John L. Hennessy:**  A classic textbook that covers computer organization and design, including ALUs and other combinational logic circuits.
-* **"Fundamentals of Logic Design" by Charles H. Roth, Jr.:**  A comprehensive guide to logic design, covering combinational and sequential circuits.
-* **Datasheets for PLDs:**  Study datasheets from manufacturers like Xilinx and Intel to understand the architecture and capabilities of different PLDs.
+### 1.3 IEEE 754 Floating-Point
 
-**Projects:**
+Floating-point trades the fixed range of integers for a sliding window of precision.
 
-* **Design a Pipelined ALU:**  Implement a pipelined ALU that can perform multiple arithmetic operations concurrently.
-* **Build a Code Converter with Error Correction:**  Create a code converter that can detect and correct errors in the input code.
-* **Implement a Complex Combinational Function on a PLA:**  Use a PLA to implement a complex combinational logic function with multiple inputs and outputs.
+```
+Value = (−1)^S  ×  1.Mantissa  ×  2^(Exponent − Bias)
+```
 
+| Format    | Width | Sign | Exponent | Mantissa | Bias | ~Range          | ~Precision |
+|-----------|-------|------|----------|----------|------|-----------------|------------|
+| FP32      | 32b   | 1    | 8        | 23       | 127  | ±3.4×10^38      | ~7 digits  |
+| FP64      | 64b   | 1    | 11       | 52       | 1023 | ±1.8×10^308     | ~15 digits |
+| FP16      | 16b   | 1    | 5        | 10       | 15   | ±65504          | ~3 digits  |
+| BF16      | 16b   | 1    | 8        | 7        | 127  | same as FP32    | ~2 digits  |
+| FP8 E4M3  | 8b    | 1    | 4        | 3        | 7    | ±448            | ~1 digit   |
+| FP8 E5M2  | 8b    | 1    | 5        | 2        | 15   | ±57344          | ~0.5 digit |
 
-**4. Sequential Logic Design (Beyond the Basics)**
+**FP32 example — representing 0.15625:**
 
-* **Advanced State Machine Design:**
-    * **State Encoding Techniques:**  Explore different state encoding techniques (e.g., one-hot encoding, binary encoding, Gray code encoding) and their impact on state machine complexity and performance.
-    * **State Minimization:**  Learn about state minimization techniques, such as implication charts and row matching, to reduce the number of states in a state machine.
-    * **Asynchronous State Machines:**  Dive deeper into asynchronous state machine design, including hazard analysis and mitigation techniques.
+```
+0.15625 = 0.00101 in binary = 1.01 × 2^(−3)
 
-* **Advanced Counter and Shift Register Designs:**
-    * **Modulo-N Counters:**  Design counters that can count modulo-N (i.e., wrap around after N counts).
-    * **Shift Registers with Feedback:**  Explore shift registers with feedback, such as linear feedback shift registers (LFSRs), which can generate pseudo-random sequences.
-    * **Applications of Counters and Shift Registers:**  Investigate the use of counters and shift registers in various applications, such as timers, frequency dividers, and data serialization/deserialization.
+S = 0
+Exponent field = −3 + 127 = 124 = 0111 1100
+Mantissa = 01 followed by 21 zeros
 
-* **Timing Analysis and Optimization:**
-    * **Setup and Hold Time:**  Understand the concepts of setup and hold time for sequential elements and how to analyze timing violations.
-    * **Clock Skew and Jitter:**  Explore the impact of clock skew and jitter on sequential circuit performance.
-    * **Timing Optimization Techniques:**  Learn about techniques for optimizing timing in sequential circuits, such as pipelining, retiming, and clock gating.
+Bit pattern: 0  01111100  01000000000000000000000
+             S  exponent  mantissa
+```
 
-**Resources:**
+**Special values** (every hardware engineer must know these):
 
-* **"Digital Design: Principles and Practices" by John F. Wakerly:**  A comprehensive guide to digital design, including sequential logic design and timing analysis.
-* **"Advanced Digital Design with the Verilog HDL" by Michael D. Ciletti:**  A book that covers advanced Verilog topics, including sequential circuit design and verification.
-* **Online Courses on Digital Electronics:**  Explore online courses that cover sequential logic design and timing analysis.
+| Pattern                  | Meaning   |
+|--------------------------|-----------|
+| Exp=0, Mantissa=0        | ±Zero     |
+| Exp=0, Mantissa≠0        | Subnormal |
+| Exp=255, Mantissa=0      | ±Infinity |
+| Exp=255, Mantissa≠0      | NaN       |
 
-**Projects:**
+**Rounding modes** (four are standard; round-to-nearest-even is default):
 
-* **Design a State Machine for a Complex Control System:**  Implement a state machine for a complex control system, such as a vending machine or a traffic light controller.
-* **Build a Pseudo-Random Number Generator:**  Create a pseudo-random number generator using a linear feedback shift register (LFSR).
-* **Analyze and Optimize the Timing of a Sequential Circuit:**  Use timing analysis tools to identify and resolve timing violations in a sequential circuit design.
+```
+Exact result  →  nearest representable value
+Ties (exactly halfway)  →  choose the one with even last bit
+```
 
+Rounding modes matter in AI because accumulated rounding error over millions of operations can cause training instability. Stochastic rounding (rounding up or down randomly, weighted by proximity) is used in some FP8 training flows.
 
-**5. Memory Technologies (Advanced)**
+### 1.4 AI Float Formats: FP16, BF16, FP8
 
-* **Memory Hierarchy and Cache Design:**
-    * **Cache Organization and Policies:**  Learn about different cache organizations (direct-mapped, set-associative, fully associative) and cache replacement policies (LRU, FIFO).
-    * **Cache Coherence:**  Explore cache coherence protocols in multi-processor systems to ensure data consistency.
-    * **Virtual Memory:**  Understand the concept of virtual memory and how it allows programs to address more memory than is physically available.
+Modern AI training and inference use reduced-precision formats to fit more data in SRAM and reduce multiply-add energy.
 
-* **Memory Technologies (Advanced):**
-    * **Flash Memory:**  Dive deeper into flash memory technologies, including NAND flash and NOR flash, and their applications in embedded systems.
-    * **Emerging Memory Technologies:**  Investigate emerging memory technologies, such as phase-change memory (PCM) and resistive RAM (ReRAM), which offer potential advantages in density, speed, and power consumption.
-    * **Memory Error Detection and Correction:**  Explore advanced techniques for detecting and correcting errors in memory systems, such as ECC (Error Correction Code) and parity checking.
+```
+FP32   [S|EEEEEEEE|MMMMMMMMMMMMMMMMMMMMMMM]   32 bits
+BF16   [S|EEEEEEEE|MMMMMMM]                   16 bits  (truncated FP32 mantissa)
+FP16   [S|EEEEE|MMMMMMMMMM]                   16 bits  (different exponent width)
+FP8    [S|EEEE|MMM]  or  [S|EEEEE|MM]          8 bits
+```
 
-**Resources:**
+**BF16 vs FP16 trade-off:**
 
-* **"Computer Organization and Design: The Hardware/Software Interface" by David A. Patterson and John L. Hennessy:**  A classic textbook that covers memory hierarchy, cache design, and virtual memory.
-* **"Modern Operating Systems" by Andrew S. Tanenbaum:**  This book covers operating system concepts, including memory management and virtual memory.
-* **Research Papers on Memory Technologies:**  Explore research papers on advanced memory technologies and memory management techniques.
+| Property         | FP16                  | BF16                        |
+|------------------|-----------------------|-----------------------------|
+| Exponent bits    | 5                     | 8 (same as FP32)            |
+| Range            | ±65504                | ±3.4×10^38                  |
+| Precision        | ~3 decimal digits     | ~2 decimal digits           |
+| FP32 conversion  | Needs range clamp     | Truncate 16 mantissa bits   |
+| Usage            | Inference, some training | Mixed-precision training |
 
-**Projects:**
+**FP8 — two variants for different roles:**
 
-* **Simulate a Cache Memory System:**  Implement a cache memory system in a simulator and analyze its performance under different workloads.
-* **Explore Flash Memory Programming:**  Learn how to program and erase flash memory chips and implement a simple file system on a flash memory device.
-* **Investigate an Emerging Memory Technology:**  Research an emerging memory technology (e.g., PCM, ReRAM) and compare its characteristics to traditional memory technologies.
+- **E4M3** (4-bit exp, 3-bit mantissa): more precision, less range → weights and activations
+- **E5M2** (5-bit exp, 2-bit mantissa): more range, less precision → gradients
+
+FP8 training requires loss scaling and careful handling of overflow — the range is too small for raw gradients without scaling.
+
+### 1.5 Fixed-Point and Quantization
+
+Fixed-point represents Q = integer × 2^(−f) where f is the number of fractional bits.
+
+```
+Q8.8 format  (8 integer bits, 8 fractional bits, 16 bits total)
+
+Value 3.75:
+  Integer part:  3  = 0000 0011
+  Fraction part: 0.75 = 0.11 in binary → stored as 1100 0000
+
+Stored: 0000 0011  1100 0000  = 0x03C0
+```
+
+**Quantization** maps floating-point weights to INT8 for efficient inference:
+
+```
+INT8 = round(FP32_weight / scale)
+scale = max(|weights|) / 127          ← per-tensor
+scale = max(|row|) / 127              ← per-row (better quality)
+
+Dequantize: FP32 ≈ INT8 × scale
+```
+
+The multiply-accumulate (MAC) still runs in INT32 (INT8 × INT8 → INT32 accumulate), then the result is scaled back. This is exactly what CUDA's Tensor Core IMMA instructions implement.
+
+### 1.6 Error Detection and Correction
+
+**Parity** — add one bit so the total number of 1s is even (even parity) or odd (odd parity):
+
+```
+Data: 1011 0110   →  five 1s  →  odd
+Even parity bit: 1  (makes six 1s → even)
+Transmitted: 1011 0110 1
+```
+
+Parity detects any single-bit error but cannot locate or correct it.
+
+**Hamming(7,4)** — encode 4 data bits into 7 bits with 3 parity bits positioned at powers of 2:
+
+```
+Positions:  p1  p2  d1  p4  d2  d3  d4
+            1   2   3   4   5   6   7
+
+p1 covers positions 1,3,5,7  (odd positions)
+p2 covers positions 2,3,6,7
+p4 covers positions 4,5,6,7
+
+Syndrome = (check p1)(check p2)(check p4) → 3-bit number = position of error
+```
+
+Hamming(7,4) corrects any single-bit error and detects any double-bit error. Extended Hamming adds a fourth parity bit to detect (not correct) double errors.
+
+**CRC (Cyclic Redundancy Check)** — treats the data as a polynomial and divides by a generator polynomial:
+
+```
+Data polynomial D(x) × x^r  mod  G(x)  =  R(x)   (remainder = CRC)
+Transmitted: D(x) concat R(x)
+Receiver: divide received polynomial by G(x) — nonzero remainder means error
+```
+
+CRC-32 (used in Ethernet, ZIP, PNG) uses G(x) = x^32 + x^26 + x^23 + ... + 1.
+ECC DRAM uses a Hamming-based SECDED (Single Error Correct, Double Error Detect) code across the 64-bit data bus plus 8 ECC bits.
+
+---
+
+## 2. Boolean Algebra and Logic Gates
+
+### 2.1 Gates and Truth Tables
+
+Every digital function reduces to NAND gates (or NOR gates) — they are functionally complete.
+
+```
+AND gate:          OR gate:          NOT gate:         NAND gate:
+  A──┐              A──┐              A──○──Y           A──┐
+     ├──Y              ├──Y                             ├──○──Y
+  B──┘              B──┘                             B──┘
+
+Truth tables:
+
+A B | AND  OR  NAND  NOR  XOR  XNOR
+0 0 |  0   0    1    1    0    1
+0 1 |  0   1    1    0    1    0
+1 0 |  0   1    1    0    1    0
+1 1 |  1   1    0    0    0    1
+```
+
+**Universal gates — NAND implements everything:**
+
+```
+NOT A    =  NAND(A, A)
+A AND B  =  NAND(NAND(A,B), NAND(A,B))   i.e. NOT(NAND(A,B))
+A OR B   =  NAND(NAND(A,A), NAND(B,B))   i.e. NOT(NOT A) NAND NOT(NOT B)
+```
+
+### 2.2 Boolean Laws
+
+| Law             | AND form                | OR form                 |
+|-----------------|-------------------------|-------------------------|
+| Identity        | A · 1 = A               | A + 0 = A               |
+| Null            | A · 0 = 0               | A + 1 = 1               |
+| Idempotent      | A · A = A               | A + A = A               |
+| Complement      | A · Ā = 0               | A + Ā = 1               |
+| Double negative | ¬(¬A) = A               |                         |
+| Commutative     | A · B = B · A           | A + B = B + A           |
+| Associative     | (A·B)·C = A·(B·C)       | (A+B)+C = A+(B+C)       |
+| Distributive    | A·(B+C) = A·B + A·C     | A+(B·C) = (A+B)·(A+C)  |
+| **De Morgan's** | ¬(A·B) = Ā + B̄          | ¬(A+B) = Ā · B̄          |
+| Absorption      | A·(A+B) = A             | A + A·B = A             |
+
+**De Morgan's** is the most used law in logic design — it lets you push negations through gates and convert AND↔OR.
+
+### 2.3 Karnaugh Maps
+
+K-maps group minterms visually to find the minimal sum-of-products (SOP) expression.
+
+**4-variable K-map layout** (Gray code order — adjacent cells differ by one bit):
+
+```
+        CD
+AB    00  01  11  10
+  00 | 0 | 1 | 3 | 2 |
+  01 | 4 | 5 | 7 | 6 |
+  11 |12 |13 |15 |14 |
+  10 | 8 | 9 |11 |10 |
+```
+
+**Rules for grouping:**
+- Group size must be a power of 2: 1, 2, 4, 8, 16
+- Groups must be rectangular (wrap around edges)
+- Use the largest possible groups
+- Cover every 1; don't cover 0s
+- Each group eliminates the variables that change within it
+
+**Example** — minimize F(A,B,C,D) = Σm(0,2,4,5,6,7,8,10,13,15):
+
+```
+        CD
+AB    00  01  11  10
+  00 | 1 | 0 | 0 | 1 |   →  Group of 4: cells 0,2,8,10 → B̄D̄
+  01 | 1 | 1 | 1 | 1 |   →  Group of 4: cells 4,5,6,7 → AB̄
+  11 | 0 | 1 | 1 | 0 |   →  Group of 2: cells 13,15 → ACD
+  10 | 1 | 0 | 0 | 1 |
+
+F = B̄D̄ + AB̄ + ACD
+```
+
+Without K-map: 10 minterms = up to 10 four-literal terms. K-map: 3 terms.
+
+### 2.4 CMOS Implementation
+
+CMOS (Complementary MOS) uses PMOS pull-up networks and NMOS pull-down networks. The two networks are duals of each other.
+
+```
+CMOS NAND gate (2-input):
+
+        VDD
+         |
+    ─────┤  PMOS (A)     ← parallel pull-up
+    │    └──┐
+    └──────┤  PMOS (B)
+            └─── Y
+            ┌──
+    ┌──────┤  NMOS (A)   ← series pull-down
+    │    ┌──┘
+    ─────┤  NMOS (B)
+         |
+        GND
+
+Logic:  Y = NAND(A,B) = ¬(A · B)
+
+If A=1 AND B=1:  both NMOS on (pull Y low), both PMOS off → Y = 0  ✓
+If A=0 OR  B=0:  one PMOS on (pull Y high), NMOS chain broken → Y = 1  ✓
+```
+
+**Key CMOS properties:**
+
+| Property             | Value                                        |
+|----------------------|----------------------------------------------|
+| Static power         | Near zero (only leakage)                     |
+| Dynamic power        | C × V² × f (scales with switching activity) |
+| Noise margin         | ~40% of VDD                                  |
+| Fan-out              | Theoretically unlimited (MOS gate is capacitive) |
+| Inversion            | Every CMOS gate inverts (NAND, NOR, NOT)     |
+
+> **Why only NAND/NOR?** AND = NAND + NOT = two gate stages. An extra inversion costs delay and area. Modern synthesis tools always work in NAND/NOR/NOT internally.
+
+---
+
+## 3. Combinational Logic
+
+### 3.1 Multiplexers and Decoders
+
+**MUX (2:1)** — select one of two data inputs based on a control signal:
+
+```
+  D0 ──┐
+        ├── Y   Y = S̄·D0 + S·D1
+  D1 ──┘
+        ↑
+        S (select)
+
+  S=0 → Y=D0
+  S=1 → Y=D1
+```
+
+**4:1 MUX** from two layers of 2:1 MUX:
+
+```
+  D0 ─┐                  S1=0: top 2:1 → D0 or D1
+  D1 ─┤ 2:1 MUX ─┐       S1=1: bot 2:1 → D2 or D3
+       └──(S0)    │
+  D2 ─┐           ├─ 2:1 MUX ── Y
+  D3 ─┤ 2:1 MUX ─┘         └──(S1)
+       └──(S0)
+```
+
+**Decoder (2-to-4)** — activate exactly one of N outputs:
+
+```
+Inputs: A1, A0
+Outputs: Y0..Y3
+
+Y0 = Ā1·Ā0   (active when A=00)
+Y1 = Ā1·A0   (active when A=01)
+Y2 = A1·Ā0   (active when A=10)
+Y3 = A1·A0   (active when A=11)
+```
+
+Decoders appear as row/column address decoders in every SRAM and register file.
+
+### 3.2 Adders: Ripple-Carry vs Carry-Lookahead
+
+**Full adder (1-bit):**
+
+```
+  A ──┐
+  B ──┼── XOR ──────── Sum  =  A ⊕ B ⊕ Cin
+  Cin─┘
+
+  Carry-out  =  A·B  +  Cin·(A⊕B)
+             =  A·B  +  Cin·(A XOR B)
+```
+
+**Ripple-carry adder (RCA)** — chain N full adders:
+
+```
+  A3 B3    A2 B2    A1 B1    A0 B0
+   │  │     │  │     │  │     │  │
+  ┌┴──┴┐   ┌┴──┴┐   ┌┴──┴┐   ┌┴──┴┐
+  │ FA │◄──│ FA │◄──│ FA │◄──│ FA │◄── Cin=0
+  └────┘   └────┘   └────┘   └────┘
+  Cout S3     S2       S1       S0
+
+Delay: N × t_FA   (linear in word width)
+32-bit: ~32 × 0.5ns = 16ns at 1 GHz  (too slow for the critical path)
+```
+
+**Carry-Lookahead Adder (CLA)** — compute all carries in parallel:
+
+```
+Generate: Gi = Ai · Bi        (this bit produces a carry regardless of Cin)
+Propagate: Pi = Ai ⊕ Bi      (this bit passes Cin to Cout)
+
+C1 = G0 + P0·C0
+C2 = G1 + P1·G0 + P1·P0·C0
+C3 = G2 + P2·G1 + P2·P1·G0 + P2·P1·P0·C0
+C4 = G3 + P3·G2 + P3·P2·G1 + P3·P2·P1·G0 + P3·P2·P1·P0·C0
+
+All four carries computed in 2 gate delays (one AND, one OR).
+```
+
+**Delay comparison:**
+
+| Adder type          | Delay (N-bit)   | Area      |
+|---------------------|-----------------|-----------|
+| Ripple-carry        | O(N)            | O(N)      |
+| Carry-lookahead     | O(log N)        | O(N log N)|
+| Carry-select        | O(√N)           | O(N)      |
+| Kogge-Stone (tree)  | O(log N)        | O(N log N)|
+
+Modern ALUs use Kogge-Stone or Han-Carlson prefix trees to achieve O(log N) delay with regular, pipeable structure.
+
+### 3.3 Multipliers and MAC Units
+
+**Array multiplier (4×4 unsigned):**
+
+```
+           A3  A2  A1  A0
+         ×  B3  B2  B1  B0
+         ─────────────────
+         A3B0 A2B0 A1B0 A0B0     ← partial product row 0 (AND gates)
+    A3B1 A2B1 A1B1 A0B1          ← partial product row 1 (shift 1)
+A3B2 A2B2 A1B2 A0B2              ← partial product row 2 (shift 2)
+A3B3 A2B3 A1B3 A0B3              ← partial product row 3 (shift 3)
+─────────────────────────────────
+P7   P6   P5   P4   P3  P2  P1  P0
+
+Partial products are summed with an adder tree (Wallace tree reduces rows in O(log N) delay).
+```
+
+**MAC (Multiply-Accumulate):**
+
+```
+ACC ← ACC + (A × B)
+
+  A ─┐
+     ├── MULTIPLIER ─┐
+  B ─┘               ├── ADDER ── ACC ──┐
+                      │                  │
+             ACC ─────┘                  │
+              ↑                          │
+              └──────────────────────────┘
+
+One MAC = one ×, one +, one register write
+```
+
+The MAC is the fundamental operation in matrix multiplication. A systolic array tiles N×N MACs to compute a full matrix product:
+
+```
+A[i,k] flows right →      B[k,j] flows down ↓
+
+Each PE: acc += A × B, then pass A right and B down.
+After N cycles, PE[i,j] holds C[i,j] = Σ_k A[i,k]×B[k,j].
+```
+
+### 3.4 ALU Design
+
+A minimal ALU selects among operations via an opcode:
+
+```
+                  ┌──────────────────────────────────────────────┐
+  A[31:0] ─────►  │  ADD   SUB   AND   OR   XOR   SLT   SHR   SHL │
+  B[31:0] ─────►  │                                                │
+                  └──────────────────┬───────────────────────────┘
+                                     │ 8:1 MUX
+                         OpCode[2:0] ┘
+                                     ▼
+                                 Result[31:0]
+                                 + Flags: Zero, Carry, Overflow, Negative
+```
+
+**Flag bits:**
+
+| Flag     | Meaning                              | Use                         |
+|----------|--------------------------------------|-----------------------------|
+| Zero (Z) | Result == 0                          | Branch equal/not-equal      |
+| Carry (C)| Unsigned overflow / borrow           | Multi-word arithmetic       |
+| Overflow (V) | Signed overflow                  | Signed arithmetic check     |
+| Negative (N) | Result MSB is 1 (negative in 2's C) | Signed comparisons     |
+
+### 3.5 Propagation Delay and Critical Path
+
+Every gate has a propagation delay t_p — the time from input change to output stable.
+
+```
+Critical path: the longest delay path from any input to any output.
+Minimum clock period = critical path delay + setup time + clock skew.
+
+Example: 32-bit ripple-carry adder
+  t_FA = t_XOR + t_AND + t_OR ≈ 3 × 100ps = 300ps per stage
+  Critical path = 32 × 300ps = 9.6ns  →  max freq ≈ 104 MHz
+
+Same adder, 4-bit CLA blocks (4 blocks):
+  CLA block delay ≈ 2 gate delays = 200ps
+  Carry ripple between 4 blocks: 4 × 200ps = 800ps
+  Sum out: 800ps + 300ps ≈ 1.1ns  →  max freq ≈ 900 MHz
+```
+
+**Pipelining** cuts the critical path by adding registers mid-path:
+
+```
+Before pipelining (one long combinational path):
+  Input → [Stage A: 3ns] → [Stage B: 4ns] → [Stage C: 2ns] → Output
+  Throughput: 1 result / 9ns  →  ~111 MHz
+
+After pipelining (registers between stages):
+  Input → [A: 3ns] → REG → [B: 4ns] → REG → [C: 2ns] → Output
+  Clock period = max(3, 4, 2) + setup ≈ 4.2ns  →  ~238 MHz
+  Throughput: 1 result / 4.2ns  (latency is 3× longer, throughput ~2.1× better)
+```
+
+---
+
+## 4. Sequential Logic
+
+### 4.1 D Flip-Flop
+
+The D flip-flop (DFF) is the canonical memory element. It captures D on the rising clock edge.
+
+```
+       D ──┤D    Q├── Q
+    CLK ──┤CLK   │
+           │    Q̄├── Q̄ (complement)
+           └──────┘
+
+Timing:
+                ___     ___     ___
+  CLK:      ___|   |___|   |___|   |___
+                     ↑           ↑       ← capture edges
+  D:    ──[stable]──[stable]──[stable]──
+  Q:    ──────────[D₀]─────[D₁]────────
+                     ^ after t_clk-to-q
+```
+
+**Critical timing parameters:**
+
+| Parameter      | Symbol    | Definition                                    |
+|----------------|-----------|-----------------------------------------------|
+| Setup time     | t_su      | D must be stable this long BEFORE clock edge  |
+| Hold time      | t_h       | D must be stable this long AFTER clock edge   |
+| Clock-to-Q     | t_cq      | Time from clock edge to Q valid               |
+| Propagation    | t_p       | Combinational logic delay between DFFs        |
+
+**Setup time violation** (D changes too close to clock edge → Q becomes metastable):
+
+```
+  CLK:    _____|‾‾‾|_____
+  D:      ────[old]X[new]    ← X = transition inside setup window
+  Q:      ──────────[???]    ← metastable! may settle to wrong value
+```
+
+**Minimum period constraint:**  t_clk ≥ t_cq + t_p + t_su
+
+### 4.2 Registers, Shift Registers, and LFSR
+
+**N-bit register** — N DFFs sharing a clock and optional load-enable:
+
+```
+  D[N-1:0] ──► [DFF] [DFF] ... [DFF] ──► Q[N-1:0]
+                CLK shared across all
+```
+
+**Shift register** — DFFs chained; data shifts one position per cycle:
+
+```
+  D_in → [DFF₀] → [DFF₁] → [DFF₂] → [DFF₃] → D_out
+           Q₀       Q₁       Q₂       Q₃
+
+  Use: serial-to-parallel conversion, FIFO, delay line, CRC computation
+```
+
+**LFSR (Linear Feedback Shift Register)** — XOR taps from specific positions feed back to input:
+
+```
+  Fibonacci LFSR, polynomial x⁴ + x³ + 1 (taps at positions 4 and 3):
+
+  ┌─── XOR ◄──────────────────────────────┐
+  │    ↑                                   │
+  │  [DFF₄] ← [DFF₃] ← [DFF₂] ← [DFF₁]  │
+  │    Q₄       Q₃       Q₂       Q₁      │
+  │                                        │
+  └──────────────────────────────── Q₄ → output
+
+  Period: 2⁴ - 1 = 15 (maximal length for this polynomial)
+  Output sequence: 1111, 0111, 1011, 1101, 0110, 1010, 0101, 1010, ...
+```
+
+LFSRs are used in: pseudo-random number generation, BIST (Built-In Self-Test), spread spectrum clocking, CRC hardware, and scrambling in PCIe/USB.
+
+### 4.3 Finite State Machines
+
+**Two types:**
+
+| Type   | Output depends on        | Outputs change    |
+|--------|--------------------------|-------------------|
+| Moore  | State only               | After clock edge  |
+| Mealy  | State AND current inputs | Immediately       |
+
+**Traffic light FSM (Moore) — 4 states:**
+
+```
+States: GREEN_NS, YELLOW_NS, GREEN_EW, YELLOW_EW
+Input:  timer_expired (1 = time to change)
+
+         timer_expired
+GREEN_NS ──────────────► YELLOW_NS
+   ↑                          │
+   │                   always │
+   │                          ▼
+YELLOW_EW ◄──────── GREEN_EW
+              always
+```
+
+**HDL-style state register (synthesizable pattern):**
+
+```verilog
+// State register — always sequential
+always @(posedge clk or posedge rst) begin
+    if (rst)  state <= GREEN_NS;
+    else      state <= next_state;
+end
+
+// Next-state logic — always combinational
+always @(*) begin
+    case (state)
+        GREEN_NS:  next_state = timer_expired ? YELLOW_NS : GREEN_NS;
+        YELLOW_NS: next_state = GREEN_EW;
+        GREEN_EW:  next_state = timer_expired ? YELLOW_EW : GREEN_EW;
+        YELLOW_EW: next_state = GREEN_NS;
+        default:   next_state = GREEN_NS;
+    endcase
+end
+
+// Output logic — Moore: outputs depend on state only
+assign light_ns = (state == GREEN_NS)  ? GREEN  :
+                  (state == YELLOW_NS) ? YELLOW : RED;
+assign light_ew = (state == GREEN_EW)  ? GREEN  :
+                  (state == YELLOW_EW) ? YELLOW : RED;
+```
+
+**State encoding strategies:**
+
+| Encoding   | Bits needed | Power | Speed     | Use case                        |
+|------------|-------------|-------|-----------|---------------------------------|
+| Binary     | log₂(N)     | Low   | Moderate  | Area-constrained FPGAs, ASICs   |
+| One-hot    | N           | High  | Fast      | FPGA (abundant flip-flops)      |
+| Gray code  | log₂(N)     | Low   | Moderate  | Reduces glitches in output logic |
+
+> **AI hardware connection:** the control unit inside a GPU SM is a large FSM. The warp scheduler tracks warp state (ready, waiting on memory, waiting on dependency) and transitions each warp on every cycle. Up to 64 warps = 64 simultaneous FSM instances running in parallel.
+
+### 4.4 Timing Analysis and Critical Path
+
+**Setup analysis** — find the critical path across all register-to-register paths:
+
+```
+  REG A → [combo logic, delay t₁] → REG B
+
+  Setup check: t₁ + t_su ≤ t_clk - t_skew
+  (data must arrive before clock arrives at destination minus skew)
+```
+
+**Hold analysis** — ensure data doesn't change too fast:
+
+```
+  Hold check: t_cq + t_min_combo ≥ t_h + t_skew
+  (data must stay stable long enough after clock edge)
+```
+
+**Clock skew** — the difference in clock arrival time at two flip-flops:
+
+```
+   CLK source
+      │
+   ┌──┴──┐
+   │     │   ← routing delays differ
+ REG A  REG B
+  CLK   CLK
+  t₁    t₂     skew = t₂ - t₁
+
+  Positive skew (t₂ > t₁): relaxes setup, tightens hold
+  Negative skew (t₂ < t₁): tightens setup, relaxes hold
+```
+
+**Clock gating** — disable the clock to a register bank when idle to save dynamic power:
+
+```
+  CLK ───┐
+          ├── AND ──► gated CLK → register bank
+  EN  ───┘
+
+  Saves: C_register × V² × f per gated cycle
+  Risk: glitches if EN changes while CLK=1 (use latch-based clock gate)
+```
+
+---
+
+## 5. Memory Technologies
+
+### 5.1 SRAM — Static Random Access Memory
+
+SRAM stores a bit in a cross-coupled inverter pair (the **6T cell**):
+
+```
+        VDD
+         │
+    ─────┼──────────────────────────────
+    │    PMOS₁                PMOS₂   │
+    │      │                    │     │
+    │      ├── Q ─────── Q̄ ───┤      │
+    │    NMOS₁       ┌───┐  NMOS₂    │
+    │      │         │INV│    │      │
+    │      │         └───┘    │      │
+    ─────NMOS₃            NMOS₄──────
+    │      │                    │    │
+    BL     WL─────────────────WL    BL̄
+
+6T SRAM cell:
+  - 2 PMOS (pull-up)
+  - 2 NMOS (pull-down) forming the latch
+  - 2 NMOS access transistors (NMOS₃, NMOS₄) controlled by Word Line
+```
+
+**Operation:**
+
+| Phase     | WL  | BL  | BL̄ | Action                                     |
+|-----------|-----|-----|----|--------------------------------------------|
+| Standby   | 0   | Pre | Pre| Latch holds state; access transistors off  |
+| Read      | 1   | Pre | Pre| Cell discharges one BL; sense amp detects  |
+| Write     | 1   | D   | D̄  | Driver overrides latch; cell flips         |
+
+**SRAM characteristics:**
+
+| Property            | Value                                    |
+|---------------------|------------------------------------------|
+| Access time         | 0.5–5 ns (L1: ~1ns, LLC: ~10ns)         |
+| Density             | 6T cell ≈ 120–150 F² (F = feature size) |
+| Power               | Static leakage + dynamic read/write      |
+| Retention           | Holds data as long as VDD applied        |
+| On-chip use         | Registers, caches, scratchpad, FIFOs     |
+
+### 5.2 DRAM — Dynamic RAM
+
+DRAM stores charge on a capacitor — one transistor, one capacitor (1T1C):
+
+```
+       BL
+        │
+       NMOS  ← access transistor (WL controls)
+        │
+       CAP   ← ~20–30 fF capacitor
+        │
+       GND
+
+Charged cap (≥ Vth/2) = logic 1
+Discharged cap (≤ Vth/2) = logic 0
+```
+
+**Key differences from SRAM:**
+
+| Property      | SRAM                    | DRAM                        |
+|---------------|-------------------------|-----------------------------|
+| Cell size     | 6 transistors           | 1 transistor + 1 capacitor  |
+| Density       | Low                     | 4–8× higher than SRAM       |
+| Speed         | ~1–10 ns                | ~50–100 ns (row access)     |
+| Refresh       | Not needed              | Every ~64 ms (capacitor leaks) |
+| Destructive read | No                   | Yes (must restore after read) |
+| Cost/GB       | ~50–100×  more than DRAM | Baseline                   |
+
+**DRAM access sequence:**
+
+```
+1. Row activate (RAS): open one row (wordline) into row buffer (~45 ns)
+2. Column access (CAS): select columns from row buffer (~15 ns)
+3. Precharge: close row, precharge bit lines
+4. Refresh: periodically rewrite all rows before charge leaks away
+
+DRAM bandwidth = (bus width × frequency × burst length) / 8
+DDR5-6400: 64-bit × 3200 MT/s × burst-8 = 51.2 GB/s per channel
+```
+
+### 5.3 HBM — High Bandwidth Memory
+
+HBM stacks DRAM dies vertically on silicon interposer, connected via Through-Silicon Vias (TSVs):
+
+```
+  GPU Die ──────────────────────────── HBM stack
+              Silicon interposer
+
+  HBM stack cross-section:
+
+    ┌─────────────┐   ← DRAM die 4
+    ├─────────────┤   ← DRAM die 3
+    ├─────────────┤   ← DRAM die 2
+    ├─────────────┤   ← DRAM die 1
+    └─────────────┘   ← Base die (logic)
+           │││         ← TSVs (Through-Silicon Vias)
+    ─────────────────  ← Silicon interposer
+           │││
+    ┌─────────────┐   ← GPU/accelerator die
+```
+
+**HBM vs GDDR6 vs DDR5:**
+
+| Spec             | DDR5-6400   | GDDR6X       | HBM3          |
+|------------------|-------------|--------------|---------------|
+| Bus width/stack  | 64-bit      | 32-bit       | 1024-bit      |
+| Bandwidth/stack  | 51 GB/s     | 96 GB/s      | ~900 GB/s     |
+| Capacity/stack   | Unlimited   | 16–24 GB     | 16–48 GB      |
+| Power efficiency | Moderate    | Moderate     | High          |
+| On-package       | No          | No           | Yes (interposer)|
+| Used in          | CPU systems | Gaming GPUs  | AI GPUs/TPUs  |
+
+A100 has 80 GB HBM2e across 5 stacks at ~2 TB/s. H100 SXM uses HBM3 at ~3.35 TB/s. The interconnect between the GPU die and HBM is the single biggest memory bandwidth bottleneck in AI compute.
+
+### 5.4 Flash Memory
+
+Flash stores charge in a floating gate or charge trap layer — no power needed for retention.
+
+```
+NAND Flash cell (floating gate):
+
+    Control gate (CG)
+         │
+    ─────┼────   ← tunnel oxide
+    Floating gate (FG) ← charge stored here
+    ─────┼────   ← gate oxide
+    Source           Drain
+       │                │
+       └─────── ────────┘
+                Channel
+
+Writing: tunnel electrons onto FG (Fowler-Nordheim tunneling) → raises Vt → reads as 0
+Erasing: remove electrons from FG → lowers Vt → reads as 1
+```
+
+**Flash cell types by bits per cell:**
+
+| Type | Bits/cell | Voltage levels | Endurance  | Speed  | Use                |
+|------|-----------|---------------|------------|--------|--------------------|
+| SLC  | 1         | 2             | 100K P/E   | Fast   | Enterprise SSD     |
+| MLC  | 2         | 4             | 10K P/E    | Medium | Consumer SSD       |
+| TLC  | 3         | 8             | 1K P/E     | Slower | Bulk storage       |
+| QLC  | 4         | 16            | 300 P/E    | Slow   | Archival, cold data |
+
+Flash is **not byte-addressable for writes** — writes go to a page (4–16 KB), erasures go to a block (128–512 pages). This asymmetry drives the Flash Translation Layer (FTL) in SSD controllers.
+
+### 5.5 Cache Hierarchy
+
+A cache exploits spatial and temporal locality to bridge the speed gap between CPU/GPU registers and main memory.
+
+```
+GPU/CPU Memory Hierarchy (approximate, H100/server class):
+
+Registers          ~0.2 ns   ~256 KB     per SM (64K 32-bit regs × 108 SMs)
+L1 / Shared mem   ~5 ns     ~228 KB     per SM (configurable split)
+L2 cache          ~50 ns    ~50 MB      on-chip, shared
+HBM3              ~100 ns   ~80 GB      off-chip, on-package
+System DDR5       ~200 ns   ~TBs        off-package
+NVMe SSD          ~100 μs   ~TBs        PCIe storage
+
+Bandwidth (rough):
+  Register file   → FPU:         100+ TB/s
+  L1/Shared mem  → register:    ~15 TB/s per SM
+  L2              → SM:          ~12 TB/s total
+  HBM3            → chip:        ~3.35 TB/s
+  PCIe5 x16       → host:        ~64 GB/s
+```
+
+**Cache organization:**
+
+```
+Direct-mapped (1-way):     Set-associative (4-way):
+  Tag | Index | Offset       Tag | Index | Offset
+
+  One slot per set          Four slots per set (4 ways)
+  Fast, simple              Fewer conflict misses
+
+  Index selects row         Index selects set, all 4 ways checked in parallel
+  Tag must match            Any way whose tag matches → hit
+```
+
+**Replacement policies:**
+
+| Policy | Evicts                            | Hardware cost |
+|--------|-----------------------------------|---------------|
+| LRU    | Least recently used way           | O(log W) bits per set |
+| PLRU   | Pseudo-LRU (tree approximation)   | W−1 bits per set |
+| Random | Random way                        | LFSR counter  |
+| FIFO   | Oldest loaded way                 | Pointer per set |
+
+GPU L1 uses a simplified LRU or PLRU. CPU last-level caches often use QLRU (quad-age LRU) at 16-way associativity.
+
+### 5.6 On-Chip Scratchpad and Tiling
+
+Unlike a cache (hardware-managed, transparent), **shared memory** in GPUs is software-managed SRAM — the programmer explicitly controls what lives there.
+
+**Why tiling matters** — matrix multiply on GPU without tiling:
+
+```
+Naive: each thread loads A[row, k] and B[k, col] from HBM for every k
+
+For M=N=K=1024, C=A×B:
+  Loads from HBM: M × N × K × 2 (A and B) = 2 × 10⁹ float reads
+  At 3.35 TB/s HBM bandwidth: 2 × 10⁹ × 4B / 3.35TB/s ≈ 2.4 ms
+  Compute at 312 TFLOPS: 2 × 10⁹ FLOPs / 312 TFLOPS ≈ 0.006 ms
+  → memory-bound by 400×
+```
+
+**With tiling (shared memory):**
+
+```
+Block size: 16×16 output tile
+  Load tile of A (16×K_chunk) → shared memory    } one time per block
+  Load tile of B (K_chunk×16) → shared memory    }
+  Each thread computes its dot product from shared memory (fast)
+
+Arithmetic intensity = FLOPs / bytes from HBM
+  Naive: 2 FLOPs per 8 bytes (FMA = 2 ops, loads A and B) → 0.25 FLOP/byte
+  Tiled: 2 × T FLOPs per (2 × T × 4) bytes → T/4 FLOP/byte (T = tile size)
+  T=16: 4 FLOP/byte
+  T=128: 32 FLOP/byte  →  compute-bound at H100 (312 TFLOPS / 3350 GB/s = 93)
+```
+
+**Shared memory bank conflicts** — 32 banks, each 4 bytes wide; threads in a warp access conflict-free if they hit different banks:
+
+```
+No conflict: thread i accesses address i × 4   (each thread → different bank)
+2-way conflict: threads 0 and 16 both access bank 0 (serialized → 2× slower)
+Broadcast: all threads read same address (one bank, no conflict → hardware broadcasts)
+
+Fix: pad shared memory arrays by one element
+  float tile[16][16+1];   ← +1 padding shifts each row to different bank
+```
+
+---
+
+## Resources
+
+| Resource | Type | Focus |
+|----------|------|-------|
+| *Digital Design and Computer Architecture* — Harris & Harris | Textbook | Gates through ISA, HDL examples |
+| *Computer Organization and Design* — Patterson & Hennessy | Textbook | RISC-V, memory hierarchy, pipelining |
+| *Modern VLSI Design* — Wolf | Textbook | CMOS, timing, place-and-route |
+| Nandland (nandland.com) | Online | FPGA/Verilog/VHDL hands-on |
+| EEVblog / Ben Eater | Video | Intuition for digital circuits, breadboard CPU |
+| JEDEC JESD79-5B (DDR5 spec) | Spec | DRAM timing parameters |
+| JEDEC HBM3 spec | Spec | HBM architecture and interface |
+| IEEE 754-2019 | Standard | Floating-point standard |
+
+---
+
+## Projects
+
+| Project | Skills | Outcome |
+|---------|--------|---------|
+| **Binary/BCD/Gray code converter** | Number systems, K-map | Combinational logic in Verilog |
+| **32-bit CLA adder in Verilog** | Generate/propagate, prefix tree | RTL design + timing analysis |
+| **IEEE 754 FP32 adder** | Alignment shift, normalization, rounding | Understand FP hardware |
+| **INT8 MAC unit** | Fixed-point, two's complement, accumulation | Core of quantized inference |
+| **LFSR-based PRNG** | Shift registers, XOR feedback, polynomial | BIST, test stimulus generation |
+| **4-state FSM (Moore + Mealy)** | State encoding, next-state logic | Control unit design pattern |
+| **Tiled matrix multiply (CUDA)** | Shared memory, bank conflict, tiling | Connect theory to GPU programming |
+| **Cache simulator (Python/C++)** | Direct-map vs set-assoc, LRU, miss rates | Memory hierarchy intuition |
