@@ -490,6 +490,94 @@ ollama list
 ollama rm llama3.2:3b
 ```
 
+### 2.6 Offline Model Transfer — Jetson Without Internet
+
+Production Jetson devices often have no internet access (air-gapped, DNS issues, factory floor). Transfer models from an internet-connected machine via USB or LAN.
+
+**Step 1 — Download on your workstation/VM:**
+
+```bash
+# On internet-connected machine (workstation, cloud VM, etc.)
+cd /tmp
+
+# Download GGUF model from Hugging Face
+wget "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/\
+Llama-3.2-3B-Instruct-Q4_K_M.gguf"
+
+# Or for Nemotron (NVIDIA's edge model):
+wget "https://huggingface.co/bartowski/Nemotron-Mini-4B-Instruct-GGUF/resolve/main/\
+Nemotron-Mini-4B-Instruct-Q4_K_M.gguf"
+```
+
+**Step 2 — Transfer to Jetson via USB or LAN:**
+
+```bash
+# Method A: USB device-mode (Jetson acts as USB Ethernet at 192.168.55.1)
+scp Llama-3.2-3B-Instruct-Q4_K_M.gguf user@192.168.55.1:/opt/models/
+
+# Method B: Ethernet/WiFi LAN (replace with Jetson's IP)
+scp Llama-3.2-3B-Instruct-Q4_K_M.gguf user@192.168.1.100:/opt/models/
+
+# Method C: USB flash drive (if no network)
+# Mount USB drive on workstation, copy model, unmount, plug into Jetson
+cp Llama-3.2-3B-Instruct-Q4_K_M.gguf /media/usb_drive/
+# On Jetson:
+sudo mount /dev/sda1 /mnt
+cp /mnt/Llama-3.2-3B-Instruct-Q4_K_M.gguf /opt/models/
+```
+
+**Step 3 — Verify on Jetson:**
+
+```bash
+# Check file exists and size is correct
+ls -lh /opt/models/Llama-3.2-3B-Instruct-Q4_K_M.gguf
+# Expected: ~1.8 GB for 3B Q4_K_M
+
+# Verify integrity (optional — compare SHA256 with HuggingFace page)
+sha256sum /opt/models/Llama-3.2-3B-Instruct-Q4_K_M.gguf
+
+# Check disk space
+df -h /opt/models/
+```
+
+**Step 4 — Run inference:**
+
+```bash
+# With llama.cpp:
+./llama-cli -m /opt/models/Llama-3.2-3B-Instruct-Q4_K_M.gguf -ngl 99 -c 2048
+
+# With Ollama (import local GGUF):
+# Create a Modelfile
+echo 'FROM /opt/models/Llama-3.2-3B-Instruct-Q4_K_M.gguf' > Modelfile
+ollama create my-llama -f Modelfile
+ollama run my-llama
+```
+
+**USB device-mode setup (if not working):**
+
+```bash
+# Check if USB device-mode service is running
+systemctl status nv-l4t-usb-device-mode
+
+# Enable if disabled
+sudo systemctl enable --now nv-l4t-usb-device-mode
+
+# Verify Jetson has USB IP
+ip addr show usb0    # should show 192.168.55.1
+
+# On workstation, verify connectivity
+ping 192.168.55.1
+```
+
+**Transfer speed reference:**
+
+| Method | Speed | Time for 2 GB model |
+|--------|-------|---------------------|
+| USB 2.0 device-mode | ~30 MB/s | ~67 sec |
+| USB 3.0 flash drive | ~100 MB/s | ~20 sec |
+| Gigabit Ethernet | ~110 MB/s | ~18 sec |
+| WiFi (802.11ac) | ~40 MB/s | ~50 sec |
+
 ---
 
 ## 3. KV Cache Management — The Hidden Memory Consumer
