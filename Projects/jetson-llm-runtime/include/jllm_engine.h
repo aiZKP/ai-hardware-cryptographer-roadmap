@@ -143,6 +143,8 @@ private:
 
 ModelConfig load_gguf_config(const std::string& path);
 bool        load_gguf_weights(const std::string& path, void** weights, int64_t* size);
+bool        load_and_map_weights(const std::string& path, void** blob, int64_t* blob_size,
+                                 ModelWeights* mw, const ModelConfig& cfg);
 
 // ── Transformer layer weight pointers (into mmap'd GGUF) ────────────────
 // All pointers are offsets into the single mmap'd weights blob.

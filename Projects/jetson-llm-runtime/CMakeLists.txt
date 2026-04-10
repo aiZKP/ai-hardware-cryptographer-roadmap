@@ -77,3 +77,7 @@ add_test(NAME memory COMMAND test_memory)
 add_executable(test_kernels tests/test_kernels.cu)
 target_link_libraries(test_kernels PRIVATE jetson_llm_core)
 add_test(NAME kernels COMMAND test_kernels)
+
+add_executable(test_model_load tests/test_model_load.cpp)
+target_link_libraries(test_model_load PRIVATE jetson_llm_core)
+# Run with: ./build/test_model_load model.gguf

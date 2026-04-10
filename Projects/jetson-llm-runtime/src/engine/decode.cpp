@@ -44,12 +44,13 @@ bool Engine::load(const std::string& gguf_path, const GenParams& params) {
             config_.name.c_str(), config_.n_layers, config_.n_heads,
             config_.n_kv_heads, config_.hidden_dim, config_.vocab_size);
 
-    // Load weights (mmap + pin)
-    if (!load_gguf_weights(gguf_path, &weights_, &weights_size_)) return false;
+    // Load weights (mmap + pin) and map tensor names to struct pointers
+    if (!load_and_map_weights(gguf_path, &weights_, &weights_size_,
+                              &model_weights_, config_)) {
+        fprintf(stderr, "[engine] Failed to load/map weights\n");
+        return false;
+    }
     budget_.model_mb = weights_size_ / (1024 * 1024);
-
-    // Map weight tensors
-    model_weights_ = map_weights(weights_, weights_size_, config_);
 
     // Auto context from budget
     int kv_bytes = params.kv_int8 ? 1 : 2;
