@@ -10,8 +10,8 @@ docs_dir: docs
 
 theme:
   name: material
-  logo: Assets/images/arrow.png
-  favicon: Assets/images/arrow.png
+  logo: Assets/images/avatar.png
+  favicon: Assets/images/avatar.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
