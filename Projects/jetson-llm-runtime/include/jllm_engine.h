@@ -113,6 +113,14 @@ private:
     // Model weights (mapped from GGUF, pinned)
     void*         weights_ = nullptr;
     int64_t       weights_size_ = 0;
+    ModelWeights  model_weights_ = {};
+
+    // Tokenizer
+    Tokenizer     tokenizer_;
+
+    // Generation state
+    int           last_token_ = 0;
+    std::vector<int> recent_tokens_;  // for repeat penalty
 
     // CUDA
     cudaStream_t  stream_ = nullptr;
@@ -121,7 +129,7 @@ private:
     bool          graph_captured_ = false;
 
     // Internal
-    bool prefill(const std::vector<int>& tokens);
+    void transformer_layer(int layer, int pos, half* x);
     int  decode_step(int pos);        // returns token id
     void build_cuda_graph(int pos);   // capture decode step as graph
     bool check_memory_and_thermal(int pos);
@@ -135,5 +143,59 @@ private:
 
 ModelConfig load_gguf_config(const std::string& path);
 bool        load_gguf_weights(const std::string& path, void** weights, int64_t* size);
+
+// ── Transformer layer weight pointers (into mmap'd GGUF) ────────────────
+// All pointers are offsets into the single mmap'd weights blob.
+// No separate allocation — just pointer arithmetic.
+
+struct LayerWeights {
+    const void* wq;          // Q projection [hidden × hidden]  (quantized)
+    const void* wk;          // K projection [hidden × kv_dim]  (quantized)
+    const void* wv;          // V projection [hidden × kv_dim]  (quantized)
+    const void* wo;          // output projection [hidden × hidden] (quantized)
+    const void* w_gate;      // FFN gate [hidden × intermediate] (quantized)
+    const void* w_up;        // FFN up [hidden × intermediate] (quantized)
+    const void* w_down;      // FFN down [intermediate × hidden] (quantized)
+    const half* rms_attn;    // attention norm weight [hidden] (FP16)
+    const half* rms_ffn;     // FFN norm weight [hidden] (FP16)
+    // Quantization scales (parallel arrays, one per weight group)
+    const half* sq;
+    const half* sk;
+    const half* sv;
+    const half* so;
+    const half* s_gate;
+    const half* s_up;
+    const half* s_down;
+};
+
+struct ModelWeights {
+    const half*     tok_embd;    // token embedding [vocab × hidden] (FP16)
+    const half*     output_norm; // final RMSNorm weight [hidden]
+    const void*     output;      // output projection [vocab × hidden] (quantized)
+    const half*     s_output;    // output scales
+    LayerWeights*   layers;      // [n_layers]
+    int             n_layers;
+};
+
+// Parse weight tensor offsets from GGUF tensor info
+ModelWeights map_weights(const void* blob, int64_t blob_size, const ModelConfig& cfg);
+
+// ── Tokenizer (GGUF embedded) ────────────────────────────────────────────
+
+struct Tokenizer {
+    std::vector<std::string> vocab;   // id → token string
+    int bos_id = 1;
+    int eos_id = 2;
+
+    bool load_from_gguf(const std::string& path);
+    std::vector<int> encode(const std::string& text) const;
+    std::string decode(int token_id) const;
+    std::string decode(const std::vector<int>& ids) const;
+};
+
+// ── Sampling ─────────────────────────────────────────────────────────────
+
+int sample_token(float* logits, int vocab_size, const GenParams& params,
+                 const int* recent_tokens = nullptr, int n_recent = 0);
 
 }  // namespace jllm

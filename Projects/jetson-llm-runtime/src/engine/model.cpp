@@ -182,4 +182,43 @@ int64_t ModelConfig::weight_bytes() const {
     return params / 2 + params / 32 * 2;  // weights + scales
 }
 
+// ── Weight tensor mapping ────────────────────────────────────────────────
+// GGUF stores tensor info (name, shape, offset) in the header.
+// After loading the blob via mmap, we compute pointers into it.
+//
+// This is a simplified mapper — assumes standard Llama-style tensor names.
+// A full implementation would parse the GGUF tensor info section.
+
+ModelWeights map_weights(const void* blob, int64_t blob_size, const ModelConfig& cfg) {
+    ModelWeights mw = {};
+    mw.n_layers = cfg.n_layers;
+    mw.layers = new LayerWeights[cfg.n_layers];
+    memset(mw.layers, 0, sizeof(LayerWeights) * cfg.n_layers);
+
+    // TODO: Parse GGUF tensor info to get actual offsets.
+    // For now, this is a placeholder structure.
+    // In production, iterate the tensor metadata section of GGUF,
+    // match tensor names to our LayerWeights fields, and compute:
+    //   ptr = (char*)blob + data_offset + tensor_offset
+    //
+    // Tensor name patterns (Llama-style):
+    //   "token_embd.weight"           → tok_embd
+    //   "blk.{i}.attn_q.weight"       → layers[i].wq
+    //   "blk.{i}.attn_k.weight"       → layers[i].wk
+    //   "blk.{i}.attn_v.weight"       → layers[i].wv
+    //   "blk.{i}.attn_output.weight"  → layers[i].wo
+    //   "blk.{i}.ffn_gate.weight"     → layers[i].w_gate
+    //   "blk.{i}.ffn_up.weight"       → layers[i].w_up
+    //   "blk.{i}.ffn_down.weight"     → layers[i].w_down
+    //   "blk.{i}.attn_norm.weight"    → layers[i].rms_attn
+    //   "blk.{i}.ffn_norm.weight"     → layers[i].rms_ffn
+    //   "output_norm.weight"           → output_norm
+    //   "output.weight"                → output
+
+    fprintf(stderr, "[model] Weight tensor mapping: needs GGUF tensor info parser\n");
+    fprintf(stderr, "[model] Allocated %d layer weight structs\n", cfg.n_layers);
+
+    return mw;
+}
+
 }  // namespace jllm
