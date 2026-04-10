@@ -357,7 +357,156 @@ register file → results written back → scoreboards updated → stalled warps
 
 Maximum theoretical: 4 schedulers × 2 instructions = **8 instructions issued per clock cycle** on one SM.
 
-### 3.4 GPU Architecture Generations
+### 3.4 Latency Hiding — The Core Magic of GPUs
+
+This is the single most important concept in GPU architecture. Once you see it, everything about SM design, occupancy, and kernel optimization clicks.
+
+**What "latency" means here:**
+
+Every global memory load takes **300–500 cycles** to return. On a CPU, that means 300 cycles of doing nothing — the core stalls. On a GPU, the warp scheduler **instantly switches to another warp** and keeps the hardware busy.
+
+```
+The CPU approach (hide latency with cache):
+
+  Thread requests data → L1 miss → L2 miss → DRAM → 300 cycles stall
+                                                      ↑
+                                              Core does NOTHING for 300 cycles
+                                              (branch predictor + prefetch help, but stalls still happen)
+
+The GPU approach (hide latency with parallelism):
+
+  Warp A requests data → stalls                        ← warp A goes to sleep
+  Warp B runs          → stalls                        ← warp B goes to sleep
+  Warp C runs          → stalls
+  Warp D runs          → computes (no stall!)
+  Warp E runs          → computes
+  ...
+  Warp A's data arrives → warp A runs again            ← warp A wakes up
+
+  SM NEVER IDLES as long as some warp is ready
+```
+
+**Step-by-step timeline — what happens inside one SM:**
+
+```
+64 resident warps, 4 schedulers, global memory latency = 200 cycles
+
+Cycle 1:    Scheduler 0 picks Warp 0  → issues LOAD from global memory
+            Scheduler 1 picks Warp 16 → issues FMA (compute)
+            Scheduler 2 picks Warp 32 → issues FMA (compute)
+            Scheduler 3 picks Warp 48 → issues LOAD from global memory
+
+Cycle 2:    Warp 0 stalled (waiting for memory)
+            Warp 48 stalled (waiting for memory)
+            Scheduler 0 picks Warp 1  → issues FMA       ← instantly switched!
+            Scheduler 3 picks Warp 49 → issues FMA       ← no idle cycle!
+
+Cycle 3:    Scheduler 0 picks Warp 2  → issues FMA
+            ...
+
+Cycle 200:  Warp 0's data arrives from DRAM
+            Warp 0 becomes READY again
+            Next time Scheduler 0 has a free slot → picks Warp 0
+
+Result: 200 cycles of "waiting" consumed ZERO idle cycles
+        because 63 other warps filled the gap
+```
+
+**Why warp switching is free:**
+
+On a CPU, context switching saves/restores registers to memory (~1000 cycles). On a GPU, **every warp's registers are already on-chip** in the 256 KB register file — permanently allocated at kernel launch. Switching warps means the scheduler just picks a different warp ID. No save, no restore, no overhead.
+
+```
+CPU context switch:                    GPU warp switch:
+  Save 16 registers to stack            Do nothing — registers already on-chip
+  Load 16 registers from stack          Scheduler picks different warp ID
+  Flush/refill pipeline                 Next cycle: new warp's instruction issues
+  ~1000 cycles                          ~0 cycles
+```
+
+This is why the register file is 256 KB — it holds ALL warps' registers simultaneously. The trade-off: more registers per thread = fewer warps can fit = less latency hiding.
+
+**The chef analogy:**
+
+```
+CPU = one chef, one dish at a time:
+  Start soup → wait for stock to boil (300 seconds) → chef stands idle
+  Total: 300 seconds of waiting per dish
+
+GPU = one chef, 64 dishes in parallel:
+  Start soup     → put on stove (waiting)
+  Start salad    → chopping (active)
+  Start bread    → kneading (active)
+  Start sauce    → simmering (waiting)
+  Check soup     → stock ready! Continue soup
+  ...
+  Chef is NEVER idle — always has another dish to work on
+
+  64 dishes, each takes 300 seconds of waiting
+  But chef serves all 64 in ~350 total seconds (not 64 × 300 = 19,200)
+```
+
+**When latency hiding fails — and what to do:**
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| SM utilization <50% | Too few warps (low occupancy) | Reduce registers/thread, increase block size |
+| All warps stalled simultaneously | Every warp hit the same memory barrier | Restructure access to avoid all-warp synchronization |
+| High occupancy but low throughput | Memory bandwidth saturated (all warps waiting on DRAM) | Reduce memory traffic: tile, quantize, fuse ops |
+| Occupancy limited by shared memory | Each block uses too much shared memory | Reduce tile size, use registers instead where possible |
+| Occupancy limited by registers | Complex kernel needs many registers | Use `__launch_bounds__`, simplify computations, split kernel |
+
+**The occupancy sweet spot:**
+
+```
+Occupancy = active warps / max warps (64 on H100)
+
+  Occupancy   Latency hiding   Performance
+  ─────────────────────────────────────────
+  <25%        Poor              Bad — SM often idle
+  25–50%      Adequate          Good for compute-bound kernels
+  50–75%      Good              Good for most kernels
+  75–100%     Excellent         Best for memory-bound kernels
+
+  Rule of thumb: aim for >50% occupancy as a starting point
+  But: high occupancy ≠ fast kernel (memory-bound kernel at 100% occupancy
+       is still slow if it's hitting bandwidth ceiling)
+```
+
+**Measuring occupancy:**
+
+```bash
+# At compile time: theoretical occupancy
+nvcc --ptxas-options=-v my_kernel.cu
+# Output: "Used 32 registers, 4096 bytes smem" → plug into occupancy calculator
+
+# At runtime: achieved occupancy
+ncu --metrics sm__warps_active.avg.pct_of_peak_sustained_active ./my_program
+# Output: 68.5% → 68.5% of max warps were active on average
+
+# NVIDIA Occupancy Calculator (Excel spreadsheet):
+# Input: registers/thread, shared mem/block, block size
+# Output: theoretical occupancy, limiting factor
+```
+
+**The key mental model:**
+
+```
+GPUs don't make individual operations faster.
+GPUs hide the wait time by doing other work.
+
+1 warp waiting 200 cycles          = 200 wasted cycles
+64 warps, each waiting 200 cycles  = 0 wasted cycles (others fill the gap)
+
+This is why:
+  - GPU needs THOUSANDS of threads (not 4–8 like CPU)
+  - Occupancy matters (more warps = more hiding capacity)
+  - Register usage matters (more regs = fewer warps = less hiding)
+  - Block size matters (more threads per block = more warps)
+  - Memory access pattern matters (coalesced = fewer stalls to hide)
+```
+
+### 3.5 GPU Architecture Generations
 
 | Generation | Architecture | Compute Cap | Key Feature | Example GPU |
 |------------|-------------|-------------|-------------|-------------|
