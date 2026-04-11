@@ -15,7 +15,7 @@ int main() {
     // Test 2: OOM guard
     jllm::OOMGuard guard(256);
     assert(guard.real_free_mb() > 0);
-    printf("Free: %lld MB\n", guard.real_free_mb());
+    printf("Free: %ld MB\n", guard.real_free_mb());
     printf("PASS: OOMGuard\n");
 
     // Test 3: scratch pool
@@ -25,7 +25,8 @@ int main() {
     void* b = scratch.get(2048);
     assert(a != nullptr && b != nullptr);
     assert(a != b);
-    assert(scratch.used() == 1024 + 2048 + 256*2);  // aligned to 256
+    // get() aligns to 256: 1024→1024 (already aligned), 2048→2048
+    assert(scratch.used() == 1024 + 2048);
     scratch.reset();
     assert(scratch.used() == 0);
     scratch.destroy();

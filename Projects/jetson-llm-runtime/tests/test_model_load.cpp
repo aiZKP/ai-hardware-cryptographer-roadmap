@@ -9,6 +9,7 @@
 //   5. Memory budget calculation
 
 #include "jllm.h"
+#include <sys/mman.h>
 #include <cassert>
 #include <cstdio>
 
@@ -59,8 +60,8 @@ int main(int argc, char** argv) {
     // ── Test 4: Weight size estimate ─────────────────────────
     printf("Test 4: Weight size estimate\n");
     int64_t est = cfg.weight_bytes();
-    printf("  Estimated: %lld MB\n", est / (1024*1024));
-    printf("  Will fit in %lld MB free? %s\n", budget.free_mb(),
+    printf("  Estimated: %ld MB\n", est / (1024*1024));
+    printf("  Will fit in %ld MB free? %s\n", budget.free_mb(),
            budget.can_allocate(est / (1024*1024) + 500) ? "YES" : "NO");
     printf("PASS\n\n");
 
@@ -70,7 +71,7 @@ int main(int argc, char** argv) {
     int ctx_int8 = budget.max_context(cfg.n_layers, cfg.n_kv_heads, cfg.head_dim, 1);
     printf("  Max context (FP16 KV): %d tokens\n", ctx_fp16);
     printf("  Max context (INT8 KV): %d tokens\n", ctx_int8);
-    printf("  KV per token (INT8):   %lld bytes\n", cfg.kv_per_token_bytes(1));
+    printf("  KV per token (INT8):   %ld bytes\n", cfg.kv_per_token_bytes(1));
     assert(ctx_int8 >= ctx_fp16);  // INT8 should fit more
     printf("PASS\n\n");
 
@@ -103,7 +104,7 @@ int main(int argc, char** argv) {
     jllm::ModelWeights mw = {};
 
     bool loaded = jllm::load_and_map_weights(model_path, &weights, &weights_size, &mw, cfg);
-    printf("  Loaded: %s (%lld MB)\n", loaded ? "yes" : "no", weights_size / (1024*1024));
+    printf("  Loaded: %s (%ld MB)\n", loaded ? "yes" : "no", weights_size / (1024*1024));
 
     if (loaded) {
         printf("  tok_embd:    %p\n", (void*)mw.tok_embd);
