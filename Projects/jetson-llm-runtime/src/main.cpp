@@ -91,9 +91,9 @@ int main(int argc, char** argv) {
     int64_t file_size_mb = ftell(f) / (1024 * 1024);
     fclose(f);
 
-    fprintf(stderr, "Model file: %lld MB\n", file_size_mb);
+    fprintf(stderr, "Model file: %ld MB\n", file_size_mb);
     if (!budget.can_allocate(file_size_mb + 200)) {  // +200 MB for KV + scratch
-        fprintf(stderr, "ERROR: Model (%lld MB) + overhead won't fit in %lld MB free.\n",
+        fprintf(stderr, "ERROR: Model (%ld MB) + overhead won't fit in %ld MB free.\n",
                 file_size_mb, budget.free_mb());
         fprintf(stderr, "Try: disable GUI (sudo systemctl set-default multi-user.target)\n");
         fprintf(stderr, "     or use a smaller model / more aggressive quantization.\n");
@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
                 fflush(stdout);
             });
 
-            fprintf(stderr, "\n[%d tokens, %.1f tok/s, peak %lld MB, %.1f°C]\n\n",
+            fprintf(stderr, "\n[%d tokens, %.1f tok/s, peak %ld MB, %.1f°C]\n\n",
                     stats.completion_tokens, stats.decode_tok_per_sec,
                     stats.peak_memory_mb, stats.peak_thermal_c);
         }
@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
                 stats.prompt_tokens, stats.prompt_tok_per_sec, stats.prompt_ms);
         fprintf(stderr, "Decode:  %d tokens, %.1f tok/s (%.0f ms)\n",
                 stats.completion_tokens, stats.decode_tok_per_sec, stats.decode_ms);
-        fprintf(stderr, "Memory:  peak %lld MB\n", stats.peak_memory_mb);
+        fprintf(stderr, "Memory:  peak %ld MB\n", stats.peak_memory_mb);
         fprintf(stderr, "Thermal: peak %.1f°C\n", stats.peak_thermal_c);
         if (stats.oom_stops > 0)
             fprintf(stderr, "WARNING: OOM guard stopped generation %d time(s)\n", stats.oom_stops);

@@ -23,7 +23,7 @@ bool KVCachePool::init(const Config& cfg) {
     int64_t fast_bytes = (int64_t)cfg.n_layers * entry_bytes() * cfg.max_context;
     int64_t overflow_bytes = (int64_t)cfg.n_layers * entry_bytes() * cfg.overflow_context;
 
-    fprintf(stderr, "[kv_cache] Allocating fast pool: %lld MB (%d tokens)\n",
+    fprintf(stderr, "[kv_cache] Allocating fast pool: %ld MB (%d tokens)\n",
             fast_bytes / (1024*1024), cfg.max_context);
 
     // Fast pool: pinned memory (GPU + CPU accessible, no page faults)
@@ -37,7 +37,7 @@ bool KVCachePool::init(const Config& cfg) {
 
     // Overflow pool: regular malloc (optional)
     if (cfg.overflow_context > 0 && overflow_bytes > 0) {
-        fprintf(stderr, "[kv_cache] Allocating overflow pool: %lld MB (%d tokens)\n",
+        fprintf(stderr, "[kv_cache] Allocating overflow pool: %ld MB (%d tokens)\n",
                 overflow_bytes / (1024*1024), cfg.overflow_context);
         cpu_pool_ = malloc(overflow_bytes);
         if (!cpu_pool_) {

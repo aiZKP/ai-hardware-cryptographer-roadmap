@@ -140,7 +140,7 @@ bool load_gguf_weights(const std::string& path, void** weights, int64_t* size) {
     fstat(fd, &st);
     *size = st.st_size;
 
-    fprintf(stderr, "[gguf] Mapping %lld MB...\n", *size / (1024 * 1024));
+    fprintf(stderr, "[gguf] Mapping %ld MB...\n", *size / (1024 * 1024));
 
     // mmap the entire file (read-only)
     void* mapped = mmap(nullptr, *size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -167,7 +167,7 @@ bool load_gguf_weights(const std::string& path, void** weights, int64_t* size) {
     madvise(mapped, *size, MADV_RANDOM);  // switch to random access for inference
 
     *weights = mapped;
-    fprintf(stderr, "[gguf] Loaded and pinned %lld MB\n", *size / (1024 * 1024));
+    fprintf(stderr, "[gguf] Loaded and pinned %ld MB\n", *size / (1024 * 1024));
     return true;
 }
 
@@ -368,7 +368,7 @@ static int64_t parse_tensor_infos(const std::string& path,
 
     fclose(f);
 
-    fprintf(stderr, "[gguf] Parsed %zu tensor infos, data starts at offset %lld\n",
+    fprintf(stderr, "[gguf] Parsed %zu tensor infos, data starts at offset %ld\n",
             tensors.size(), data_offset);
     return data_offset;
 }

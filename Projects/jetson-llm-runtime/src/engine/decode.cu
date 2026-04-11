@@ -332,7 +332,7 @@ bool Engine::check_memory_and_thermal(int pos) {
     OOMGuard guard(256);
     int kv_bytes = gen_params_.kv_int8 ? 1 : 2;
     if (!guard.can_extend(config_.kv_per_token_bytes(kv_bytes))) {
-        fprintf(stderr, "\n[oom_guard] Stopping at token %d — %lld MB free\n",
+        fprintf(stderr, "\n[oom_guard] Stopping at token %d — %ld MB free\n",
                 pos, guard.real_free_mb());
         return false;
     }

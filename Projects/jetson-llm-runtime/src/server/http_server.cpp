@@ -91,7 +91,7 @@ static std::string build_health_json(Engine& engine) {
         "{"
         "\"status\":\"ok\","
         "\"model\":\"%s\","
-        "\"memory\":{\"total_mb\":%lld,\"free_mb\":%lld,\"model_mb\":%lld,\"kv_mb\":%lld},"
+        "\"memory\":{\"total_mb\":%ld,\"free_mb\":%ld,\"model_mb\":%ld,\"kv_mb\":%ld},"
         "\"thermal\":{\"gpu_c\":%.1f,\"cpu_c\":%.1f,\"throttling\":%s},"
         "\"power\":{\"mode\":\"%dW\",\"gpu_mhz\":%d},"
         "\"gpu_util_pct\":%d"
@@ -129,7 +129,7 @@ static std::string build_completion_json(Engine& engine, const std::string& prom
         "\"completion_tokens\":%d,"
         "\"total_tokens\":%d"
         "},"
-        "\"jetson\":{\"decode_tok_s\":%.1f,\"peak_mem_mb\":%lld,\"peak_temp_c\":%.1f}"
+        "\"jetson\":{\"decode_tok_s\":%.1f,\"peak_mem_mb\":%ld,\"peak_temp_c\":%.1f}"
         "}",
         time(nullptr),
         engine.config().name.c_str(),

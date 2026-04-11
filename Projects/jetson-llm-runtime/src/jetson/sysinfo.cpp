@@ -110,7 +110,7 @@ LiveStats read_live_stats() {
 }
 
 void print_live_stats(const LiveStats& s) {
-    fprintf(stderr, "\r[RAM %lld/%lld MB | GPU %d%% @ %d MHz | %.1f°C | %.1f tok/s]",
+    fprintf(stderr, "\r[RAM %ld/%ld MB | GPU %d%% @ %d MHz | %.1f°C | %.1f tok/s]",
             s.ram_used_mb, s.ram_total_mb,
             s.gpu_util_pct, s.gpu_freq_mhz,
             s.gpu_temp_c, s.tokens_per_sec);

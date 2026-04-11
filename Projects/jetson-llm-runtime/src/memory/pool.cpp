@@ -9,13 +9,13 @@ namespace jllm {
 bool ScratchPool::init(int64_t size_bytes) {
     cudaError_t err = cudaMallocHost(&base_, size_bytes);
     if (err != cudaSuccess) {
-        fprintf(stderr, "[scratch] cudaMallocHost(%lld MB) failed: %s\n",
+        fprintf(stderr, "[scratch] cudaMallocHost(%ld MB) failed: %s\n",
                 size_bytes / (1024*1024), cudaGetErrorString(err));
         return false;
     }
     capacity_ = size_bytes;
     offset_ = 0;
-    fprintf(stderr, "[scratch] Allocated %lld MB scratch pool\n", size_bytes / (1024*1024));
+    fprintf(stderr, "[scratch] Allocated %ld MB scratch pool\n", size_bytes / (1024*1024));
     return true;
 }
 
@@ -30,7 +30,7 @@ void* ScratchPool::get(int64_t size) {
     size = (size + 255) & ~255LL;
 
     if (offset_ + size > capacity_) {
-        fprintf(stderr, "[scratch] FATAL: pool exhausted (%lld / %lld bytes)\n",
+        fprintf(stderr, "[scratch] FATAL: pool exhausted (%ld / %ld bytes)\n",
                 offset_ + size, capacity_);
         return nullptr;
     }
