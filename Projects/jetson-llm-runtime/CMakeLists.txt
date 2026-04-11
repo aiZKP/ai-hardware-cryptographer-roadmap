@@ -15,8 +15,11 @@ set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 --use_fast_math --ptxas-options=-v")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=armv8.2-a+fp16 -ffast-math")
 
-find_package(CUDA REQUIRED)
+find_package(CUDAToolkit REQUIRED)
 find_package(Threads REQUIRED)
+
+# Make CUDA headers visible to .cpp files (they include cuda_runtime.h)
+include_directories(${CUDAToolkit_INCLUDE_DIRS})
 
 # ── Sources ──────────────────────────────────────────────────────────────
 set(MEMORY_SRC
@@ -42,7 +45,7 @@ set(KERNEL_SRC
 
 set(ENGINE_SRC
     src/engine/model.cpp
-    src/engine/decode.cpp
+    src/engine/decode.cu
     src/engine/sample.cpp
     src/engine/tokenizer.cpp
 )
@@ -57,7 +60,7 @@ add_library(jetson_llm_core STATIC
 )
 target_include_directories(jetson_llm_core PUBLIC include)
 target_link_libraries(jetson_llm_core PUBLIC
-    ${CUDA_LIBRARIES} ${CUDA_cublas_LIBRARY} Threads::Threads
+    CUDA::cudart CUDA::cublas Threads::Threads
 )
 
 # ── CLI binary ───────────────────────────────────────────────────────────

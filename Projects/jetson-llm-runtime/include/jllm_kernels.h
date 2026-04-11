@@ -15,6 +15,14 @@
 #include <cuda_fp16.h>
 #include <cstdint>
 
+// Orin SM 8.7 constants (duplicated here to avoid circular include with jllm.h)
+#ifndef JLLM_SHARED_MEM_SM
+#define JLLM_SHARED_MEM_SM   (48 * 1024)   // 48 KB per SM
+#endif
+#ifndef JLLM_WARP_SIZE
+#define JLLM_WARP_SIZE       32
+#endif
+
 namespace jllm {
 
 // Orin-optimal tile sizes (smaller than desktop — 48 KB shared mem)
