@@ -13,7 +13,8 @@ set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
 
 # Orin-specific CUDA flags
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 --use_fast_math --ptxas-options=-v")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=armv8.2-a+fp16 -ffast-math")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=armv8.2-a+fp16 -ffast-math -Wno-format-truncation")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --diag-suppress=177")
 
 find_package(CUDAToolkit REQUIRED)
 find_package(Threads REQUIRED)

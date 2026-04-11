@@ -3,6 +3,7 @@
 #include "jllm_memory.h"
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 
 namespace jllm {
 
