@@ -1266,15 +1266,82 @@ __global__ void divergent(float* data, int N) {
 // 2× slower than a non-divergent version
 ```
 
-**No-divergence version (branchless):**
+**How the GPU actually handles this — predication and `SEL`:**
+
+CUDA hardware can convert short branches into **predicated instructions**. Instead of branching, the GPU executes both paths and uses a `SEL` (select) instruction to pick the correct result. This is the hardware equivalent of branchless selection — and the compiler does it automatically for simple cases.
+
+**Approach 1 — Ternary operator (recommended):**
+
+This *looks* like branching code, but the compiler generates branchless SASS assembly because the operations are trivial:
 
 ```cpp
-__global__ void no_divergence(float* data, int N) {
+__global__ void branchless_ternary(float* data, int N) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    float even = data[i] * 2.0f;
-    float odd  = data[i] + 1.0f;
-    data[i] = (i % 2 == 0) ? even : odd;  // select, not branch
+    if (i < N) {
+        float val  = data[i];
+        float even = val * 2.0f;      // compute BOTH results
+        float odd  = val + 1.0f;
+        data[i] = (i % 2 == 0) ? even : odd;  // compiler emits SEL, not branch
+    }
 }
+```
+
+The NVCC compiler sees that both paths are cheap (one multiply, one add) and emits a predicated `SEL` instruction instead of a conditional jump. All 32 threads in the warp execute in lockstep — no divergence.
+
+**Approach 2 — Arithmetic select (manual branchless):**
+
+If you want to guarantee branchless execution regardless of compiler decisions:
+
+```cpp
+__global__ void branchless_arithmetic(float* data, int N) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < N) {
+        float val  = data[i];
+        float even = val * 2.0f;
+        float odd  = val + 1.0f;
+        int is_even = 1 - (i & 1);     // 1 if even, 0 if odd — no branch
+        data[i] = is_even * even + (1 - is_even) * odd;  // pure arithmetic
+    }
+}
+```
+
+Both values are computed, then blended with integer masks — zero branches at any level.
+
+**How CUDA differs from CPU here:**
+
+| | CPU (x86 SIMD) | GPU (CUDA) |
+|---|---|---|
+| Default branch handling | Branch instruction + branch predictor | **Automatic predication** for short branches |
+| Making it branchless | Requires manual SIMD blend intrinsics (`_mm256_blendv_ps`) | Compiler does it automatically for ternary/simple if |
+| When divergence hurts | Branch misprediction penalty (~15 cycles) | Warp serialization (executes both paths, 2× time) |
+| Branchless payoff | Always faster than misprediction | Only faster when both paths are cheap |
+
+**When NOT to use branchless:**
+
+If the two paths are expensive (e.g., complex loops, function calls), computing both paths wastes work. Better to let the warp diverge and only execute the needed path:
+
+```cpp
+// DON'T make this branchless — computing heavy_func for all threads wastes cycles
+if (condition)
+    result = heavy_function_A(x);   // 100+ instructions
+else
+    result = heavy_function_B(x);   // 100+ instructions
+
+// Divergence serializes (2× time) but only does NEEDED work
+// Branchless would do ALL work for ALL threads (2× work × all threads)
+```
+
+**Rule of thumb:** branchless for single-instruction operations (mul, add, max, min). Let the compiler handle ternary operators. Use arithmetic select only if profiling shows the compiler didn't predicate.
+
+**Verify with SASS inspection:**
+
+```bash
+# Compile to SASS and check for branch vs SEL instructions
+nvcc -arch=sm_87 -Xptxas=-v --ptx my_kernel.cu
+cuobjdump --dump-sass my_kernel.o | grep -E "BRA|SEL|@P"
+# SEL = select (branchless)  ✓
+# BRA = branch (divergent)   ✗
+# @P = predicated instruction ✓
 ```
 
 **When divergence is unavoidable:** `if (i < N)` bounds checks diverge only the last partial warp — acceptable.
