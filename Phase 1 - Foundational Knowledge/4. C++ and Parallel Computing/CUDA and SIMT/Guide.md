@@ -975,6 +975,219 @@ Each level follows the same principle:
   3. Only go to the next (slower) level when this level is exhausted
 ```
 
+### 4.7 Inside One SM — Tiled Matmul Step by Step
+
+Everything above is theory. This section zooms into **what actually happens inside a single SM** during a tiled matrix multiplication — cycle by cycle, warp by warp.
+
+**Setup:** one thread block computing a 128×128 output tile of C = A × B. K dimension processed in chunks of 32. Block has 256 threads = 8 warps.
+
+#### Step 1: Block Arrives at the SM
+
+The hardware scheduler assigns the block to an SM. The SM allocates:
+
+```
+Resources locked for this block:
+  Registers:     256 threads × 32 regs × 4 bytes = 32 KB  (from 256 KB file)
+  Shared memory: 128×32 + 32×128 = 8K elements × 2 bytes = 16 KB  (from 48 KB)
+  Warp slots:    8 warps                                    (from 48 max)
+
+Remaining SM capacity: other blocks can co-reside if resources allow
+```
+
+#### Step 2: Threads Grouped into Warps
+
+```
+256 threads → 8 warps:
+  Warp 0: threads   0– 31    Warp 4: threads 128–159
+  Warp 1: threads  32– 63    Warp 5: threads 160–191
+  Warp 2: threads  64– 95    Warp 6: threads 192–223
+  Warp 3: threads  96–127    Warp 7: threads 224–255
+
+4 warp schedulers manage these 8 warps.
+Each cycle, each scheduler picks one ready warp → 4 warps active per cycle.
+```
+
+#### Step 3: Cooperative Tile Loading
+
+Every thread participates in loading the tile — no single thread does all the work:
+
+```
+A tile [128×32] = 4,096 elements   →  256 threads each load 16 elements
+B tile [32×128] = 4,096 elements   →  256 threads each load 16 elements
+
+Memory access pattern (coalesced):
+  Warp 0: loads A[row 0..3,  col 0..31]   32 threads × 4 rows = 128 bytes/thread
+  Warp 1: loads A[row 4..7,  col 0..31]
+  ...
+  Warp 4: loads B[row 0..3,  col 0..127]  (same pattern for B)
+  ...
+
+All loads are coalesced: consecutive threads access consecutive addresses.
+32 threads × 4 bytes = 128 bytes → one memory transaction.
+```
+
+**Why this is fast:** each value is loaded from DRAM once (slow, ~300 cycles), then read from shared memory many times (fast, ~5 cycles). For a 128×128 tile with K=32: each A element is reused 128 times, each B element is reused 128 times.
+
+#### Step 4: Synchronization Barrier
+
+```cpp
+__syncthreads();  // ALL 256 threads must reach here before any proceed
+```
+
+Without this barrier: some warps start computing before the tile is fully loaded → wrong results. The barrier ensures all 8,192 elements are in shared memory before math begins.
+
+#### Step 5: Each Warp Gets a Subtile
+
+The 128×128 output tile is divided among warps:
+
+```
+Output tile [128×128]:
+  ┌────────┬────────┐
+  │ Warp 0 │ Warp 1 │     Each warp computes a 64×32 subtile
+  │ 64×32  │ 64×32  │     (or similar partitioning)
+  ├────────┼────────┤
+  │ Warp 2 │ Warp 3 │     Within each warp:
+  │ 64×32  │ 64×32  │       each thread handles a 4×4 sub-subtile
+  ├────────┼────────┤       in REGISTERS (not shared memory)
+  │ Warp 4 │ Warp 5 │
+  ├────────┼────────┤
+  │ Warp 6 │ Warp 7 │
+  └────────┴────────┘
+```
+
+#### Step 6A: CUDA Core Execution
+
+Each thread performs scalar FMA (fused multiply-add) operations:
+
+```
+Thread's inner loop (K chunk = 32):
+  for k = 0 to 31:
+    acc[0][0] += shared_A[my_row + 0][k] * shared_B[k][my_col + 0]
+    acc[0][1] += shared_A[my_row + 0][k] * shared_B[k][my_col + 1]
+    acc[1][0] += shared_A[my_row + 1][k] * shared_B[k][my_col + 0]
+    acc[1][1] += shared_A[my_row + 1][k] * shared_B[k][my_col + 1]
+
+  acc[4][4] in registers = 16 accumulators per thread
+  32 K iterations × 16 FMAs = 512 FMA ops per thread per K chunk
+  256 threads × 512 = 131,072 FMAs per block per K chunk
+```
+
+All accumulators live in **registers** — the fastest storage. No DRAM writes until the entire K dimension is processed.
+
+#### Step 6B: Tensor Core Execution
+
+Instead of scalar FMAs, a warp issues matrix-multiply-accumulate (MMA) instructions:
+
+```
+Tensor Core MMA instruction:
+  D[16×8] = A[16×8] × B[8×8] + C[16×8]
+
+  One instruction = 16 × 8 × 8 = 1,024 multiply-adds
+  vs CUDA core: 1 FMA per instruction
+
+Each warp issues multiple MMA instructions to cover its subtile:
+  64×32 warp tile / 16×8 MMA tile = 16 MMA instructions per K step
+
+Throughput: 16 × 1,024 = 16,384 ops per warp per K step
+  vs CUDA cores: 32 threads × 1 = 32 ops per cycle
+  → Tensor Cores are ~500× higher throughput per instruction
+```
+
+#### Step 7: Advance Through K Dimension
+
+After finishing one K chunk (32 elements):
+
+```
+K = 0..31:    load A[128×32], B[32×128] → compute → accumulate in registers
+K = 32..63:   load A[128×32], B[32×128] → compute → add to SAME registers
+K = 64..95:   load A[128×32], B[32×128] → compute → add to SAME registers
+...
+K = N-32..N:  final chunk → registers hold complete C[128×128]
+
+Registers accumulate: C[i,j] = Σ_k A[i,k] × B[k,j]
+                       built up across all K chunks
+```
+
+#### Step 8: Final Store
+
+```
+Registers → global memory (DRAM)
+
+256 threads cooperatively write 128×128 = 16,384 elements to C.
+Each thread writes its 4×4 subtile (16 elements).
+Writes are coalesced: consecutive threads write consecutive addresses.
+```
+
+#### What Happens Every Cycle (Zoomed In)
+
+```
+Clock cycle N:
+  Scheduler 0: Warp 2 → issues LOAD from shared memory
+  Scheduler 1: Warp 5 → issues FMA (or Tensor Core MMA)
+  Scheduler 2: Warp 0 → issues LOAD from global memory (prefetch next tile)
+  Scheduler 3: Warp 7 → stalled (waiting for global load) → SKIP
+
+Clock cycle N+1:
+  Scheduler 0: Warp 2 → issues FMA (data arrived from shared mem)
+  Scheduler 1: Warp 5 → issues FMA (next accumulation)
+  Scheduler 2: Warp 1 → issues LOAD from shared memory
+  Scheduler 3: Warp 3 → issues FMA
+
+Latency hiding: while Warp 7 waits for DRAM (300 cycles),
+  warps 0–6 execute ~300 × 4 = 1,200 instructions across the 4 schedulers.
+  SM never idles.
+```
+
+#### Double Buffering — Overlap Load and Compute
+
+Elite kernels (cuBLAS, CUTLASS) load the **next** tile while computing the **current** tile:
+
+```
+Time:   ───────────────────────────────────────────────────────►
+
+Load:   [Tile 0 load]  [Tile 1 load]  [Tile 2 load]  [Tile 3 load]
+                    ↘              ↘              ↘
+Compute:           [Tile 0 compute][Tile 1 compute][Tile 2 compute]
+
+Without double buffering:
+  [Load 0][Compute 0][Load 1][Compute 1][Load 2][Compute 2]
+  ← gaps where SM waits for memory
+
+With double buffering:
+  Load and compute overlap → nearly 100% SM utilization
+```
+
+Requires two shared memory buffers (one being loaded, one being computed on). Uses 2× shared memory but hides all load latency.
+
+#### CUTLASS Tiling Hierarchy
+
+Production GEMM libraries organize tiles in nested levels:
+
+```
+Threadblock tile [128×128×32]       ← one thread block's output + K chunk
+  └── Warp tile [64×64]            ← one warp's output portion
+        └── MMA tile [16×8×8]      ← one Tensor Core instruction
+              └── Thread tile [4×4] ← one thread's register accumulators
+
+Each level maps to a different memory/compute resource:
+  Threadblock tile → shared memory (load from DRAM)
+  Warp tile        → register file (computed in registers)
+  MMA tile         → Tensor Core hardware instruction
+  Thread tile      → individual thread's registers
+```
+
+This nested structure is why CUTLASS code looks complex — but it's just the same tiling idea applied recursively at every level of the hardware hierarchy.
+
+#### Real Bottlenecks in Tiled Matmul
+
+| Bottleneck | Cause | Symptom | Fix |
+|-----------|-------|---------|-----|
+| Bank conflicts | Multiple threads hit same shared memory bank | Shared mem throughput drops 2–32× | Pad: `__shared__ float A[128][33]` (not 32) |
+| Register pressure | Too many accumulators → spill to local memory | `ptxas` reports spills | Reduce thread tile size (4×4 → 2×2) |
+| Low occupancy | Large shared mem + many registers → few blocks per SM | SM utilization < 50% | Reduce tile size or shared mem usage |
+| Uncoalesced global loads | Threads access non-contiguous DRAM addresses | Memory throughput < 50% peak | Ensure thread N loads address N (stride-1) |
+| Shared memory bottleneck | Compute is faster than shared memory can deliver data | Compute units idle | Use register tiling to reuse data from shared mem |
+
 ---
 
 ## 5. Writing Kernels
