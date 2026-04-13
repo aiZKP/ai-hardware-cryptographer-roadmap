@@ -1,10 +1,13 @@
 // test_memory.cpp — Memory subsystem tests
 
 #include "jllm_memory.h"
+#include <cuda_runtime.h>
 #include <cassert>
 #include <cstdio>
 
 int main() {
+    // Initialize CUDA (required for cudaMallocHost in ScratchPool)
+    cudaSetDevice(0);
     // Test 1: probe system memory
     auto budget = jllm::probe_system_memory();
     assert(budget.total_mb > 0);

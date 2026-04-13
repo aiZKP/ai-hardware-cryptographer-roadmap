@@ -14,9 +14,11 @@
 
 // SM 8.7 constants (Orin Nano/NX/AGX)
 // JLLM_WARP_SIZE and JLLM_SHARED_MEM_SM defined in jllm_kernels.h
-static constexpr int JLLM_SM_COUNT       = 16;
-static constexpr int JLLM_CUDA_CORES     = 1024;
-static constexpr int JLLM_TENSOR_CORES   = 32;
+// Detected at runtime — these are defaults for Orin Nano Super (16 SMs)
+// Orin Nano 8GB (non-Super) has 8 SMs / 512 cores / 16 TCs
+static constexpr int JLLM_SM_COUNT       = 16;   // override: cudaGetDeviceProperties
+static constexpr int JLLM_CUDA_CORES     = 1024;  // SM_COUNT × 64
+static constexpr int JLLM_TENSOR_CORES   = 32;    // SM_COUNT × 2
 static constexpr int JLLM_MAX_THREADS_SM = 1536;
 static constexpr int JLLM_MAX_WARPS_SM   = 48;
 static constexpr int JLLM_REG_FILE_SM    = 256 * 1024;
