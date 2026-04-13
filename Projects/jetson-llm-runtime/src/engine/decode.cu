@@ -61,10 +61,28 @@ static void fp16_to_fp32(float* out, const half* in, int n, cudaStream_t s) {
 // Handles Q4_K (type 12), F32 (type 0), F16 (type 1)
 
 struct embd_block_q4_K {
-    half2   dm;
-    uint8_t scales[12];
-    uint8_t qs[128];
+    uint16_t d_raw;       // FP16 d as raw bits (super-block scale)
+    uint16_t dmin_raw;    // FP16 dmin as raw bits (super-block min)
+    uint8_t  scales[12];
+    uint8_t  qs[128];
 };
+static_assert(sizeof(embd_block_q4_K) == 144, "");
+
+// CPU-safe FP16→float conversion (no CUDA intrinsics)
+static float fp16_to_float(uint16_t h) {
+    uint32_t sign = (h >> 15) & 1;
+    uint32_t exp  = (h >> 10) & 0x1F;
+    uint32_t mant = h & 0x3FF;
+    float result;
+    if (exp == 0) {
+        result = ldexpf((float)mant, -24);  // subnormal
+    } else if (exp == 31) {
+        result = mant ? NAN : INFINITY;
+    } else {
+        result = ldexpf((float)(mant + 1024), (int)exp - 25);
+    }
+    return sign ? -result : result;
+}
 
 static void get_scale_min_k4_cpu(int j, const uint8_t* q, uint8_t& d, uint8_t& m) {
     if (j < 4) {
@@ -85,8 +103,8 @@ static void dequant_q4k_row(float* out, const void* data, int token_id, int hidd
     for (int b = 0; b < blocks_per_row; b++) {
         const embd_block_q4_K* blk = (const embd_block_q4_K*)(row_data + b * block_bytes);
 
-        float dall = __half2float(__low2half(blk->dm));
-        float dmin = __half2float(__high2half(blk->dm));
+        float dall = fp16_to_float(blk->d_raw);
+        float dmin = fp16_to_float(blk->dmin_raw);
 
         for (int il = 0; il < 4; il++) {
             int is = 2 * il;
@@ -118,6 +136,15 @@ static void dequant_embedding(half* dst, const void* embd_data, int token_id,
     if (embd_type == 12) {
         // Q4_K: dequantize on CPU
         dequant_q4k_row(h_row, embd_data, token_id, hidden_dim);
+        // Debug: print first few values to verify dequant
+        static bool first = true;
+        if (first) {
+            fprintf(stderr, "[embd] Q4_K dequant token %d, first 8 values: ", token_id);
+            for (int i = 0; i < 8 && i < hidden_dim; i++)
+                fprintf(stderr, "%.4f ", h_row[i]);
+            fprintf(stderr, "\n");
+            first = false;
+        }
         for (int i = 0; i < hidden_dim; i++)
             h_fp16[i] = __float2half(h_row[i]);
     } else if (embd_type == 0) {
