@@ -57,6 +57,83 @@ static void fp16_to_fp32(float* out, const half* in, int n, cudaStream_t s) {
     fp16_to_fp32_kernel<<<grid, block, 0, s>>>(out, in, n);
 }
 
+// ── Dequantize one embedding row (CPU-side, one row is small) ───────────
+// Handles Q4_K (type 12), F32 (type 0), F16 (type 1)
+
+struct embd_block_q4_K {
+    half2   dm;
+    uint8_t scales[12];
+    uint8_t qs[128];
+};
+
+static void get_scale_min_k4_cpu(int j, const uint8_t* q, uint8_t& d, uint8_t& m) {
+    if (j < 4) {
+        d = q[j] & 63;
+        m = q[j + 4] & 63;
+    } else {
+        d = (q[j+4] & 0xF) | ((q[j-4] >> 6) << 4);
+        m = (q[j+4] >>  4) | ((q[j-0] >> 6) << 4);
+    }
+}
+
+static void dequant_q4k_row(float* out, const void* data, int token_id, int hidden_dim) {
+    // Each row = hidden_dim elements = hidden_dim/256 Q4_K blocks
+    int blocks_per_row = hidden_dim / 256;
+    int block_bytes = 144;
+    const uint8_t* row_data = (const uint8_t*)data + (int64_t)token_id * blocks_per_row * block_bytes;
+
+    for (int b = 0; b < blocks_per_row; b++) {
+        const embd_block_q4_K* blk = (const embd_block_q4_K*)(row_data + b * block_bytes);
+
+        float dall = __half2float(__low2half(blk->dm));
+        float dmin = __half2float(__high2half(blk->dm));
+
+        for (int il = 0; il < 4; il++) {
+            int is = 2 * il;
+            uint8_t sc1, m1, sc2, m2;
+            get_scale_min_k4_cpu(is + 0, blk->scales, sc1, m1);
+            get_scale_min_k4_cpu(is + 1, blk->scales, sc2, m2);
+
+            float d1 = dall * sc1;
+            float dm1 = dmin * m1;
+            float d2 = dall * sc2;
+            float dm2 = dmin * m2;
+
+            const uint8_t* q = blk->qs + 32 * il;
+            int out_base = b * 256 + 64 * il;
+
+            for (int l = 0; l < 32; l++) {
+                out[out_base + l]      = d1 * (q[l] & 0xF) - dm1;
+                out[out_base + l + 32] = d2 * (q[l] >> 4)  - dm2;
+            }
+        }
+    }
+}
+
+static void dequant_embedding(half* dst, const void* embd_data, int token_id,
+                               int hidden_dim, int embd_type, cudaStream_t stream) {
+    float h_row[8192];  // max hidden_dim = 8192
+    half  h_fp16[8192];
+
+    if (embd_type == 12) {
+        // Q4_K: dequantize on CPU
+        dequant_q4k_row(h_row, embd_data, token_id, hidden_dim);
+        for (int i = 0; i < hidden_dim; i++)
+            h_fp16[i] = __float2half(h_row[i]);
+    } else if (embd_type == 0) {
+        // F32: convert to FP16
+        const float* src = (const float*)embd_data + (int64_t)token_id * hidden_dim;
+        for (int i = 0; i < hidden_dim; i++)
+            h_fp16[i] = __float2half(src[i]);
+    } else {
+        // F16: direct copy
+        const half* src = (const half*)embd_data + (int64_t)token_id * hidden_dim;
+        memcpy(h_fp16, src, hidden_dim * sizeof(half));
+    }
+
+    cudaMemcpyAsync(dst, h_fp16, hidden_dim * sizeof(half), cudaMemcpyHostToDevice, stream);
+}
+
 // ═════════════════════════════════════════════════════════════════════════
 
 Engine::Engine() {}
@@ -226,26 +303,10 @@ int Engine::decode_step(int pos) {
 
     half* x = (half*)scratch_.get(H * sizeof(half));
 
-    // Embedding lookup — handle F32 or F16 embeddings
-    if (model_weights_.embd_type == 0) {
-        // F32 embeddings: copy to scratch as F32 then convert to F16
-        float* x_f32 = (float*)scratch_.get(H * sizeof(float));
-        const float* embd = (const float*)model_weights_.tok_embd + last_token_ * H;
-        cudaMemcpyAsync(x_f32, embd, H * sizeof(float), cudaMemcpyDefault, stream_);
-        // Convert F32 → F16 on GPU
-        fp16_to_fp32(nullptr, nullptr, 0, stream_);  // dummy — need fp32_to_fp16
-        // For now: CPU-side conversion (embeddings are small: 2048 × 4 = 8 KB)
-        cudaStreamSynchronize(stream_);
-        float h_embd[4096];  // max hidden_dim
-        memcpy(h_embd, embd, H * sizeof(float));
-        half h_x[4096];
-        for (int i = 0; i < H; i++) h_x[i] = __float2half(h_embd[i]);
-        cudaMemcpyAsync(x, h_x, H * sizeof(half), cudaMemcpyDefault, stream_);
-    } else {
-        // F16 embeddings: direct copy
-        const half* embd = (const half*)model_weights_.tok_embd + last_token_ * H;
-        cudaMemcpyAsync(x, embd, H * sizeof(half), cudaMemcpyDefault, stream_);
-    }
+    // Embedding lookup — dequantize one row from the embedding table
+    // token_embd is typically Q4_K (type 12) or Q6_K (type 14) in GGUF
+    dequant_embedding(x, model_weights_.tok_embd, last_token_, H,
+                      model_weights_.embd_type, stream_);
 
     // All transformer layers
     for (int l = 0; l < config_.n_layers; l++) {
@@ -388,17 +449,8 @@ GenStats Engine::generate(const std::string& prompt, const GenParams& params,
         last_token_ = prompt_tokens[i];
         int H = config_.hidden_dim;
         half* x = (half*)scratch_.get(H * sizeof(half));
-        // Embedding: F32 → convert, F16 → direct copy
-        if (model_weights_.embd_type == 0) {
-            const float* embd = (const float*)model_weights_.tok_embd + last_token_ * H;
-            float h_e[4096]; half h_x[4096];
-            memcpy(h_e, embd, H * sizeof(float));
-            for (int j = 0; j < H; j++) h_x[j] = __float2half(h_e[j]);
-            cudaMemcpyAsync(x, h_x, H * sizeof(half), cudaMemcpyDefault, stream_);
-        } else {
-            const half* embd = (const half*)model_weights_.tok_embd + last_token_ * H;
-            cudaMemcpyAsync(x, embd, H * sizeof(half), cudaMemcpyDefault, stream_);
-        }
+        dequant_embedding(x, model_weights_.tok_embd, last_token_, H,
+                          model_weights_.embd_type, stream_);
         for (int l = 0; l < config_.n_layers; l++)
             transformer_layer(l, i, x);
     }

@@ -490,13 +490,13 @@ bool load_and_map_weights(const std::string& path, void** blob, int64_t* blob_si
         }
         else if (strcmp(ti.name, "token_embd.weight") == 0) {
             mw->tok_embd = ptr;
-            mw->embd_type = (ti.type == 0) ? 0 : 1;  // 0=F32, 1=F16
-            fprintf(stderr, "[model] token_embd type=%d (%s)\n", ti.type, ti.type==0?"F32":"Q/F16");
+            mw->embd_type = ti.type;  // store actual GGML type (0=F32, 1=F16, 12=Q4_K, etc.)
+            fprintf(stderr, "[model] token_embd type=%d\n", ti.type);
             mapped++;
         }
         else if (strcmp(ti.name, "output_norm.weight") == 0) {
             mw->output_norm = ptr;
-            fprintf(stderr, "[model] output_norm type=%d (%s)\n", ti.type, ti.type==0?"F32":"Q/F16");
+            fprintf(stderr, "[model] output_norm type=%d\n", ti.type);
             mapped++;
         }
         else if (strcmp(ti.name, "output.weight") == 0) {
