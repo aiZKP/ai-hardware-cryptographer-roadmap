@@ -2067,7 +2067,167 @@ __global__ void matmul_tiled(float* A, float* B, float* C, int N) {
 
 Missing either barrier → race condition → wrong results (often intermittent, hard to debug).
 
-### 10.5 Atomic Operations
+### 10.5 Warp Shuffle — Pass Data Between Threads Without Shared Memory
+
+Warp shuffles are the most powerful warp-level primitive. They let threads exchange register values directly — no shared memory, no barrier, no memory traffic. Just register-to-register communication across lanes.
+
+**The four shuffle operations:**
+
+```cpp
+// 1. Direct lane read: "give me value from thread src_lane"
+float val = __shfl_sync(0xFFFFFFFF, my_val, src_lane);
+//   Every thread gets the value from thread src_lane
+//   Example: __shfl_sync(mask, my_val, 0) → all threads get thread 0's value
+
+// 2. Shift down: thread i gets value from thread i+delta
+float val = __shfl_down_sync(0xFFFFFFFF, my_val, delta);
+//   Lane 0 gets Lane delta's value, Lane 1 gets Lane (1+delta)'s value, ...
+//   Lanes at the end (i+delta >= 32) get their own value (no wrap)
+
+// 3. Shift up: thread i gets value from thread i-delta
+float val = __shfl_up_sync(0xFFFFFFFF, my_val, delta);
+
+// 4. XOR exchange: thread i gets value from thread (i XOR lane_mask)
+float val = __shfl_xor_sync(0xFFFFFFFF, my_val, lane_mask);
+//   Example: mask=1 → exchange with neighbor (0↔1, 2↔3, ...)
+//   Example: mask=16 → exchange with lane 16 apart (0↔16, 1↔17, ...)
+```
+
+**Why shuffles beat shared memory:**
+
+| | Shared memory | Warp shuffle |
+|---|---|---|
+| Latency | ~5 cycles (shared mem read) | ~1 cycle (register crossbar) |
+| Sync needed | Yes (`__syncthreads`) | No (warp is already lockstep) |
+| Memory used | Shared memory (limited, 48 KB) | Registers only (unlimited for this) |
+| Bank conflicts | Possible | Impossible |
+| Scope | Entire block | Within one warp (32 threads) |
+
+### 10.6 Warp Reduction — The Classic Pattern
+
+Sum all 32 values in a warp using shuffle-down in 5 steps (log₂(32) = 5):
+
+```cpp
+__device__ float warp_reduce_sum(float val) {
+    for (int offset = 16; offset > 0; offset >>= 1)
+        val += __shfl_down_sync(0xFFFFFFFF, val, offset);
+    return val;   // lane 0 has the sum of all 32 lanes
+}
+```
+
+**Step-by-step (simplified to 8 lanes for clarity):**
+
+```
+Initial:    lane: 0  1  2  3  4  5  6  7
+            val:  a  b  c  d  e  f  g  h
+
+Step 1 (offset=4):  each lane += value from lane+4
+            lane 0: a+e    lane 1: b+f    lane 2: c+g    lane 3: d+h
+            lane 4: e      lane 5: f      lane 6: g      lane 7: h
+
+Step 2 (offset=2):  each lane += value from lane+2
+            lane 0: a+e+c+g    lane 1: b+f+d+h
+            lane 2: c+g        lane 3: d+h
+
+Step 3 (offset=1):  each lane += value from lane+1
+            lane 0: a+b+c+d+e+f+g+h  ← SUM OF ALL VALUES
+            lane 1: b+f+d+h
+
+Result: lane 0 = sum(all 8 values) in just 3 steps (log₂(8))
+For 32 lanes: 5 steps (log₂(32))
+```
+
+No shared memory used. No `__syncthreads()`. Just 5 `__shfl_down_sync` calls.
+
+### 10.7 Block Reduction — Warp + Shared Memory Hybrid
+
+For reducing across an entire block (256+ threads), combine warp shuffles with shared memory:
+
+```cpp
+__device__ float block_reduce_sum(float val) {
+    // Step 1: reduce within each warp (shuffle, no shared mem)
+    val = warp_reduce_sum(val);
+
+    // Step 2: collect warp results into shared memory
+    __shared__ float warp_results[8];   // one slot per warp (256 threads / 32 = 8 warps)
+    int lane = threadIdx.x % 32;
+    int warp = threadIdx.x / 32;
+
+    if (lane == 0)
+        warp_results[warp] = val;       // lane 0 of each warp writes its sum
+    __syncthreads();
+
+    // Step 3: first warp reduces the 8 warp results
+    if (warp == 0) {
+        val = (lane < 8) ? warp_results[lane] : 0.0f;
+        val = warp_reduce_sum(val);     // 8 values → 1 final sum
+    }
+
+    return val;  // thread 0 has the block sum
+}
+```
+
+**Why this is optimal:** only ONE `__syncthreads()` call (after writing to shared memory). The warp-level reductions use zero shared memory and zero barriers. This is the pattern used in cuBLAS, CUTLASS, and FlashAttention.
+
+### 10.8 Hardware Warp Reductions (Ampere+ / SM 8.0+)
+
+On compute capability 8.0+, the GPU has dedicated reduction hardware:
+
+```cpp
+// Built-in warp reductions (one instruction, fastest possible)
+float sum = __reduce_add_sync(0xFFFFFFFF, val);
+float max = __reduce_max_sync(0xFFFFFFFF, val);
+float min = __reduce_min_sync(0xFFFFFFFF, val);
+
+// Integer versions
+int   isum = __reduce_add_sync(0xFFFFFFFF, ival);
+int   imax = __reduce_max_sync(0xFFFFFFFF, ival);
+
+// Bitwise
+unsigned and_result = __reduce_and_sync(0xFFFFFFFF, uval);
+unsigned or_result  = __reduce_or_sync(0xFFFFFFFF, uval);
+```
+
+These are single hardware instructions — even faster than the shuffle loop. Use them when available (Orin Nano = SM 8.7 → supported).
+
+### 10.9 Warp Vote — Collective Boolean Operations
+
+```cpp
+// Do ALL active lanes satisfy the predicate?
+bool all_done = __all_sync(0xFFFFFFFF, my_flag);
+
+// Does ANY lane satisfy the predicate?
+bool any_ready = __any_sync(0xFFFFFFFF, data_available);
+
+// Get a bitmask of which lanes satisfy the predicate
+unsigned mask = __ballot_sync(0xFFFFFFFF, val > threshold);
+// mask bit i = 1 if lane i's (val > threshold) is true
+// Example: mask = 0x0000FF00 → lanes 8–15 passed, others didn't
+
+// Count how many lanes passed
+int count = __popc(mask);   // population count (count set bits)
+```
+
+**Use cases in AI:**
+- Attention masking: `__ballot_sync` to find which tokens are valid
+- Early exit: `__all_sync(mask, converged)` — stop iterating when all lanes converge
+- Sparse operations: `__popc(__ballot_sync(...))` — count non-zero elements in warp
+
+### 10.10 When to Use What
+
+| Need | Best primitive | Why |
+|------|---------------|-----|
+| Sum/max/min of 32 values | `__reduce_add_sync` (SM 8.0+) | Single hardware instruction |
+| Sum/max/min on older GPUs | `__shfl_down_sync` loop (5 steps) | Works everywhere |
+| Exchange with neighbor | `__shfl_xor_sync(mask, val, 1)` | Butterfly pattern |
+| Broadcast one value to all lanes | `__shfl_sync(mask, val, src_lane)` | Read from specific lane |
+| Prefix sum (scan) | `__shfl_up_sync` loop | Build partial sums |
+| Count true conditions | `__ballot_sync` + `__popc` | Bitmask + popcount |
+| Check all/any convergence | `__all_sync` / `__any_sync` | Collective boolean |
+| Block-wide reduction | Warp shuffle + 1 shared mem step | Hybrid (section 10.7) |
+| Cross-block reduction | `atomicAdd` to global | Only option |
+
+### 10.11 Atomic Operations
 
 ```cpp
 // Atomic add (global or shared memory)
@@ -2080,30 +2240,20 @@ atomicMax(&max_val, val);
 atomicMin(&min_val, val);
 atomicCAS(&lock, 0, 1);      // compare-and-swap: if *lock==0, set to 1, return old
 
-// Warp-level reduction (compute capability 8.0+)
-float warp_sum = __reduce_add_sync(0xFFFFFFFF, val);
-float warp_max = __reduce_max_sync(0xFFFFFFFF, val);
+// FP16 atomics (SM 7.0+)
+atomicAdd((__half*)ptr, (__half)val);
 ```
 
-### 10.3 Warp Shuffle — Pass Data Between Threads Without Shared Memory
+**Performance tip:** never do `atomicAdd` from every thread. First reduce within warp (shuffle), then reduce within block (shared mem), then ONE thread per block does the atomic:
 
 ```cpp
-// Each thread gets the value from thread src_lane in the same warp
-float val = __shfl_sync(0xFFFFFFFF, local_val, src_lane);
+// BAD: 10,000 threads all doing atomicAdd → massive contention
+atomicAdd(out, val);
 
-// Shift: thread i receives from thread i+delta
-float val = __shfl_down_sync(0xFFFFFFFF, local_val, delta);
-float val = __shfl_up_sync(0xFFFFFFFF, local_val, delta);
-
-// XOR exchange (butterfly for reductions)
-float val = __shfl_xor_sync(0xFFFFFFFF, local_val, mask);
-
-// Warp reduction using shuffles (no shared memory, no sync needed)
-__device__ float warp_reduce_sum(float val) {
-    for (int offset = warpSize / 2; offset > 0; offset >>= 1)
-        val += __shfl_down_sync(0xFFFFFFFF, val, offset);
-    return val;   // thread 0 holds the sum
-}
+// GOOD: reduce first, one atomic per block
+float block_sum = block_reduce_sum(val);
+if (threadIdx.x == 0)
+    atomicAdd(out, block_sum);   // only 1 atomic per block, not 256
 ```
 
 ---
