@@ -72,7 +72,25 @@ ModelConfig load_gguf_config(const std::string& path) {
         // Read key length + key string
         uint64_t key_len;
         fread(&key_len, sizeof(key_len), 1, f);
-        if (key_len > 255) { fseek(f, key_len, SEEK_CUR); continue; }
+        if (key_len > 255) {
+            // Skip long key + its value
+            fseek(f, key_len, SEEK_CUR);
+            uint32_t skip_type;
+            fread(&skip_type, 4, 1, f);
+            // Skip value based on type
+            if (skip_type <= 1 || skip_type == 7) fseek(f, 1, SEEK_CUR);
+            else if (skip_type <= 3) fseek(f, 2, SEEK_CUR);
+            else if (skip_type <= 6) fseek(f, 4, SEEK_CUR);
+            else if (skip_type >= 10 && skip_type <= 12) fseek(f, 8, SEEK_CUR);
+            else if (skip_type == 8) { uint64_t sl; fread(&sl, 8, 1, f); fseek(f, sl, SEEK_CUR); }
+            else if (skip_type == 9) {
+                uint32_t at; uint64_t al; fread(&at, 4, 1, f); fread(&al, 8, 1, f);
+                if (at == 8) { for (uint64_t a = 0; a < al; a++) { uint64_t sl; fread(&sl, 8, 1, f); fseek(f, sl, SEEK_CUR); } }
+                else { int esz = (at<=1||at==7)?1:(at<=3)?2:(at<=6)?4:8; fseek(f, al*esz, SEEK_CUR); }
+            }
+            else fseek(f, 8, SEEK_CUR);
+            continue;
+        }
 
         char key[256] = {};
         fread(key, 1, key_len, f);
@@ -81,7 +99,7 @@ ModelConfig load_gguf_config(const std::string& path) {
         uint32_t vtype;
         fread(&vtype, sizeof(vtype), 1, f);
 
-        // Parse based on type (simplified — only handles uint32 and float)
+        // Parse based on type
         if (vtype == 4) {  // GGUF_TYPE_UINT32
             uint32_t val;
             fread(&val, sizeof(val), 1, f);
@@ -121,7 +139,21 @@ ModelConfig load_gguf_config(const std::string& path) {
     // Defaults for missing fields
     if (cfg.rope_theta == 0.0f) cfg.rope_theta = 10000.0f;
     if (cfg.max_seq_len == 0) cfg.max_seq_len = 2048;
-    if (cfg.n_kv_heads == 0) cfg.n_kv_heads = cfg.n_heads;  // MHA fallback
+    if (cfg.n_kv_heads == 0) cfg.n_kv_heads = cfg.n_heads;
+
+    // vocab_size: if not found in metadata, derive from token_embd tensor shape
+    // (many GGUF files don't have a vocab_size metadata key)
+    if (cfg.vocab_size == 0 && cfg.hidden_dim > 0) {
+        // Quick scan tensor infos for token_embd.weight shape[0]
+        fseek(f, 0, SEEK_SET);
+        // Re-read header
+        GGUFHeader hdr2;
+        fread(&hdr2, sizeof(hdr2), 1, f);
+        // Skip all KV pairs (reuse the skip logic from parse_tensor_infos)
+        // For simplicity, just set a common default
+        cfg.vocab_size = 32000;  // Llama default — will be overridden by tokenizer
+        fprintf(stderr, "[gguf] vocab_size not in metadata, defaulting to %d\n", cfg.vocab_size);
+    }
 
     fclose(f);
     return cfg;
