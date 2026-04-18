@@ -39,6 +39,123 @@ Understanding these workloads helps L2 (compiler) and L5 (architecture) engineer
 
 ---
 
+## Current AI Application Trends (2026)
+
+The strongest application trend is that AI is moving from **chat interfaces** to **persistent, tool-using systems** that act inside real workflows.
+
+Two useful reference patterns are:
+- **agentic coding systems** such as [Claude Code](https://code.claude.com/docs/en/overview)
+- **local-first personal assistant systems** such as [OpenClaw](https://github.com/openclaw/openclaw)
+
+These are worth studying because they show what modern AI applications actually look like in production-like usage, not just in demos.
+
+### 1. Coding Agents Are Replacing Single-Step “Code Completion”
+
+This is the clearest shift.
+
+Tools like Claude Code are no longer limited to autocomplete in an editor. They act more like software workers:
+- read and navigate a repository
+- plan changes across multiple files
+- run tests and verification loops
+- create commits and pull requests
+- connect to external tools through MCP
+- load reusable skills, hooks, and plugins
+
+Anthropic’s official docs describe this directly: Claude Code can automate routine engineering work, work with git, connect tools through MCP, spawn multiple agents, and run in CI/CD workflows. Its public repository and plugin system make it a good reference for how coding agents are becoming a real application category rather than a novelty.
+
+**Why this matters for hardware:**
+- coding agents create long-running, tool-rich inference sessions instead of short chat turns
+- they increase demand for low-latency iteration loops, larger context windows, and higher background inference volume
+- they push AI products into developer infrastructure, where reliability, permissioning, and automation matter as much as model quality
+
+### 2. Personal AI Is Moving Toward Local-First Control Planes
+
+OpenClaw is a useful reference for a different trend: AI assistants that are not “one web page with one chat box,” but a **control plane** that stays running and connects many surfaces.
+
+From the official OpenClaw repo and docs:
+- one long-lived local Gateway owns channels, sessions, tools, and events
+- the assistant can operate across WhatsApp, Telegram, Slack, Discord, WebChat, and other channels
+- it supports voice, mobile nodes, live canvas UI, and multi-agent routing
+- it treats inbound messages as untrusted input and documents a concrete security model
+
+This shows where application design is going:
+- persistent assistants instead of one-off prompts
+- multi-channel delivery instead of one frontend
+- local or operator-controlled infrastructure instead of only cloud-hosted chat
+- agents as routed services with isolated workspaces and memory
+
+**Why this matters for hardware:**
+- always-on assistants create steady inference demand, not just bursty usage
+- multimodal assistants increase pressure on device memory, streaming, and local inference paths
+- local-first designs make edge hardware, Jetson-class devices, mobile nodes, and hybrid cloud/edge deployment more relevant
+
+### 3. MCP, Plugins, and Hooks Are Becoming the Real Application Surface
+
+Another major trend is that the model alone is no longer the full product.
+
+Modern AI systems are increasingly defined by:
+- **MCP connectors** to external systems
+- **plugins** for reusable workflows
+- **hooks** and automations around model actions
+- **skills** and custom agents for domain-specific behavior
+
+Claude Code’s docs explicitly position MCP, plugins, skills, hooks, monitors, and custom agents as first-class extension surfaces. OpenClaw similarly treats tools, plugins, channels, nodes, and gateway protocols as part of the product architecture.
+
+The implication is important: the application layer is becoming a **tool-and-protocol ecosystem**, not just a prompt template.
+
+### 4. Multi-Agent Structure Is Becoming Practical, Not Theoretical
+
+The industry has moved beyond “one model, one prompt, one answer.”
+
+Current systems increasingly use:
+- a lead agent plus worker agents
+- isolated workspaces per task or user
+- explicit routing rules
+- background monitors and event-driven triggers
+
+Claude Code exposes multiple-agent workflows and custom agents. OpenClaw exposes multi-agent routing with isolated workspaces, session stores, and bindings from inbound channels to specific agents.
+
+This is a practical trend because it maps well to real products:
+- support workflows
+- developer workflows
+- personal assistant workflows
+- project automation and governance workflows
+
+### 5. Security and Permission Boundaries Are Now Core Product Features
+
+This is one of the biggest changes from early LLM apps.
+
+Current AI applications increasingly ship with:
+- pairing and allowlists
+- tool permission boundaries
+- gateway auth and signed connections
+- sandboxing
+- safe output policies
+- moderation and prompt-injection defenses
+
+OpenClaw’s docs emphasize pairing approval, DM safety, sandbox modes, and gateway auth. Claude Code’s plugin system and tool model emphasize explicit structure, scoped extensions, and operational safety. GitHub’s agentic workflow material also frames security, permissions, and isolated execution as central rather than optional.
+
+This means “application architecture” now includes trust boundaries, not just prompts and UI.
+
+### 6. What To Learn From These Examples
+
+Do not study OpenClaw and Claude Code just because they are popular. Study them because they represent two high-signal application patterns:
+
+- **Claude Code pattern:** AI embedded into developer workflows, repositories, CI, tools, and review loops
+- **OpenClaw pattern:** AI embedded into messaging, voice, mobile nodes, control planes, and personal automation
+
+Together they show that the current application frontier is:
+- agentic
+- tool-connected
+- persistent
+- permissioned
+- multi-surface
+- operationally observable
+
+For this roadmap, the important takeaway is that **Track B should teach the workloads and architectures that real AI products are converging toward**, because those products are what downstream systems and hardware will ultimately serve.
+
+---
+
 ## 1. LLM Fundamentals for Engineers
 
 * **Transformer architecture:** attention mechanism, KV-cache, positional encoding
@@ -100,8 +217,14 @@ Understanding these workloads helps L2 (compiler) and L5 (architecture) engineer
 | Resource | What it covers |
 |----------|---------------|
 | [LangChain Documentation](https://python.langchain.com/) | Agent and RAG framework |
-| [Claude Agent SDK](https://github.com/anthropics/claude-code) | Building agents with Claude |
+| [Claude Code Overview](https://code.claude.com/docs/en/overview) | Agentic coding workflows, MCP, multi-agent use, and CI patterns |
+| [Claude Code Plugins](https://code.claude.com/docs/en/plugins) | Skills, agents, hooks, MCP servers, plugin structure, and distribution |
+| [Claude Code Repository](https://github.com/anthropics/claude-code) | Public implementation surface, examples, plugins, and project layout |
 | [Anthropic Cookbook](https://github.com/anthropics/anthropic-cookbook) | Practical Claude API examples |
+| [OpenClaw Repository](https://github.com/openclaw/openclaw) | Local-first assistant architecture, channels, gateway model, and security defaults |
+| [OpenClaw Gateway Architecture](https://docs.openclaw.ai/concepts/architecture) | Long-lived gateway, WS protocol, nodes, pairing, and remote access model |
+| [OpenClaw Features](https://docs.openclaw.ai/concepts/features) | Multi-agent routing, media, channels, tools, apps, and provider support |
+| [GitHub Agentic Workflows](https://github.github.com/gh-aw/slides/github-agentic-workflows.pdf) | Official GitHub framing for agentic CI/CD, permissions, and safe outputs |
 | [RAG best practices](https://docs.llamaindex.ai/) | LlamaIndex documentation |
 | *Build a Large Language Model (From Scratch)* (Raschka) | LLM internals |
 

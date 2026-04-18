@@ -93,7 +93,6 @@ extra_css:
 nav:
   - Home: README.md
   - Roles & Market: Roles and Market Analysis.md
-  - Curriculum Authoring Guide: Curriculum-Authoring-Guide.md
 
   # ── Phase 1 ─────────────────────────────────────────────────
   - Phase 1 — Digital Foundations:

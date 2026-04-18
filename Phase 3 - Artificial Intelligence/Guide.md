@@ -71,11 +71,11 @@ This track teaches the **AI application, infrastructure, and safety workloads** 
 
 | # | Module | What you learn | Leads to |
 |---|--------|---------------|----------|
-| **3** | [Agentic AI & GenAI](Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/3.%20Agentic%20AI%20and%20GenAI/Guide.md) | LLM agents, RAG pipelines, tool use, multi-step reasoning, prompt-injection basics, GenAI products | Phase 5A/B (GPU Infrastructure, HPC) |
+| **3** | [Agentic AI & GenAI](Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/3.%20Agentic%20AI%20and%20GenAI/Guide.md) | LLM agents, RAG pipelines, tool use, multi-step reasoning, prompt-injection basics, coding agents, and GenAI products | Phase 5A/B (GPU Infrastructure, HPC) |
 | **4** | [ML Engineering & MLOps](Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/4.%20ML%20Engineering%20and%20MLOps/Guide.md) | Training pipelines, experiment tracking, model serving, observability, CI/CD for models | Phase 5A/B (HPC, distributed training) |
 | **5** | [LLM Application Development](Track%20B%20-%20Agentic%20AI%20and%20ML%20Engineering/5.%20LLM%20Application%20Development/Guide.md) | Prompt engineering, fine-tuning, RAG architecture, evaluation, guardrails, moderation, PII controls, production deployment | L1d/L1e roles (highest job volume) |
 
-**Build:** RAG pipeline with vector search, agent with tool calling, fine-tune a small LLM, deploy model behind Triton/vLLM, secure prompt gateway with moderation and redaction.
+**Build:** RAG pipeline with vector search, agent with tool calling, coding agent in terminal or CI, fine-tune a small LLM, deploy model behind Triton/vLLM, secure prompt gateway with moderation and redaction.
 
 ---
 

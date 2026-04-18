@@ -226,7 +226,6 @@ Start here:
 ## Additional Resources
 
 - [**Roles & Market Analysis**](Roles%20and%20Market%20Analysis.md) — 23 sub-roles, salary data, job postings, remote %, hiring priorities
-- [**Curriculum Authoring Guide**](Curriculum-Authoring-Guide.md) — how to add new modules, labs, and projects without losing the repo's hardware-first focus
 
 ---
 
