@@ -50,8 +50,8 @@
 
   <rect x="76" y="444" width="462" height="96" rx="20" fill="url(#panel)" stroke="#2A406A"/>
   <text x="104" y="478" fill="#8FB3FF" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.06em">YOU LEARN TO</text>
-  <text x="104" y="511" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="21">Write kernels, deploy edge AI, understand compilers,</text>
-  <text x="104" y="541" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="21">and reason about the chip beneath the model.</text>
+  <text x="104" y="510" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="18">Write kernels, deploy edge AI, understand compilers,</text>
+  <text x="104" y="537" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="18">and reason about the chip beneath the model.</text>
 
   <rect x="604" y="86" width="520" height="456" rx="28" fill="#0D172B" stroke="#2A406A"/>
   <text x="640" y="132" fill="#8FB3FF" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.08em">THE CHIP STACK</text>
