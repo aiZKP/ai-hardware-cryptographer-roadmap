@@ -4,10 +4,6 @@
       <stop stop-color="#0B1220"/>
       <stop offset="1" stop-color="#13203B"/>
     </linearGradient>
-    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#17233E"/>
-      <stop offset="1" stop-color="#0E172B"/>
-    </linearGradient>
     <linearGradient id="phaseA" x1="0" y1="0" x2="1" y2="1">
       <stop stop-color="#375DFB"/>
       <stop offset="1" stop-color="#1FB6FF"/>
@@ -35,23 +31,20 @@
 
   <text x="76" y="170" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="50" font-weight="800">Build the hardware</text>
   <text x="76" y="226" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="50" font-weight="800">that runs AI</text>
-  <text x="76" y="274" fill="#C5D2F4" font-family="Inter, Arial, sans-serif" font-size="22">From CUDA kernels and Jetson deployment</text>
-  <text x="76" y="306" fill="#C5D2F4" font-family="Inter, Arial, sans-serif" font-size="22">to compiler backends and</text>
-  <text x="76" y="338" fill="#C5D2F4" font-family="Inter, Arial, sans-serif" font-size="22">accelerator architecture.</text>
+  <text x="76" y="274" fill="#C5D2F4" font-family="Inter, Arial, sans-serif" font-size="21">Follow the stack from CUDA kernels and</text>
+  <text x="76" y="304" fill="#C5D2F4" font-family="Inter, Arial, sans-serif" font-size="21">Jetson deployment through ML compilers,</text>
+  <text x="76" y="334" fill="#C5D2F4" font-family="Inter, Arial, sans-serif" font-size="21">runtime systems, and hardware architecture.</text>
+  <text x="76" y="380" fill="#9EB2DA" font-family="Inter, Arial, sans-serif" font-size="17">One roadmap for people moving between AI software,</text>
+  <text x="76" y="406" fill="#9EB2DA" font-family="Inter, Arial, sans-serif" font-size="17">embedded systems, and accelerator engineering.</text>
 
-  <rect x="76" y="364" width="132" height="42" rx="21" fill="#15284D"/>
-  <text x="142" y="390" text-anchor="middle" fill="#D8E4FF" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">8-layer stack</text>
+  <rect x="76" y="452" width="132" height="42" rx="21" fill="#15284D"/>
+  <text x="142" y="478" text-anchor="middle" fill="#D8E4FF" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">8-layer stack</text>
 
-  <rect x="222" y="364" width="122" height="42" rx="21" fill="#143046"/>
-  <text x="283" y="390" text-anchor="middle" fill="#D8E4FF" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">5 phases</text>
+  <rect x="222" y="452" width="122" height="42" rx="21" fill="#143046"/>
+  <text x="283" y="478" text-anchor="middle" fill="#D8E4FF" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">5 phases</text>
 
-  <rect x="358" y="364" width="182" height="42" rx="21" fill="#3B2720"/>
-  <text x="449" y="390" text-anchor="middle" fill="#FFE4C4" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">role-shaped tracks</text>
-
-  <rect x="76" y="444" width="462" height="96" rx="20" fill="url(#panel)" stroke="#2A406A"/>
-  <text x="104" y="478" fill="#8FB3FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="0.06em">YOU LEARN TO</text>
-  <text x="104" y="508" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="16">Write kernels, deploy edge AI, understand compilers,</text>
-  <text x="104" y="532" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="16">and reason about the chip beneath the model.</text>
+  <rect x="358" y="452" width="182" height="42" rx="21" fill="#3B2720"/>
+  <text x="449" y="478" text-anchor="middle" fill="#FFE4C4" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">role-shaped tracks</text>
 
   <rect x="604" y="86" width="520" height="456" rx="28" fill="#0D172B" stroke="#2A406A"/>
   <text x="640" y="132" fill="#8FB3FF" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.08em">THE CHIP STACK</text>
