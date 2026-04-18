@@ -88,22 +88,22 @@
   <text x="963" y="537" text-anchor="middle" fill="#D5DCEE" font-family="Inter, Arial, sans-serif" font-size="12.5" font-weight="700">L7-L8 GUIDED LABS</text>
 
   <rect x="76" y="582" width="186" height="80" rx="20" fill="url(#phaseA)"/>
-  <text x="104" y="615" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.06em">PHASE 1</text>
-  <text x="104" y="643" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800">Foundations</text>
+  <text x="169" y="615" text-anchor="middle" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="0.06em">PHASE 1</text>
+  <text x="169" y="646" text-anchor="middle" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="800">Foundations</text>
 
   <rect x="276" y="582" width="186" height="80" rx="20" fill="url(#phaseB)"/>
-  <text x="304" y="615" fill="#042F1A" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.06em">PHASE 2</text>
-  <text x="304" y="643" fill="#062819" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800">Embedded</text>
+  <text x="369" y="615" text-anchor="middle" fill="#042F1A" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="0.06em">PHASE 2</text>
+  <text x="369" y="646" text-anchor="middle" fill="#062819" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="800">Embedded</text>
 
   <rect x="476" y="582" width="186" height="80" rx="20" fill="#1E293B" stroke="#2E90FA"/>
-  <text x="504" y="615" fill="#8FB3FF" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.06em">PHASE 3</text>
-  <text x="504" y="643" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800">AI Workloads</text>
+  <text x="569" y="615" text-anchor="middle" fill="#8FB3FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="0.06em">PHASE 3</text>
+  <text x="569" y="646" text-anchor="middle" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="800">AI Workloads</text>
 
   <rect x="676" y="582" width="186" height="80" rx="20" fill="url(#phaseC)"/>
-  <text x="704" y="615" fill="#FFF7ED" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.06em">PHASE 4</text>
-  <text x="704" y="643" fill="#FFF7ED" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800">Deploy</text>
+  <text x="769" y="615" text-anchor="middle" fill="#FFF7ED" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="0.06em">PHASE 4</text>
+  <text x="769" y="646" text-anchor="middle" fill="#FFF7ED" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="800">Deploy</text>
 
   <rect x="876" y="582" width="234" height="80" rx="20" fill="#111827" stroke="#42526D"/>
-  <text x="904" y="615" fill="#A7B7D6" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.06em">PHASE 5</text>
-  <text x="904" y="643" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800">Specialize</text>
+  <text x="993" y="616" text-anchor="middle" fill="#A7B7D6" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="0.06em">PHASE 5</text>
+  <text x="993" y="647" text-anchor="middle" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="800">Specialize</text>
 </svg>
