@@ -219,6 +219,7 @@ Start here:
 |---------|--------------|
 | [**tinygrad**](https://github.com/tinygrad/tinygrad) | A tiny DL framework (~2,500 lines) — shows exactly how frameworks, compilers, and hardware backends connect |
 | [**openpilot**](https://github.com/commaai/openpilot) | Real-world ADAS software — shows how perception, ML, and hardware work together in production |
+| [**jetson-llm-runtime**](Projects/jetson-llm-runtime/README.md) | A highly optimized Jetson LLM runtime project — useful for studying inference kernels, memory behavior, runtime design, build flow, and edge deployment tradeoffs |
 
 ---
 
