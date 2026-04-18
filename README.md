@@ -37,28 +37,11 @@ It is built for people crossing into a neighboring layer of the stack:
 - from embedded into AI products and accelerator-backed inference
 - from hardware into workloads, compiler flow, and software integration
 
-<div class="audience-grid">
-  <div class="audience-card">
-    <div class="card-tag">Software Engineer - From code to execution</div>
-    <p>You already write production software. This roadmap helps you understand what happens after a model or kernel hits the compiler, runtime, memory system, and accelerator.</p>
-  </div>
-  <div class="audience-card">
-    <div class="card-tag">ML / AI Engineer - From models to systems</div>
-    <p>You already know training or inference at the framework level. This roadmap explains quantization, batching, graph lowering, deployment, and why hardware limits dominate real performance.</p>
-  </div>
-  <div class="audience-card">
-    <div class="card-tag">Embedded / Firmware - From boards to AI devices</div>
-    <p>You already know RTOS, Linux, drivers, or bring-up. This roadmap adds Jetson, edge inference, sensor pipelines, BSP customization, and AI deployment on shipped systems.</p>
-  </div>
-  <div class="audience-card">
-    <div class="card-tag">Computer Science Student - From fundamentals to a real niche</div>
-    <p>If you want a serious path into AI hardware, this roadmap gives you an order that makes sense: foundations first, then systems, then workloads, then deployment and specialization.</p>
-  </div>
-  <div class="audience-card">
-    <div class="card-tag">Hardware / RTL / FPGA - From architecture to full-stack relevance</div>
-    <p>You already understand logic, timing, RTL, FPGA, or architecture. This roadmap adds workload intuition, compilers, kernels, and deployment context so your hardware knowledge maps to real AI systems.</p>
-  </div>
-</div>
+- **Software Engineer:** Move from APIs and infrastructure into CUDA, runtime behavior, compiler flow, memory hierarchy, and accelerator execution.
+- **ML / AI Engineer:** Connect quantization, batching, graph lowering, deployment, and inference behavior to the hardware limits that actually shape performance.
+- **Embedded / Firmware Engineer:** Extend RTOS, Linux, drivers, BSP, and bring-up skills into Jetson, edge inference, sensor pipelines, and shipped AI devices.
+- **Computer Science Student:** Use a structured path from fundamentals to systems, workloads, deployment, and specialization instead of guessing what to study next.
+- **Hardware / RTL / FPGA Engineer:** Add workload intuition, compiler context, kernels, and deployment constraints so existing hardware knowledge maps to real AI systems.
 
 ---
 
@@ -77,32 +60,10 @@ This roadmap uses an **8-layer stack** to explain AI hardware work end to end. T
 
 Pick the path that matches both your current background and your target role. Most people should choose one primary entry path first, then branch out later.
 
-<div class="entry-grid">
-  <div class="entry-card">
-    <div class="card-tag">Software / ML</div>
-    <h3>Start with execution and performance</h3>
-    <p class="entry-path"><code>Phase 1 (C++ / Parallel) -&gt; Phase 3 -&gt; Phase 4C or 4B</code></p>
-    <p>Best if you already build models or infra and want to understand kernels, memory behavior, compiler lowering, and deployment constraints.</p>
-  </div>
-  <div class="entry-card">
-    <div class="card-tag">Embedded / Firmware</div>
-    <h3>Start with systems and deployment</h3>
-    <p class="entry-path"><code>Phase 1 (Architecture) -&gt; Phase 2 -&gt; Phase 4B</code></p>
-    <p>Best if you already know boards, RTOS, buses, or Linux bring-up and want to move into edge AI products.</p>
-  </div>
-  <div class="entry-card">
-    <div class="card-tag">Already know CUDA</div>
-    <h3>Jump to specialized tracks</h3>
-    <p class="entry-path"><code>Phase 4A / 4B / 4C</code></p>
-    <p>Go straight to FPGA, Jetson, or compiler work if profiling, kernels, and low-level performance already feel familiar.</p>
-  </div>
-  <div class="entry-card">
-    <div class="card-tag">Chip Design Target</div>
-    <h3>Follow the full hardware path</h3>
-    <p class="entry-path"><code>Phase 1 -&gt; Phase 2 -&gt; Phase 4A -&gt; Phase 5F</code></p>
-    <p>Best if your goal is accelerator architecture, FPGA prototyping, RTL implementation, or silicon-adjacent work.</p>
-  </div>
-</div>
+- **Software / ML:** Start with execution and performance. Path: `Phase 1 (C++ / Parallel) -> Phase 3 -> Phase 4C or 4B`. Best if you already build models or infrastructure and want to understand kernels, memory behavior, compiler lowering, and deployment constraints.
+- **Embedded / Firmware:** Start with systems and deployment. Path: `Phase 1 (Architecture) -> Phase 2 -> Phase 4B`. Best if you already know boards, RTOS, buses, or Linux bring-up and want to move into edge AI products.
+- **Already know CUDA:** Jump to specialized tracks. Path: `Phase 4A / 4B / 4C`. Best if profiling, kernels, and low-level performance already feel familiar.
+- **Chip design target:** Follow the full hardware path. Path: `Phase 1 -> Phase 2 -> Phase 4A -> Phase 5F`. Best if your goal is accelerator architecture, FPGA prototyping, RTL implementation, or silicon-adjacent work.
 
 ---
 
@@ -265,18 +226,6 @@ Start here:
 
 - [**Roles & Market Analysis**](Roles%20and%20Market%20Analysis.md) — 23 sub-roles, salary data, job postings, remote %, hiring priorities
 - [**Curriculum Authoring Guide**](Curriculum-Authoring-Guide.md) — how to add new modules, labs, and projects without losing the repo's hardware-first focus
-
----
-
-## Local Docs Build
-
-GitHub Actions prepares a temporary `docs/` directory before running MkDocs. To reproduce that workflow locally:
-
-```bash
-./scripts/build_docs_local.sh
-```
-
-This will mirror the publish pipeline, create a local `docs/` tree, and build the site into `_site/`.
 
 ---
 
