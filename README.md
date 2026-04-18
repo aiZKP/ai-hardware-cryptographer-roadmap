@@ -1,9 +1,5 @@
 <div align="center" markdown="1">
 
-# AI Hardware Engineer Roadmap
-
-**Learn to build the hardware that runs AI — from writing your first CUDA kernel to designing a custom AI chip.**
-
 ![AI Hardware Engineer Roadmap](Assets/images/ai-hardware-roadmap-hero.svg)
 
 [📖 Read the full guide](https://ai-hpc.github.io/ai-hardware-engineer-roadmap/) · [⭐ Star this repo](https://github.com/ai-hpc/ai-hardware-engineer-roadmap)
