@@ -17,7 +17,7 @@
   <rect x="68" y="66" width="128" height="34" rx="17" fill="#162544"/>
   <text x="132" y="88" text-anchor="middle" fill="#9DB6FF" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.08em">8 LAYERS</text>
 
-  <text x="68" y="150" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="48" font-weight="800">The AI Chip Stack</text>
+  <text x="68" y="150" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="48" font-weight="800">AI Chip Stack</text>
   <text x="68" y="190" fill="#C5D2F4" font-family="Inter, Arial, sans-serif" font-size="22">Eight layers that turn a model into a physical system</text>
   <text x="68" y="220" fill="#C5D2F4" font-family="Inter, Arial, sans-serif" font-size="22">that can run reliably, efficiently, and at scale.</text>
 

@@ -57,7 +57,7 @@ This roadmap is organized around a few simple rules: start with a real setup pha
 
 ---
 
-## The AI Chip Stack — Explained Simply
+## AI Chip Stack
 
 A chip that runs AI isn't just silicon. It's **8 layers of technology** that must work together, from the model you write at the top to the physical system that gets manufactured at the bottom.
 
