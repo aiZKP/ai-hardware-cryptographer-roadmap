@@ -49,7 +49,7 @@
   <text x="449" y="390" text-anchor="middle" fill="#FFE4C4" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">role-shaped tracks</text>
 
   <rect x="76" y="444" width="462" height="96" rx="20" fill="url(#panel)" stroke="#2A406A"/>
-  <text x="104" y="478" fill="#8FB3FF" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.06em">YOU LEARN TO</text>
+  <text x="104" y="478" fill="#8FB3FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="0.06em">YOU LEARN TO</text>
   <text x="104" y="508" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="16">Write kernels, deploy edge AI, understand compilers,</text>
   <text x="104" y="532" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="16">and reason about the chip beneath the model.</text>
 
