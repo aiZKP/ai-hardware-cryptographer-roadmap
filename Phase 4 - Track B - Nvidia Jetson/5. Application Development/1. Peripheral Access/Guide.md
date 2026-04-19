@@ -41,15 +41,114 @@ gpiodetect
 # Show all lines on a chip
 gpioinfo gpiochip0
 
-# Read a GPIO input
-gpioget gpiochip0 <line>
+# Read a GPIO input from a real line offset
+gpioget gpiochip0 43
 
-# Set a GPIO output high
-gpioset gpiochip0 <line>=1
+# Set a GPIO output high on a real line offset
+gpioset gpiochip0 43=1
 
-# Monitor GPIO events (rising/falling edge)
-gpiomon gpiochip0 <line>
+# Monitor GPIO events (rising/falling edge) on a real line offset
+gpiomon gpiochip0 43
 ```
+
+### What `gpiodetect` means on Jetson
+
+On a Jetson Orin Nano dev kit you will typically see something like:
+
+```text
+gpiochip0 [tegra234-gpio] (164 lines)
+gpiochip1 [tegra234-gpio-aon] (32 lines)
+```
+
+- `gpiochip0` is the main Tegra234 GPIO controller
+- `gpiochip1` is the **always-on** GPIO controller used for low-power and wake-related signals
+- the number in parentheses is how many line offsets exist on that controller
+
+For most 40-pin header work, you will usually spend your time on `gpiochip0`.
+
+### How to read `gpioinfo`
+
+`gpioinfo gpiochip0` prints one row per line offset. Example:
+
+```text
+line  35:      "PG.00" "Force Recovery" input active-low [used]
+line  43:      "PH.00"       unused   input  active-high
+line 131:      "PZ.01"  "interrupt"   input  active-high [used]
+```
+
+Read each field like this:
+
+| Field | Meaning |
+|-------|---------|
+| `line 43` | The **chip-relative line offset**. This is the number you pass to `gpioget`, `gpioset`, and `gpiomon`. |
+| `"PH.00"` | The SoC pad or line name exposed by the driver/device tree. |
+| `unused` / `"Force Recovery"` / `"interrupt"` | The current consumer. `unused` means no driver or userspace process owns it right now. |
+| `input` / `output` | Current direction. |
+| `active-high` / `active-low` | Logical polarity. |
+| `[used]` | The line is already requested by the kernel or another process. Do not reuse it casually. |
+
+### Why `gpioget gpiochip0 <line>` failed in your shell
+
+`<line>` in the docs is a **placeholder**, not something you type literally.
+
+In `bash`, angle brackets mean shell redirection. So:
+
+```bash
+gpioget gpiochip0 <line>
+```
+
+is interpreted as "read stdin from a file named `line`", which is why it fails.
+
+Replace the placeholder with a real line offset from `gpioinfo`, for example:
+
+```bash
+# Read line 43 on gpiochip0
+gpioget gpiochip0 43
+
+# Drive line 43 high
+gpioset gpiochip0 43=1
+
+# Monitor line 43 for edges
+gpiomon gpiochip0 43
+```
+
+Also note:
+
+- `gpioget` is for **reading**
+- `gpioset` is for **driving outputs**
+- `gpioget gpiochip0 <line>=1` is invalid because `gpioget` does not set values
+
+### Practical workflow on Jetson
+
+Use this sequence when you are trying to identify a GPIO safely:
+
+```bash
+# 1. See which controllers exist
+gpiodetect
+
+# 2. Inspect the main controller
+gpioinfo gpiochip0
+
+# 3. Pick an UNUSED line only after checking pinmux and board function
+gpioget gpiochip0 43
+```
+
+Before driving a line with `gpioset`, verify all of these:
+
+- the pin is really muxed as GPIO
+- it is not marked `[used]`
+- it is not a boot, recovery, regulator, wake, or other board-critical signal
+- you know what external hardware is attached to it
+
+### Finding a line by name
+
+If the line names are populated, `gpiofind` is often easier than scrolling through the full list:
+
+```bash
+gpiofind "PH.00"
+```
+
+That returns the owning chip and line offset for that named line.
 
 ### libgpiod in C
 
@@ -95,28 +194,70 @@ GPIOs are assigned functions in the **pinmux device tree**. To use a pin as GPIO
 
 ## 2. GPIO naming — alphanumeric to numeric assignment
 
-Jetson uses a **SoC-level naming** scheme (e.g., `GPIO09`, `PQ.05`, `SOC_GPIO42`) that differs from the Linux **line number** within a gpiochip.
+Jetson uses several GPIO naming schemes at once. They are easy to confuse, and they are **not interchangeable**.
 
 ### Finding the mapping
 
 ```bash
-# Show chip + line for all GPIOs with their names
-gpioinfo | grep -i "GPIO"
+# Show all lines on the main chip
+gpioinfo gpiochip0
 
-# Or use the Jetson-specific tool
+# Show all lines on the always-on chip
+gpioinfo gpiochip1
+
+# Find a line by SoC pad name, if the line has a name
+gpiofind "PH.00"
+
+# Kernel debug view
 sudo cat /sys/kernel/debug/gpio
 ```
 
-### NVIDIA's mapping table
+`gpioinfo | grep -i "GPIO"` is often not very useful on Jetson, because many lines are named like `PA.00`, `PH.00`, `PQ.05`, or have board-specific labels such as `Force Recovery`, not literal strings like `GPIO09`.
 
-NVIDIA publishes a GPIO mapping table in the **Jetson Orin Nano Developer Kit User Guide** and the **pinmux spreadsheet**. The key columns:
+### The four names you will see
 
-| SoC pad name | GPIO port.pin | gpiochip | Line number | 40-pin header |
-|-------------|--------------|----------|-------------|---------------|
-| `SOC_GPIO42` | `PH.00` | gpiochip0 | 106 | Pin 7 |
-| `SOC_GPIO43` | `PH.01` | gpiochip0 | 107 | Pin 11 |
+| Name style | Example | Where you see it | What it means |
+|------------|---------|------------------|---------------|
+| Board/header label | `GPIO09`, `GPIO15`, `GPIO22` | Carrier schematics, 40-pin header tables, Jetson pinout diagrams | A board-facing label for a header pin or connector signal |
+| SoC pad / port.pin | `PH.00`, `PQ.05`, `PZ.01` | `gpioinfo`, pinmux docs, low-level bring-up notes | The Tegra GPIO bank and bit name |
+| `gpiochip` line offset | `43`, `105`, `131` | `gpioinfo`, `gpioget`, `gpioset`, `gpiomon` | The number libgpiod uses inside one chip |
+| Legacy sysfs/global GPIO number | `348`, `391` | Older Jetson docs, `/sys/class/gpio` workflows | Deprecated numbering model; avoid for new code |
 
-Always verify with `gpioinfo` on your actual device — line numbers can shift between L4T versions.
+### Mental model
+
+When using `libgpiod`, the address format is:
+
+```text
+gpiochipN + line offset
+```
+
+Example:
+
+```bash
+gpioget gpiochip0 43
+```
+
+That means:
+
+- controller: `gpiochip0`
+- line offset on that controller: `43`
+
+It does **not** mean:
+
+- 40-pin header pin 43
+- sysfs GPIO 43
+- board label `GPIO43`
+
+### What to trust when numbers disagree
+
+For modern userspace work on Jetson, prefer this order:
+
+1. `gpioinfo` and `gpiofind` for the current Linux-visible line offsets
+2. NVIDIA pinmux spreadsheet and board schematic for signal identity
+3. 40-pin header tables for physical pin location
+4. old sysfs numbers only when reading legacy documentation
+
+Always verify on the actual device and JetPack release you are using. The visible line offsets and consumers can change across BSP versions.
 
 ---
 

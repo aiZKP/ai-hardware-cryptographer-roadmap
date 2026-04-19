@@ -273,7 +273,9 @@ nav:
       - 5. App Development:
         - Guide: Phase 4 - Track B - Nvidia Jetson/5. Application Development/Guide.md
         - Peripheral Access: Phase 4 - Track B - Nvidia Jetson/5. Application Development/1. Peripheral Access/Guide.md
-        - Network & Connectivity: Phase 4 - Track B - Nvidia Jetson/5. Application Development/2. Network and Connectivity/Guide.md
+        - Network & Connectivity:
+          - Guide: Phase 4 - Track B - Nvidia Jetson/5. Application Development/2. Network and Connectivity/Guide.md
+          - ESP32-C6 ESP-Hosted over SPI: Phase 4 - Track B - Nvidia Jetson/5. Application Development/2. Network and Connectivity/ESP32-C6-ESP-Hosted-SPI-Jetson-Orin-Nano.md
         - GUI: Phase 4 - Track B - Nvidia Jetson/5. Application Development/3. GUI/Guide.md
         - Multimedia: Phase 4 - Track B - Nvidia Jetson/5. Application Development/4. Multimedia/Guide.md
         - ML & AI:

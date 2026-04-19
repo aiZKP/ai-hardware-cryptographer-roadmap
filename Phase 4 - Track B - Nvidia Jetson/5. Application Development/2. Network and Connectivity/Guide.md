@@ -65,6 +65,8 @@ iperf3 -c <server-ip>
 
 Jetson Orin Nano dev kit does not include Wi-Fi — add it via USB dongle or M.2 Key E module (Intel AX200/AX210, Realtek RTL8852).
 
+If you want a more embedded integration path, you can also attach an **ESP32-C6** as a wireless coprocessor over SPI with **ESP-Hosted-NG**. See [ESP32-C6 ESP-Hosted over SPI on Jetson Orin Nano](ESP32-C6-ESP-Hosted-SPI-Jetson-Orin-Nano.md).
+
 ### Connect with NetworkManager
 
 ```bash
@@ -310,6 +312,7 @@ app.run(host='0.0.0.0', port=8080)
 ## 8. Projects
 
 - **Headless Wi-Fi setup:** Build a provisioning flow where the Jetson starts as a Wi-Fi AP, serves a web page for entering Wi-Fi credentials, then switches to client mode.
+- **[ESP32-C6 ESP-Hosted over SPI on Jetson Orin Nano](ESP32-C6-ESP-Hosted-SPI-Jetson-Orin-Nano.md):** Bring up an external Wi-Fi coprocessor on SPI1 with handshake, data-ready, and reset GPIOs.
 - **BLE sensor gateway:** Read BLE sensor data (temperature, humidity) and publish to MQTT over Ethernet.
 - **VPN fleet:** Set up WireGuard between 3 Jetson devices and a cloud server. Verify SSH access to all devices from the server.
 - **Device management API:** Build a Flask REST API that exposes device status (temperature, disk, uptime, firmware version) and accepts OTA trigger commands.
@@ -326,3 +329,4 @@ app.run(host='0.0.0.0', port=8080)
 | **BlueZ** | Official Linux Bluetooth stack |
 | **bleak** | Cross-platform BLE library for Python |
 | **nginx** | Lightweight web server / reverse proxy |
+| **ESP-Hosted-NG** | Espressif Linux-hosted Wi-Fi/Bluetooth transport for ESP peripherals over SPI/SDIO/UART |
