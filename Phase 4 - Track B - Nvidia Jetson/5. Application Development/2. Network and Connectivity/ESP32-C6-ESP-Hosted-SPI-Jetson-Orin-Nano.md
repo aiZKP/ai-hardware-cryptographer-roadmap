@@ -119,7 +119,48 @@ Use Jetson-IO to enable the SPI controller behind header pins 19/21/23/24:
 sudo /opt/nvidia/jetson-io/jetson-io.py
 ```
 
-Enable **SPI1 (1 device)**, save, and reboot.
+On a fresh Orin Nano dev kit, Jetson-IO often shows the header in a mostly unassigned state, for example:
+
+```text
+|                    unused ( 19) .. ( 20) GND                       |
+|                    unused ( 21) .. ( 22) unused                    |
+|                    unused ( 23) .. ( 24) unused                    |
+|                       GND ( 25) .. ( 26) unused                    |
+```
+
+That is the **starting state**, not an error. It means the SPI function is not yet mapped onto those header pins.
+
+Use this menu flow:
+
+1. `Configure Jetson 40-pin Header`
+2. `SPI1 (1 device)`
+3. `Save and reboot to reconfigure pins`
+
+Why `SPI1 (1 device)`:
+
+- this project uses only **CS0** on pin `24`
+- pin `26` can stay unused
+- pins `15`, `18`, and `22` should remain available as ordinary GPIO lines for `Data Ready`, `Reset`, and `Handshake`
+
+After the reboot, pins `19`, `21`, `23`, and `24` should no longer be generic `unused` header pins. They should be assigned to the SPI1 function, and Linux should expose the bus as a `spidev` device.
+
+When you save successfully, Jetson-IO shows a message like:
+
+```text
+Modified /boot/extlinux/extlinux.conf to add following DTBO entries:
+
+/boot/jetson-io-hdr40-user-custom.dtbo
+
+Press any key to reboot the system now or Ctrl-C to abort
+```
+
+That means:
+
+- Jetson-IO generated a device-tree overlay for the 40-pin header
+- it added that overlay to `extlinux.conf`
+- the new header mapping will take effect on the next boot
+
+For this project, the correct action is to **reboot now** so the SPI header mapping becomes active.
 
 After reboot:
 
@@ -128,6 +169,44 @@ ls -l /dev/spidev0.0
 ```
 
 On the developer kit, the header's SPI1 controller typically appears to Linux as **`/dev/spidev0.0`**.
+
+If you see something like:
+
+```text
+crw-rw---- 1 root gpio 153, 0 Apr 18 00:35 /dev/spidev0.0
+```
+
+that means:
+
+- the SPI device node exists
+- the Jetson side has exposed the bus to Linux
+- users in the `gpio` group can open it
+
+It does **not** mean the full ESP-Hosted project is working yet. It only proves the **Jetson SPI bus is available**. You still need:
+
+- correct wiring to the ESP32-C6
+- correct `Handshake`, `Data Ready`, and `Reset` GPIO mapping
+- ESP32-C6 firmware built for **SPI**
+- the Linux ESP-Hosted host side ported and loaded correctly
+
+### 5.1.1 What "unused" means in this project
+
+Jetson-IO uses `unused` to mean "not currently assigned to one of the named peripheral presets on the header."
+
+For this project, that is actually what you want for the extra control lines:
+
+- pin `22` for **Handshake**
+- pin `15` for **Data Ready**
+- pin `18` for **Reset**
+
+Those three pins do **not** need to be part of the SPI1 preset. They just need to stay available for GPIO use from Linux.
+
+So the clean target state is:
+
+- pins `19/21/23/24` assigned to **SPI1**
+- pins `15/18/22` left available as **GPIO**
+
+If Jetson-IO or another overlay assigns one of those control pins to some other peripheral, fix that before continuing.
 
 ### 5.2 Install useful tools
 
@@ -146,8 +225,11 @@ sudo apt install -y \
 Before loading the ESP-Hosted driver, make sure the controller is alive and the header is configured correctly.
 
 - confirm `/dev/spidev0.0` exists
+- confirm Jetson-IO no longer shows pins `19/21/23/24` as plain `unused`
 - confirm your chosen GPIO lines are free for use
 - verify there is no conflicting device already bound to the same bus/chip-select
+
+If `/dev/spidev0.0` already exists **before** you start this guide, your Jetson may already have SPI1 enabled from an earlier Jetson-IO configuration. In that case, you are already past the "enable SPI bus" step on the Jetson side, but you still need to finish the ESP-Hosted wiring and host-driver work.
 
 If you plan to use the Espressif kernel module directly, be aware that **generic `spidev` may need to be disabled** once you move from raw SPI sanity checks to the real host driver path.
 
