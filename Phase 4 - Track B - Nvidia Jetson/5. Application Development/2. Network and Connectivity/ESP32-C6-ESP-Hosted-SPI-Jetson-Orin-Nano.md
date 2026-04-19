@@ -109,10 +109,29 @@ On the official **ESP32-C6-DevKitC-1** board, the pins used above are all actual
 - `GPIO6` on **J1 pin 5**
 - `GPIO7` on **J1 pin 6**
 - `GPIO10` on **J1 pin 10**
-- `GPIO2` on **J1 pin 12**
+- `GPIO2` on **J1 pin 12** (the board prints signal label **`2`** there)
 - `GPIO3` on **J1 pin 13**
 
 So the Jetson mapping in this guide is not only conceptually valid for ESP32-C6 SPI. It also matches the real **DevKitC-1** pin header layout.
+
+One easy mistake is to confuse the **J1 header position number** with the **GPIO signal label** printed beside the pin. On this board:
+
+- **J1 pin 11** is `GPIO11`
+- **J1 pin 12** is `GPIO2`
+
+So `GPIO2` should stay mapped to **J1 pin 12**, not **J1 pin 11**.
+
+For actual bench wiring, use the **GPIO labels** printed in the guide and on the Espressif board image:
+
+- `IO7` for `MOSI`
+- `IO2` for `MISO`
+- `IO6` for `SCLK`
+- `IO10` for `CS0`
+- `IO3` for `Handshake`
+- `IO4` for `Data Ready`
+- `RST` for reset
+
+That is less error-prone than working from J1/J3 position numbers alone.
 
 One caution: Espressif documents **GPIO4** as a **strapping pin** on ESP32-C6. Using it for **Data Ready** can still work, but do not let external wiring force an unsafe level during ESP reset or power-up.
 
@@ -483,6 +502,35 @@ Select the SPI transport:
 - `Transport layer`
 - `SPI interface`
 
+Then open `Example Configuration -> SPI Configuration` and keep the default **ESP32-C6** values unless you have a specific reason to change them:
+
+- `GPIO pin for handshake` = `3`
+- `GPIO pin for data ready interrupt` = `4`
+- `ESP to Host SPI queue size` = `20`
+- `Host to ESP SPI queue size` = `20`
+- `SPI checksum ENABLE/DISABLE` = enabled
+- `De-assert HS on CS` = disabled
+
+Those defaults match Espressif's SPI setup for **ESP32-C6**:
+
+- `IO10` = `CS0`
+- `IO6` = `SCLK`
+- `IO2` = `MISO`
+- `IO7` = `MOSI`
+- `IO3` = `Handshake`
+- `IO4` = `Data Ready`
+- `RST` = reset
+
+When flashing from a Linux host PC, the built-in **USB Serial/JTAG** port on an **ESP32-C6-DevKitC-1** usually appears as **`/dev/ttyACM0`**. A device such as **`/dev/ttyUSB0`** is often a separate USB-UART bridge and is not the first port to try for direct C6 flashing.
+
+To identify the right port cleanly:
+
+```bash
+sudo dmesg -w
+```
+
+Then unplug and reconnect the ESP board. The newly appearing **`ttyACM*`** device is usually the correct port.
+
 Then build and flash:
 
 ```bash
@@ -490,12 +538,19 @@ idf.py -p /dev/ttyACM0 build flash
 idf.py -p /dev/ttyACM0 monitor
 ```
 
-Replace `/dev/ttyACM0` with the serial device for your ESP32-C6 board.
+Replace `/dev/ttyACM0` only if your board appears on a different **`ttyACM*`** device.
+
+If you need to prove the port before a full flash, query the chip directly:
+
+```bash
+python -m esptool --chip esp32c6 -p /dev/ttyACM0 chip_id
+```
 
 ### What you should see
 
 - successful build and flash
 - ESP boot logs on the serial monitor
+- the USB-connected DevKitC-1 appearing as a `ttyACM*` device on the host PC
 - the firmware configured for the same transport you intend to use on the Jetson host side
 
 **Do not mix transports.** A host built for SPI and an ESP firmware built for SDIO or UART will fail in ways that look like board or timing bugs.
@@ -728,6 +783,8 @@ That is normal early on. Once the path is stable:
 - [ESP-Hosted-NG SPI protocol notes](https://github.com/espressif/esp-hosted/blob/master/esp_hosted_ng/docs/spi_protocol.md)
 - [ESP-Hosted-NG Linux porting guide](https://github.com/espressif/esp-hosted/blob/master/esp_hosted_ng/docs/porting_guide.md)
 - [ESP32-C6-DevKitC-1 user guide](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32c6/esp32-c6-devkitc-1/user_guide.html)
+- [ESP32-C6 establish serial connection](https://docs.espressif.com/projects/esp-idf/en/stable/esp32c6/get-started/establish-serial-connection.html)
+- [ESP32-C6 USB Serial/JTAG console](https://docs.espressif.com/projects/esp-idf/en/stable/esp32c6/api-guides/usb-serial-jtag-console.html)
 - [AI-HPC Jetson-oriented esp-hosted fork](https://github.com/ai-hpc/esp-hosted)
 
 ### Local roadmap references
