@@ -90,6 +90,16 @@ Espressif's SPI setup guide documents the signal roles for ESP32-C6 on a Raspber
 | Reset | 18 | `GPIO18` | `RST` or `EN` | Jetson -> ESP |
 | Ground | 20 or 25 | `GND` | `GND` | common reference |
 
+### Official reference images
+
+Jetson Orin Nano 40-pin header reference:
+
+![Jetson Orin Nano 40-pin header](https://developer.download.nvidia.com/embedded/images/jetsonOrinNano/user_guide/images/jonano_cbspec_figure_3-1_white-bg.png#only-light)
+
+ESP32-C6-DevKitC-1 pin layout reference:
+
+![ESP32-C6-DevKitC-1 pin layout](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32c6/_images/esp32-c6-devkitc-1-pin-layout.png)
+
 ### ESP32-C6 DevKitC-1 pinout check
 
 On the official **ESP32-C6-DevKitC-1** board, the pins used above are all actually broken out on the headers:
