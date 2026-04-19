@@ -87,6 +87,32 @@ Read each field like this:
 | `active-high` / `active-low` | Logical polarity. |
 | `[used]` | The line is already requested by the kernel or another process. Do not reuse it casually. |
 
+### What names like `PH.00` actually mean
+
+Names like `PH.00`, `PG.00`, or `PZ.01` are **Tegra GPIO port/bit names**.
+
+Read `PH.00` like this:
+
+- `P` = GPIO pad group prefix used in NVIDIA's naming
+- `H` = GPIO bank or port
+- `00` = bit number inside that bank
+
+So:
+
+- `PH.00` means port `H`, bit `0`
+- `PZ.01` means port `Z`, bit `1`
+- `PQ.05` means port `Q`, bit `5`
+
+This naming style is useful because it stays close to NVIDIA's low-level documentation, pinmux data, and board-support files.
+
+The important point is that `PH.00` is **not**:
+
+- a 40-pin header number
+- a Linux `gpiochip` line number
+- a user-friendly board label like `GPIO09`
+
+It is the **SoC-side identity** of that signal.
+
 ### Why `gpioget gpiochip0 <line>` failed in your shell
 
 `<line>` in the docs is a **placeholder**, not something you type literally.
@@ -149,6 +175,275 @@ gpiofind "PH.00"
 ```
 
 That returns the owning chip and line offset for that named line.
+
+### 40-pin header vs GPIO line: the easy mental model
+
+This is the part that confuses most people at first:
+
+- the **40-pin header** is the physical connector on the board
+- a **header pin number** is just the metal pin position, such as **pin 7** or **pin 22**
+- a **GPIO line** is the Linux-facing handle you use through `gpiochipN`
+- the **pinmux** decides whether that physical pin is acting as GPIO, SPI, I2C, UART, PWM, or something else
+
+Think of it as a translation chain:
+
+```text
+Physical header pin
+  -> board signal label
+  -> SoC pad / pinmux entry
+  -> Linux-visible function
+  -> gpiochip line offset (only if configured as GPIO)
+```
+
+On the dev kit, the 40-pin header gives you a convenient physical starting point. On a custom board, the same logic still applies even if the connector is completely different.
+
+### Start from the header pin, not from the Linux line
+
+When wiring hardware, always begin with the physical header.
+
+Example:
+
+- `Pin 7` means the 7th pin on the 40-pin header
+- on the Orin Nano dev kit, that header position is labeled `GPIO09`
+- that board signal maps to a Tegra pad defined in NVIDIA's pinmux data
+- only after Linux boots and the pad is configured as GPIO do you get a usable `gpiochip` line for `gpioget` or `gpioset`
+
+That is why this is wrong:
+
+- "I found line 43 in `gpioinfo`, so I know what board pin it is"
+
+You only know the board pin after you trace it back through the pinmux and header mapping.
+
+### Three practical examples
+
+| What you touch on the board | What it means |
+|-----------------------------|---------------|
+| `Pin 7` | Physical header position |
+| `GPIO09` | Friendly board-level signal name for that header pin |
+| `Pin 22` | Physical header position |
+| `GPIO22` | Friendly board-level signal name for that header pin |
+| `Pin 19` | Physical header position |
+| `SPI1_MOSI` | That pin is normally part of the SPI bus, not a generic GPIO while SPI is enabled |
+
+The important distinction:
+
+- `GPIO09`, `GPIO15`, `GPIO22` are usually pins you may choose to use as GPIO in a project
+- `SPI1_MOSI`, `SPI1_MISO`, `I2C1_SDA`, `UART1_TXD` are often already assigned to a peripheral role
+
+If a pin is muxed to SPI, I2C, or UART, do not expect `gpioset` on that pin to behave like a normal GPIO.
+
+### What pinmux actually changes
+
+Pinmux does **not** move the physical pin.
+
+Pinmux changes the function of the SoC pad behind that pin.
+
+For one header position, the pad may be able to act as:
+
+- GPIO
+- SPI
+- I2C
+- UART
+- PWM
+- audio or other SoC-specific functions
+
+So if you change pinmux, you are answering this question:
+
+> "What job should this physical pin do after boot?"
+
+Examples:
+
+- make pin 19 act as `SPI1_MOSI`
+- make pin 15 act as plain `GPIO`
+- make pin 32 act as `PWM`
+
+### The easiest way to think about pinmux spreadsheet work
+
+When you later customize pinmux, use this order:
+
+1. Pick the **physical header pin** you want to use
+2. Confirm the **board signal name** on the Jetson header table
+3. Confirm whether that pin must be **GPIO** or a dedicated peripheral like SPI/I2C/UART
+4. Change the **pinmux** so the pad matches that intended role
+5. Boot Linux and then discover the runtime `gpiochip` line with `gpioinfo` or `gpiofind`
+
+Do not do it in reverse. Do not start from an arbitrary `gpiochip0` line number and try to design hardware from that.
+
+### A useful rule for Jetson bring-up
+
+Use each naming scheme for the job it is good at:
+
+- **Header pin number** for wiring
+- **Board signal name** for schematics and connector tables
+- **SoC pad / pinmux name** for spreadsheet and device-tree work
+- **`gpiochip` line offset** for Linux userspace tools
+
+If you keep those four layers separate, pinmux customization becomes much easier to reason about.
+
+### What changes on a fully custom carrier board
+
+On a fully custom Jetson carrier, you may not have the 40-pin header at all.
+
+That means one layer disappears:
+
+- there may be no familiar `Pin 7`, `Pin 22`, `Pin 19` style reference
+
+But the lower layers are still the same:
+
+- the Jetson module still exposes the same SoC pads
+- those pads still need pinmux configuration
+- Linux still exposes GPIOs through `gpiochip`
+- `gpioinfo`, `gpiofind`, `gpioget`, and `gpioset` still work the same way
+
+So the translation chain becomes:
+
+```text
+Custom connector pin or schematic net
+  -> board net name
+  -> SoC pad / pinmux entry
+  -> Linux-visible function
+  -> gpiochip line offset (only if configured as GPIO)
+```
+
+### Dev kit vs custom carrier
+
+| Dev kit world | Custom carrier world |
+|---------------|----------------------|
+| `Pin 7 on 40-pin header` | `J5 pin 12` or `camera trigger net` or `radio reset net` |
+| `GPIO09` board label | your own schematic net name |
+| Jetson-IO may help for simple cases | you usually own the full pinmux and device-tree configuration |
+| easy visual pin lookup | you must trace the signal in schematics and layout |
+
+### What stays the same on a custom board
+
+These concepts do not change:
+
+- the SoC pad name such as `PH.00`
+- the pinmux decision: GPIO vs SPI vs I2C vs UART vs PWM
+- the runtime `gpiochip` model in Linux
+- the need to avoid reusing pads already assigned to critical functions
+
+### What changes on a custom board
+
+These are now your responsibility:
+
+- connector naming
+- schematic net naming
+- which pads are actually routed out
+- pull-ups, level shifting, buffers, and signal integrity
+- whether a pad is safe for boot, wake, reset, interrupts, or power sequencing
+- the final pinmux and device-tree configuration shipped in the BSP
+
+### How to think about pinmux for a custom carrier
+
+For a custom carrier, the correct workflow is:
+
+1. choose the **SoC pad** based on product needs and NVIDIA design constraints
+2. route that pad to the connector, device, or subsystem you want on your carrier
+3. assign the pad's role in the **pinmux spreadsheet**
+4. generate and integrate the pinmux/device-tree data into the BSP
+5. boot Linux and confirm the runtime behavior with `gpioinfo` and the real peripheral tools
+
+In other words:
+
+- on the dev kit, you often start from the **header pin**
+- on a custom carrier, you usually start from the **SoC pad and schematic net**
+
+That is why learning both naming styles matters. The 40-pin header is convenient for bring-up, but the **SoC pad name** is the more durable reference once you move into real carrier-board engineering.
+
+### How to read NVIDIA's pinmux spreadsheet
+
+The NVIDIA pinmux spreadsheet is easier to understand if you split each row into three parts:
+
+1. **What pin is this on the module?**
+   Examples:
+   - `SODIMM Pin #`
+   - `Jetson SODIMM Signal Name`
+
+2. **What is NVIDIA's default or reset-time view of this pin?**
+   Examples:
+   - `Jetson Orin NX and Nano Function`
+   - `POR Pull Strength`
+   - `POR Pin State`
+
+3. **What do I want this pin to do on my board?**
+   Examples:
+   - `Customer Usage`
+   - `Pin Direction`
+   - `Req. Initial State`
+   - `3.3V Tolerance Enable`
+   - internal and external pull-up / pull-down values
+   - `IO Block Voltage`
+
+Short version:
+
+- the **left side** tells you which module pin you are talking about
+- the **middle** tells you the default/reset behavior
+- the **right side** is your actual board configuration
+
+### One row, explained simply
+
+Take a row like this:
+
+```text
+106  SPI1_SCK  SPI1_SCK  50k  pd  GPIO3_PY.00  Input  Int PD  ...  1.8V
+```
+
+Read it like this:
+
+- `106` = the physical **SODIMM pin number** on the Jetson module
+- `SPI1_SCK` = the connector signal name on the module
+- `50k pd` = NVIDIA's default pull / reset-state view for that pin
+- `GPIO3_PY.00` = the function you selected in the spreadsheet for your board
+- `Input` = direction you want after boot
+- `Int PD` = requested initial bias or state
+- `1.8V` = this pin belongs to a 1.8 V I/O voltage domain
+
+So that row is really saying:
+
+> "Module pin 106 exists as the signal `SPI1_SCK`, but on my board I want the pad behind it to behave as `GPIO3_PY.00`, as an input, with a pull-down, in a 1.8 V domain."
+
+### What names like `GPIO3_PY.00` mean
+
+When the selected function is a GPIO, NVIDIA often uses names like:
+
+- `GPIO3_PY.00`
+- `GPIO3_PEE.02`
+
+Read `GPIO3_PY.00` as:
+
+- `GPIO3` = GPIO controller instance
+- `PY` = SoC GPIO port or bank name
+- `00` = bit index inside that port
+
+That is a **pinmux / SoC function name**, not a 40-pin header label and not a Linux `gpiochip` line number.
+
+### Why this matters for custom carriers
+
+On the developer kit, you can often think:
+
+- "I want to use header pin 22"
+
+On a custom carrier, you usually need to think:
+
+- "I want to route module pin 106 to my connector"
+- "I want that pad to behave as GPIO, not SPI"
+- "I need the right pull, voltage domain, and initial state for my hardware"
+
+That is exactly why the spreadsheet exists. It is not just a pin list. It is the **boot-time electrical and functional definition** of your carrier board.
+
+### The safest way to use the spreadsheet
+
+When editing NVIDIA's pinmux sheet, ask these questions in order:
+
+1. Which **module pin / SODIMM signal** am I routing?
+2. What **SoC function** do I actually want there: GPIO, SPI, I2C, UART, PWM, CAN, etc.?
+3. Should it be **input**, **output**, or **bidirectional**?
+4. What should it do **immediately at boot**?
+5. Is this pin in a **1.8 V** or **3.3 V** domain?
+6. Do I need **internal** or **external** pulls for my real board?
+
+If you answer those six clearly, the spreadsheet becomes much easier to use.
 
 ### libgpiod in C
 
@@ -247,6 +542,35 @@ It does **not** mean:
 - 40-pin header pin 43
 - sysfs GPIO 43
 - board label `GPIO43`
+
+### How this connects to the 40-pin header
+
+The 40-pin header gives you a **board view** of the connector. `libgpiod` gives you a **Linux view** of whatever pads are currently configured as GPIO.
+
+Those are related, but they are not the same table.
+
+Use this quick reference:
+
+| Question you are asking | Use this source first |
+|-------------------------|-----------------------|
+| "Which hole on the header do I wire to?" | 40-pin header pinout |
+| "Should this pin be SPI, I2C, UART, PWM, or GPIO?" | pinmux spreadsheet / Jetson-IO |
+| "What line number do I pass to `gpioget`?" | `gpioinfo` / `gpiofind` |
+| "Why is this pin unavailable?" | `gpioinfo`, device tree, and current peripheral assignment |
+
+### One worked example
+
+Suppose you want to use header **pin 22** in a project.
+
+You would think about it like this:
+
+1. **Board view:** pin 22 on the 40-pin header is labeled `GPIO22`
+2. **Design intent:** you want it to be a plain input for an interrupt or handshake signal
+3. **Pinmux step:** configure the underlying pad as GPIO, not as some alternate peripheral
+4. **Linux step:** after boot, use `gpioinfo` or `gpiofind` to locate the runtime line offset
+5. **Userspace step:** use that discovered line offset with `gpioget`, `gpioset`, or `gpiomon`
+
+That same flow is what you will use later for custom carrier work and pinmux-table customization.
 
 ### What to trust when numbers disagree
 
