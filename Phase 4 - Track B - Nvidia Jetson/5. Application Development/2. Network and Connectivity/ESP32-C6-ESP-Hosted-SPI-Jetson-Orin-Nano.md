@@ -208,6 +208,93 @@ So the clean target state is:
 
 If Jetson-IO or another overlay assigns one of those control pins to some other peripheral, fix that before continuing.
 
+### 5.1.2 Read the Jetson-IO overlay like an engineer
+
+If you decompile the generated overlay:
+
+```bash
+sudo dtc -I dtb -O dts \
+  -o /tmp/jetson-io-hdr40-user-custom.dts \
+  /boot/jetson-io-hdr40-user-custom.dtbo
+```
+
+you will see entries like:
+
+```dts
+hdr40-pin19 {
+    nvidia,pins = "spi1_mosi_pz5";
+    nvidia,function = "spi1";
+};
+
+hdr40-pin21 {
+    nvidia,pins = "spi1_miso_pz4";
+    nvidia,function = "spi1";
+};
+
+hdr40-pin23 {
+    nvidia,pins = "spi1_sck_pz3";
+    nvidia,function = "spi1";
+};
+
+hdr40-pin24 {
+    nvidia,pins = "spi1_cs0_pz6";
+    nvidia,function = "spi1";
+};
+```
+
+This is the part that matters most for teaching:
+
+- `hdr40-pin19` means **physical header pin 19**
+- `nvidia,pins = "spi1_mosi_pz5"` means the SoC pad behind that header pin is the pad NVIDIA names `spi1_mosi_pz5`
+- `nvidia,function = "spi1"` means Jetson-IO is assigning that pad to the **SPI1 peripheral function**
+
+So in plain language, that block says:
+
+- pin `19` is now **SPI1 MOSI**
+- pin `21` is now **SPI1 MISO**
+- pin `23` is now **SPI1 SCLK**
+- pin `24` is now **SPI1 CS0**
+
+That is exactly what this ESP32-C6 project needs.
+
+### 5.1.3 What the other device-tree sections mean
+
+Your decompiled overlay also contains sections like:
+
+- `fragment@0`
+- `fragment@1`
+- `__symbols__`
+- `__fixups__`
+
+Short explanation:
+
+- `fragment@0` is the main pinmux change for the normal Tegra pin controller
+- `fragment@1` is the companion block for the **AON** pin controller; for this SPI1 change it usually does not carry the interesting header remap lines
+- `__symbols__` gives names to nodes inside the overlay so other parts of the device tree can refer to them
+- `__fixups__` tells the bootloader or device-tree loader where to apply the overlay against the base board device tree
+
+You do **not** need to understand every overlay internals detail to use Jetson-IO well. For practical bring-up, the key test is:
+
+1. the overlay exists in `/boot/jetson-io-hdr40-user-custom.dtbo`
+2. `extlinux.conf` references it
+3. the overlay maps header pins `19/21/23/24` to `spi1`
+4. `/dev/spidev0.0` exists after reboot
+
+If all four are true, the Jetson side SPI pinmux is in the right state.
+
+### 5.1.4 Why pin 26 may be missing from the overlay
+
+You selected **`SPI1 (1 device)`**, not **`SPI1 (2 devices)`**.
+
+That means:
+
+- `CS0` on pin `24` is enabled
+- `CS1` on pin `26` is not required
+
+So if your decompiled overlay shows `hdr40-pin24` for `spi1_cs0_pz6` but does **not** show a matching `hdr40-pin26` SPI chip-select entry, that is normal for this project.
+
+This is also why this project keeps pin `26` unused and uses only one ESP32-C6 target on the SPI bus.
+
 ### 5.2 Install useful tools
 
 ```bash
