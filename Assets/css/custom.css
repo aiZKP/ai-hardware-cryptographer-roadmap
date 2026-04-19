@@ -3,6 +3,7 @@
 :root {
   --md-text-font-family: Helvetica, Arial, sans-serif;
   --md-code-font-family: "JetBrains Mono", "Cascadia Code", "Fira Code", monospace;
+  --aihpc-sticky-offset: 4.8rem;
 }
 
 /* ── Layout ───────────────────────────────────── */
@@ -89,6 +90,15 @@
   font-size: 0.78rem;
   letter-spacing: 0.07em;
   margin-top: 1.4rem;
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+  scroll-margin-top: calc(var(--aihpc-sticky-offset) + 0.8rem);
 }
 
 /* ── Tables ───────────────────────────────────── */
@@ -332,11 +342,13 @@
     background: transparent;
     border: 0;
     box-shadow: none;
+    max-height: calc(100vh - var(--aihpc-sticky-offset));
+    overflow-y: auto;
     padding: 0;
   }
 
   .md-sidebar--secondary .md-nav__title {
-    background: transparent;
+    background: var(--md-default-bg-color);
     border: 0;
     border-bottom: 1px solid rgba(53, 80, 125, 0.14);
     color: var(--md-default-fg-color--light);
@@ -345,11 +357,25 @@
     letter-spacing: 0.08em;
     margin-bottom: 0.5rem;
     padding: 0 0 0.5rem;
+    position: sticky;
+    top: 0;
     text-transform: uppercase;
+    z-index: 1;
   }
 
   .md-sidebar--secondary .md-nav__list {
     gap: 0.02rem;
+  }
+
+  .md-sidebar--secondary .md-sidebar__scrollwrap,
+  .md-sidebar--secondary .md-sidebar__inner,
+  .md-sidebar--secondary .md-nav--secondary {
+    background: var(--md-default-bg-color);
+  }
+
+  .md-sidebar--secondary .md-sidebar__inner {
+    border-left: 1px solid rgba(53, 80, 125, 0.1);
+    padding-left: 0.85rem;
   }
 
   .md-sidebar--secondary .md-nav__link {
