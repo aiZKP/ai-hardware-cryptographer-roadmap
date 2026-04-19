@@ -6,29 +6,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Jetson Kernel Overview](#1-jetson-kernel-overview)
-2. [Kernel Source Tree Structure](#2-kernel-source-tree-structure)
-3. [Building the Kernel From Source](#3-building-the-kernel-from-source)
-4. [Kernel Configuration (defconfig)](#4-kernel-configuration-defconfig)
-5. [Device Tree Architecture on T234](#5-device-tree-architecture-on-t234)
-6. [Device Tree Overlays](#6-device-tree-overlays)
-7. [NVIDIA Driver Model — How Jetson Drivers Work](#7-nvidia-driver-model--how-jetson-drivers-work)
-8. [Key Kernel Subsystems on Orin Nano](#8-key-kernel-subsystems-on-orin-nano)
-9. [Camera Kernel Stack (V4L2 + NVIDIA)](#9-camera-kernel-stack-v4l2--nvidia)
-10. [GPU Kernel Driver (nvgpu)](#10-gpu-kernel-driver-nvgpu)
-11. [Power and Clock Management in Kernel](#11-power-and-clock-management-in-kernel)
-12. [Kernel Boot Sequence on Orin Nano](#12-kernel-boot-sequence-on-orin-nano)
-13. [Kernel Boot Time Optimization](#13-kernel-boot-time-optimization)
-14. [Writing Custom Kernel Modules](#14-writing-custom-kernel-modules)
-15. [Kernel Debugging on Jetson](#15-kernel-debugging-on-jetson)
-16. [Production Kernel Hardening](#16-production-kernel-hardening)
-17. [Kernel Update Strategy With A/B](#17-kernel-update-strategy-with-ab)
-18. [Common Kernel Issues and Solutions](#18-common-kernel-issues-and-solutions)
-19. [References](#19-references)
-
----
 
 ## 1. Jetson Kernel Overview
 

@@ -8,19 +8,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Ethernet (Linux)](#1-ethernet-linux)
-2. [Wi-Fi Client (Linux)](#2-wi-fi-client-linux)
-3. [Wi-Fi Access Point Mode (Linux)](#3-wi-fi-access-point-mode-linux)
-4. [Bluetooth (Linux)](#4-bluetooth-linux)
-5. [VPN (WireGuard / OpenVPN)](#5-vpn-wireguard--openvpn)
-6. [SMB / Network File Sharing](#6-smb--network-file-sharing)
-7. [Web Server (Linux)](#7-web-server-linux)
-8. [Projects](#8-projects)
-9. [Resources](#9-resources)
-
----
 
 ## 1. Ethernet (Linux)
 

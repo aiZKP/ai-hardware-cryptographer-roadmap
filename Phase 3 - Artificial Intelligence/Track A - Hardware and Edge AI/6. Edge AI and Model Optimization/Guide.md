@@ -8,15 +8,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Definition](#1-definition)
-2. [Why edge AI exists](#2-why-edge-ai-exists)
-3. [Where edge AI runs (tiers)](#3-where-edge-ai-runs-tiers)
-4. [The edge AI pipeline](#4-the-edge-ai-pipeline)
-5. [How this fits the roadmap](#5-how-this-fits-the-roadmap)
-
----
 
 ## 1. Definition
 

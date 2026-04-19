@@ -6,26 +6,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Why BEV Fusion?](#1-why-bev-fusion)
-2. [BEV Space Explained](#2-bev-space-explained)
-3. [BEVFusion Architecture](#3-bevfusion-architecture)
-4. [Camera → BEV: Lift-Splat-Shoot](#4-camera--bev-lift-splat-shoot)
-5. [LiDAR → BEV: Voxelization and Pillars](#5-lidar--bev-voxelization-and-pillars)
-6. [BEV Feature Fusion](#6-bev-feature-fusion)
-7. [3D Detection Head](#7-3d-detection-head)
-8. [nuScenes Dataset](#8-nuscenes-dataset)
-9. [Setup and Installation](#9-setup-and-installation)
-10. [Training BEVFusion](#10-training-bevfusion)
-11. [Exporting to ONNX and TensorRT](#11-exporting-to-onnx-and-tensorrt)
-12. [Running on Jetson Orin Nano](#12-running-on-jetson-orin-nano)
-13. [ROS2 Integration](#13-ros2-integration)
-14. [Optimization for Jetson](#14-optimization-for-jetson)
-15. [Projects](#15-projects)
-16. [Resources](#16-resources)
-
----
 
 ## 1. Why BEV Fusion?
 

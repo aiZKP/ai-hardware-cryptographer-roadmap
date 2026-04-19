@@ -8,26 +8,7 @@
 
 ---
 
-## Table of Contents
-
-1. [Training vs the edge](#1-training-vs-the-edge)
-2. [What is Artificial Intelligence?](#2-what-is-artificial-intelligence)
-3. [What is a Neural Network?](#3-what-is-a-neural-network)
-4. [The Neuron: Building Block](#4-the-neuron-building-block)
-5. [Activation Functions](#5-activation-functions)
-6. [The Multi-Layer Perceptron (MLP)](#6-the-multi-layer-perceptron-mlp)
-7. [Forward Pass: Making a Prediction](#7-forward-pass-making-a-prediction)
-8. [Loss Functions: Measuring Error](#8-loss-functions-measuring-error)
-9. [Backpropagation: How Networks Learn](#9-backpropagation-how-networks-learn)
-10. [Gradient Descent and Optimizers](#10-gradient-descent-and-optimizers)
-11. [The Training Loop](#11-the-training-loop)
-12. [Convolutional Neural Networks (CNNs)](#12-convolutional-neural-networks-cnns)
-13. [Regularization and Generalization](#13-regularization-and-generalization)
-14. [Hands-On with tinygrad](#14-hands-on-with-tinygrad)
-15. [Projects](#15-projects)
-16. [Resources](#16-resources)
-
-### Deep Dive Subfolders
+## Deep Dive Subfolders
 
 | Subfolder | Description |
 |-----------|-------------|

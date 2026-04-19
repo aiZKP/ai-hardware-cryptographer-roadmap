@@ -6,28 +6,6 @@
 
 ---
 
-## Table of Contents
-
-1. [L4T Root File System Overview](#1-l4t-root-file-system-overview)
-2. [Rootfs Generation and BSP Structure](#2-rootfs-generation-and-bsp-structure)
-3. [The Three Rootfs Flavors](#3-the-three-rootfs-flavors)
-4. [Rootfs Customization for Production](#4-rootfs-customization-for-production)
-5. [Partition Layout on Orin Nano](#5-partition-layout-on-orin-nano)
-6. [A/B Rootfs Redundancy](#6-ab-rootfs-redundancy)
-7. [Boot Flow With A/B Enabled](#7-boot-flow-with-ab-enabled)
-8. [Slot States and nvbootctrl](#8-slot-states-and-nvbootctrl)
-9. [Boot Validation Services](#9-boot-validation-services)
-10. [Partition Size With A/B Enabled](#10-partition-size-with-ab-enabled)
-11. [UUID-Based Partition Mounting](#11-uuid-based-partition-mounting)
-12. [OTA Update Strategy With A/B](#12-ota-update-strategy-with-ab)
-13. [Flash XML Layout Files](#13-flash-xml-layout-files)
-14. [Rootfs and Memory Architecture Connection](#14-rootfs-and-memory-architecture-connection)
-15. [Designing Safe Field Updates for AI Edge Devices](#15-designing-safe-field-updates-for-ai-edge-devices)
-16. [Debugging Bootloops in A/B Systems](#16-debugging-bootloops-in-ab-systems)
-17. [Production Hardening Checklist](#17-production-hardening-checklist)
-18. [References](#18-references)
-
----
 
 ## 1. L4T Root File System Overview
 

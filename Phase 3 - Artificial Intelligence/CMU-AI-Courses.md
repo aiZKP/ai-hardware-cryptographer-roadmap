@@ -10,15 +10,6 @@ A reference of CMU's AI, machine learning, and computer vision courses relevant 
 
 ---
 
-## Table of Contents
-
-1. [07-280: AI & Machine Learning I](#1-07-280-ai--machine-learning-i)
-2. [15-463: Computational Photography](#2-15-463-computational-photography--deep-insight-before-computer-vision)
-3. [Graphics & Imaging Courses](#3-graphics--imaging-courses)
-4. [Self-Study Mapping to Roadmap](#4-self-study-mapping-to-roadmap)
-5. [Additional Resources: Szeliski Book & Related Courses](#5-additional-resources-szeliski-book--related-courses)
-
----
 
 ## 1. 07-280: AI & Machine Learning I
 

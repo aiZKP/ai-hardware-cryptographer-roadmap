@@ -6,20 +6,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Project Overview](#1-project-overview) — [Demo output](#demo-output-small-object-detection)
-2. [Dataset: VisDrone2019-DET](#2-dataset-visdrone2019-det)
-3. [Annotation Format and Conversion to YOLO](#3-annotation-format-and-conversion-to-yolo)
-4. [Best Methods for Small-Object Detection (Drone / UAV)](#4-best-methods-for-small-object-detection-drone--uav)
-5. [Training Pipeline](#5-training-pipeline)
-6. [Export and TensorRT Optimization](#6-export-and-tensorrt-optimization)
-7. [DeepStream Integration on Jetson](#7-deepstream-integration-on-jetson)
-8. [Tuning Confidence and NMS](#8-tuning-confidence-and-nms)
-9. [End-to-End Checklist](#9-end-to-end-checklist)
-10. [Resources](#10-resources)
-
----
 
 ## 1. Project Overview
 

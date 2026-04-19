@@ -4,24 +4,6 @@
 
 ---
 
-## Table of Contents
-
-1. [What is TAO Toolkit?](#1-what-is-tao-toolkit)
-2. [Why TAO Instead of Training from Scratch?](#2-why-tao-instead-of-training-from-scratch)
-3. [Installation](#3-installation)
-4. [Pre-Trained Models from NGC](#4-pre-trained-models-from-ngc)
-5. [Dataset Preparation](#5-dataset-preparation)
-6. [Transfer Learning — Fine-Tuning a Model](#6-transfer-learning--fine-tuning-a-model)
-7. [Pruning](#7-pruning)
-8. [Quantization-Aware Training (QAT)](#8-quantization-aware-training-qat)
-9. [Exporting to TensorRT](#9-exporting-to-tensorrt)
-10. [Deploying on Jetson Orin Nano](#10-deploying-on-jetson-orin-nano)
-11. [DeepStream Integration](#11-deepstream-integration)
-12. [TAO vs Manual Pipeline Comparison](#12-tao-vs-manual-pipeline-comparison)
-13. [Projects](#13-projects)
-14. [Resources](#14-resources)
-
----
 
 ## 1. What is TAO Toolkit?
 

@@ -8,14 +8,6 @@ A reference of CMU's Robotics Institute undergraduate programs and courses relev
 
 ---
 
-## Table of Contents
-
-1. [Bachelor of Science in Robotics (BSR)](#1-bachelor-of-science-in-robotics-bsr)
-2. [Robotics Minor & Additional Major](#2-robotics-minor--additional-major)
-3. [Key Robotics Courses (Catalog)](#3-key-robotics-courses-catalog)
-4. [Self-Study Mapping to Roadmap](#4-self-study-mapping-to-roadmap)
-
----
 
 ## 1. Bachelor of Science in Robotics (BSR)
 

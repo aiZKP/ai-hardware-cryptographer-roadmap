@@ -8,31 +8,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Linux Preemption Models](#1-linux-preemption-models)
-2. [PREEMPT_RT Patch Internals](#2-preempt_rt-patch-internals)
-3. [Building PREEMPT_RT Kernel for Orin Nano](#3-building-preempt_rt-kernel-for-orin-nano)
-4. [Interrupt Threading Under PREEMPT_RT](#4-interrupt-threading-under-preempt_rt)
-5. [Lock Primitives Under RT](#5-lock-primitives-under-rt)
-6. [Priority Inversion and Priority Inheritance](#6-priority-inversion-and-priority-inheritance)
-7. [RT Scheduling Deep Dive](#7-rt-scheduling-deep-dive)
-8. [SCHED_DEADLINE — Earliest Deadline First](#8-sched_deadline--earliest-deadline-first)
-9. [CPU Isolation Architecture](#9-cpu-isolation-architecture)
-10. [ARM Cortex-A78AE RT Specifics](#10-arm-cortex-a78ae-rt-specifics)
-11. [GICv3 Interrupt Controller Tuning](#11-gicv3-interrupt-controller-tuning)
-12. [Latency Sources — Complete Taxonomy](#12-latency-sources--complete-taxonomy)
-13. [The rt-tests Suite](#13-the-rt-tests-suite)
-14. [hwlatdetect — Hardware Latency Detection](#14-hwlatdetect--hardware-latency-detection)
-15. [Worst-Case Execution Time (WCET) Analysis](#15-worst-case-execution-time-wcet-analysis)
-16. [RT-Safe Kernel Module Development](#16-rt-safe-kernel-module-development)
-17. [Ftrace for RT Latency Debugging](#17-ftrace-for-rt-latency-debugging)
-18. [Memory Management for RT](#18-memory-management-for-rt)
-19. [NVIDIA Driver Interactions With RT](#19-nvidia-driver-interactions-with-rt)
-20. [Production RT Validation and Certification](#20-production-rt-validation-and-certification)
-21. [References](#21-references)
-
----
 
 ## 1. Linux Preemption Models
 

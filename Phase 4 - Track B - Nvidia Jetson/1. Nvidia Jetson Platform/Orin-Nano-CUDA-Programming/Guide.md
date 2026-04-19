@@ -6,29 +6,6 @@
 
 ---
 
-## Table of Contents
-
-1. [CUDA on Jetson vs Discrete GPU](#1-cuda-on-jetson-vs-discrete-gpu)
-2. [Jetson CUDA Toolchain](#2-jetson-cuda-toolchain)
-3. [Ampere Architecture on Orin Nano](#3-ampere-architecture-on-orin-nano)
-4. [Tensor Cores](#4-tensor-cores)
-5. [Unified Memory Deep Dive](#5-unified-memory-deep-dive)
-6. [Memory Access Patterns](#6-memory-access-patterns)
-7. [Writing Your First CUDA Kernel on Jetson](#7-writing-your-first-cuda-kernel-on-jetson)
-8. [Convolution Kernel](#8-convolution-kernel)
-9. [CUDA Streams and Concurrency](#9-cuda-streams-and-concurrency)
-10. [Synchronization Primitives](#10-synchronization-primitives)
-11. [CUDA + Camera Zero-Copy](#11-cuda--camera-zero-copy)
-12. [CUDA + TensorRT Integration](#12-cuda--tensorrt-integration)
-13. [Nsight Systems Profiling](#13-nsight-systems-profiling)
-14. [Nsight Compute](#14-nsight-compute)
-15. [Common Optimization Techniques](#15-common-optimization-techniques)
-16. [Power-Aware CUDA Programming](#16-power-aware-cuda-programming)
-17. [Debugging CUDA on Jetson](#17-debugging-cuda-on-jetson)
-18. [Production CUDA Patterns](#18-production-cuda-patterns)
-19. [References](#19-references)
-
----
 
 ## 1. CUDA on Jetson vs Discrete GPU
 

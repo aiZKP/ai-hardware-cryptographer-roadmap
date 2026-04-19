@@ -10,29 +10,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Why Security and OTA Are a Single Module](#1-why-security-and-ota-are-a-single-module)
-2. [Threat Model for Deployed Jetson Products](#2-threat-model-for-deployed-jetson-products)
-3. [Secure Boot — PKC and SBK](#3-secure-boot--pkc-and-sbk)
-4. [Fuse Programming Workflow](#4-fuse-programming-workflow)
-5. [OP-TEE and Trusted Execution](#5-op-tee-and-trusted-execution)
-6. [Disk Encryption (LUKS + OP-TEE Key Storage)](#6-disk-encryption-luks--op-tee-key-storage)
-7. [Runtime Hardening](#7-runtime-hardening)
-8. [A/B Rootfs Redundancy Architecture](#8-ab-rootfs-redundancy-architecture)
-9. [OTA Pipeline Design](#9-ota-pipeline-design)
-10. [OTA Frameworks on Jetson (SWUpdate, Mender, RAUC)](#10-ota-frameworks-on-jetson-swupdate-mender-rauc)
-11. [Bootloader and Firmware OTA](#11-bootloader-and-firmware-ota)
-12. [Container-Layer OTA](#12-container-layer-ota)
-13. [Delta Updates and Bandwidth Engineering](#13-delta-updates-and-bandwidth-engineering)
-14. [Rollback and Power-Fail Safety](#14-rollback-and-power-fail-safety)
-15. [OTA Signing and Verification Chain](#15-ota-signing-and-verification-chain)
-16. [Fleet Monitoring and Telemetry](#16-fleet-monitoring-and-telemetry)
-17. [Reliability Testing (HALT/HASS, Soak, Power-Cycle)](#17-reliability-testing-halthass-soak-power-cycle)
-18. [Projects](#18-projects)
-19. [Resources](#19-resources)
-
----
 
 ## 1. Why security and OTA are a single module
 

@@ -7,21 +7,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Why this project matters](#1-why-this-project-matters)
-2. [Target architecture](#2-target-architecture)
-3. [Hardware and software prerequisites](#3-hardware-and-software-prerequisites)
-4. [Wiring the Jetson header to ESP32-C6](#4-wiring-the-jetson-header-to-esp32-c6)
-5. [Prepare the Jetson SPI host side](#5-prepare-the-jetson-spi-host-side)
-6. [Build and flash ESP-Hosted-NG for ESP32-C6](#6-build-and-flash-esp-hosted-ng-for-esp32-c6)
-7. [Port the Linux host side from Raspberry Pi to Jetson](#7-port-the-linux-host-side-from-raspberry-pi-to-jetson)
-8. [Validation checklist](#8-validation-checklist)
-9. [Common failure modes](#9-common-failure-modes)
-10. [Stretch goals](#10-stretch-goals)
-11. [References](#11-references)
-
----
 
 ## 1. Why this project matters
 

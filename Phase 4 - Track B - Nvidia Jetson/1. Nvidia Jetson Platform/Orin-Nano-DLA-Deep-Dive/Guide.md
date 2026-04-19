@@ -6,29 +6,6 @@
 
 ---
 
-## Table of Contents
-
-1. [What Is DLA](#1-what-is-dla)
-2. [DLA on Orin Nano 8GB — Specifications](#2-dla-on-orin-nano-8gb--specifications)
-3. [DLA vs GPU vs CPU — When to Use Each](#3-dla-vs-gpu-vs-cpu--when-to-use-each)
-4. [DLA Hardware Architecture](#4-dla-hardware-architecture)
-5. [DLA Memory Interaction](#5-dla-memory-interaction)
-6. [Software Stack — From Model to DLA Execution](#6-software-stack--from-model-to-dla-execution)
-7. [TensorRT DLA Integration](#7-tensorrt-dla-integration)
-8. [Supported Layers and Precision](#8-supported-layers-and-precision)
-9. [DLA Execution Flow — Step by Step](#9-dla-execution-flow--step-by-step)
-10. [Multi-Engine Scheduling (DLA + GPU)](#10-multi-engine-scheduling-dla--gpu)
-11. [DLA Kernel Driver](#11-dla-kernel-driver)
-12. [DLA Memory Path — Full Pipeline](#12-dla-memory-path--full-pipeline)
-13. [CPU/GPU/DLA/SMMU/CMA Interaction Diagram](#13-cpugpudlasmmuucma-interaction-diagram)
-14. [Performance Characteristics](#14-performance-characteristics)
-15. [Profiling DLA Workloads](#15-profiling-dla-workloads)
-16. [DLA Limitations and Fallback Behavior](#16-dla-limitations-and-fallback-behavior)
-17. [Production Deployment Patterns](#17-production-deployment-patterns)
-18. [Common DLA Issues and Solutions](#18-common-dla-issues-and-solutions)
-19. [References](#19-references)
-
----
 
 ## 1. What Is DLA
 

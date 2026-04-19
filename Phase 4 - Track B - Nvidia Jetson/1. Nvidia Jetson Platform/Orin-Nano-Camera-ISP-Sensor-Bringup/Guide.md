@@ -6,27 +6,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Introduction](#1-introduction)
-2. [Camera Hardware Architecture](#2-camera-hardware-architecture)
-3. [Supported Camera Interfaces](#3-supported-camera-interfaces)
-4. [Sensor Bringup Overview](#4-sensor-bringup-overview)
-5. [Device Tree Configuration](#5-device-tree-configuration)
-6. [Sensor Driver Development](#6-sensor-driver-development)
-7. [ISP Pipeline Deep Dive](#7-isp-pipeline-deep-dive)
-8. [ISP Tuning and Calibration](#8-isp-tuning-and-calibration)
-9. [V4L2 and Media Controller Framework](#9-v4l2-and-media-controller-framework)
-10. [Libargus and Argus Camera API](#10-libargus-and-argus-camera-api)
-11. [GStreamer Camera Pipeline](#11-gstreamer-camera-pipeline)
-12. [Multi-Camera Synchronization](#12-multi-camera-synchronization)
-13. [Camera to CUDA Zero-Copy](#13-camera-to-cuda-zero-copy)
-14. [Camera to DLA/TensorRT Pipeline](#14-camera-to-dlatensorrt-pipeline)
-15. [Performance Optimization](#15-performance-optimization)
-16. [Production Deployment](#16-production-deployment)
-17. [Common Issues and Debugging](#17-common-issues-and-debugging)
-
----
 
 ## 1. Introduction
 

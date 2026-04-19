@@ -6,33 +6,6 @@
 
 ---
 
-## Table of Contents
-
-0. [Jetson vs Discrete GPU — The Fundamental Difference](#0-jetson-vs-discrete-gpu--the-fundamental-difference)
-1. [T234 SoC Memory Architecture Overview](#1-t234-soc-memory-architecture-overview)
-2. [Cache Hierarchy](#2-cache-hierarchy)
-3. [Boot-Time Memory Initialization](#3-boot-time-memory-initialization)
-4. [What the 8GB Really Looks Like](#4-what-the-8gb-really-looks-like)
-5. [Linux Memory Zones](#5-linux-memory-zones)
-6. [Buddy Allocator Internals](#6-buddy-allocator-internals)
-7. [CMA — Contiguous Memory Allocator](#7-cma--contiguous-memory-allocator)
-8. [How to Resize CMA](#8-how-to-resize-cma)
-9. [SMMU (IOMMU) — Real Translation Path](#9-smmu-iommu--real-translation-path)
-10. [Camera → ISP → CUDA Zero-Copy Path](#10-camera--isp--cuda-zero-copy-path)
-11. [GPU Memory Management](#11-gpu-memory-management)
-12. [DLA Memory Path](#12-dla-memory-path)
-13. [TensorRT Engine Memory Management](#13-tensorrt-engine-memory-management)
-14. [Multi-Model and Multi-Engine Inference](#14-multi-model-and-multi-engine-inference)
-15. [LLM Memory Patterns on Unified Architecture](#15-llm-memory-patterns-on-unified-architecture)
-16. [Inference Memory Optimization Strategies](#16-inference-memory-optimization-strategies)
-17. [OP-TEE and Secure Memory](#17-op-tee-and-secure-memory)
-18. [Multi-Camera Memory Planning](#18-multi-camera-memory-planning)
-19. [Performance Monitoring and Profiling](#19-performance-monitoring-and-profiling)
-20. [Production Debug Checklist](#20-production-debug-checklist)
-21. [Common Production Issues and Solutions](#21-common-production-issues-and-solutions)
-22. [References](#22-references)
-
----
 
 ## 0. Jetson vs Discrete GPU — The Fundamental Difference
 

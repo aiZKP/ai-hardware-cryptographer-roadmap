@@ -4,24 +4,6 @@
 
 ---
 
-## Table of Contents
-
-1. [What is Computer Vision?](#1-what-is-computer-vision)
-2. [Image Processing Fundamentals](#2-image-processing-fundamentals) — ISP pipeline, color spaces, filtering, edge detection
-3. [Feature Extraction](#3-feature-extraction)
-4. [Image Segmentation](#4-image-segmentation) — threshold, watershed, semantic segmentation, instance segmentation
-5. [Object Detection](#5-object-detection)
-6. [Object Tracking](#6-object-tracking)
-7. [3D Vision](#7-3d-vision) — calibration, stereo depth, pose, multi-camera ADAS (openpilot near/wide)
-8. [Advanced Deep Learning Architectures](#8-advanced-deep-learning-architectures)
-9. [OpenCV — Core to Advanced](#9-opencv--core-to-advanced)
-10. [Annotation Tools](#10-annotation-tools)
-11. [Dataset Formats](#11-dataset-formats)
-12. [Model Training Pipeline](#12-model-training-pipeline)
-13. [Projects](#13-projects)
-14. [Resources](#14-resources)
-
----
 
 ## 1. What is Computer Vision?
 

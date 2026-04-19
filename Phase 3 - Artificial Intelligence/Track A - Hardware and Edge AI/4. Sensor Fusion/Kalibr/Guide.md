@@ -6,25 +6,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Why Calibration is Critical](#1-why-calibration-is-critical)
-2. [Kalibr Architecture](#2-kalibr-architecture)
-3. [Calibration Targets](#3-calibration-targets)
-4. [Camera Models and Distortion Models](#4-camera-models-and-distortion-models)
-5. [Installation](#5-installation)
-6. [IMU Noise Model — Allan Variance](#6-imu-noise-model--allan-variance)
-7. [Camera Intrinsic Calibration](#7-camera-intrinsic-calibration)
-8. [Multi-Camera Extrinsic Calibration](#8-multi-camera-extrinsic-calibration)
-9. [Camera-IMU Calibration](#9-camera-imu-calibration)
-10. [Rolling Shutter Calibration](#10-rolling-shutter-calibration)
-11. [Reading and Validating Results](#11-reading-and-validating-results)
-12. [Using Calibration in Downstream Systems](#12-using-calibration-in-downstream-systems)
-13. [Common Pitfalls and Debugging](#13-common-pitfalls-and-debugging)
-14. [Projects](#14-projects)
-15. [Resources](#15-resources)
-
----
 
 ## 1. Why Calibration is Critical
 

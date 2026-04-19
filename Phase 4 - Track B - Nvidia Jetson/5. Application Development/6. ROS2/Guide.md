@@ -8,18 +8,6 @@
 
 ---
 
-## Table of Contents
-
-1. [ROS 2 Fundamentals](#1-ros-2-fundamentals)
-2. [Robot Navigation and Control](#2-robot-navigation-and-control)
-3. [Edge Deployment on Jetson](#3-edge-deployment-on-jetson)
-4. [Advanced ROS 2 Development](#4-advanced-ros-2-development)
-5. [Advanced Navigation, Planning, and Behavior](#5-advanced-navigation-planning-and-behavior)
-6. [Real-Time and Safety-Critical ROS 2](#6-real-time-and-safety-critical-ros-2)
-7. [Projects](#7-projects)
-8. [Resources](#8-resources)
-
----
 
 ## 1. ROS 2 fundamentals
 

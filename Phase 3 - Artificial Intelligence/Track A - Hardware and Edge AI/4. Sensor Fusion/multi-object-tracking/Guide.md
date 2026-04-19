@@ -5,24 +5,6 @@
 
 ---
 
-## Table of Contents
-
-1. [The Multi-Object Tracking Problem](#1-the-multi-object-tracking-problem)
-2. [System Architecture](#2-system-architecture)
-3. [Kalman Filter for Object Motion](#3-kalman-filter-for-object-motion)
-4. [The Hungarian Algorithm — Data Association](#4-the-hungarian-algorithm--data-association)
-5. [Cost Matrix: Euclidean vs IoU](#5-cost-matrix-euclidean-vs-iou)
-6. [Track Lifecycle Management](#6-track-lifecycle-management)
-7. [Complete Implementation (Python 3)](#7-complete-implementation-python-3)
-8. [Integration with YOLO Detections](#8-integration-with-yolo-detections)
-9. [3D Object Tracking (BEVFusion Output)](#9-3d-object-tracking-bevfusion-output)
-10. [ROS2 Integration](#10-ros2-integration)
-11. [Evaluation Metrics (HOTA, MOTA, IDF1)](#11-evaluation-metrics-hota-mota-idf1)
-12. [Advanced Trackers Overview](#12-advanced-trackers-overview)
-13. [Projects](#13-projects)
-14. [Resources](#14-resources)
-
----
 
 ## 1. The Multi-Object Tracking Problem
 

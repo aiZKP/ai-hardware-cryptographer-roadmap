@@ -10,25 +10,6 @@
 
 ---
 
-## Table of Contents
-
-1. [The Last Mile — Why This Module Exists](#1-the-last-mile--why-this-module-exists)
-2. [Regulatory Landscape for Jetson Products](#2-regulatory-landscape-for-jetson-products)
-3. [FCC Certification (Unintentional Radiator)](#3-fcc-certification-unintentional-radiator)
-4. [CE Marking (EU)](#4-ce-marking-eu)
-5. [Other Markets (IC, MIC, UKCA, RCM)](#5-other-markets-ic-mic-ukca-rcm)
-6. [Pre-Compliance Testing](#6-pre-compliance-testing)
-7. [DFM Review and Design-for-Assembly](#7-dfm-review-and-design-for-assembly)
-8. [Production Flashing Infrastructure](#8-production-flashing-infrastructure)
-9. [Factory Test Fixtures and Procedures](#9-factory-test-fixtures-and-procedures)
-10. [Supply Chain Management](#10-supply-chain-management)
-11. [Configuration Management and Traceability](#11-configuration-management-and-traceability)
-12. [Fleet Management and Field Support](#12-fleet-management-and-field-support)
-13. [RMA and Failure Analysis](#13-rma-and-failure-analysis)
-14. [Projects](#14-projects)
-15. [Resources](#15-resources)
-
----
 
 ## 1. The last mile — why this module exists
 

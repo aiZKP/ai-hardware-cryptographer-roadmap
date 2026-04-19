@@ -8,20 +8,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Display Setup on Jetson](#1-display-setup-on-jetson)
-2. [Framebuffer (Linux)](#2-framebuffer-linux)
-3. [X11 and Wayland](#3-x11-and-wayland)
-4. [Getting Started with Qt](#4-getting-started-with-qt)
-5. [Qt Cross-Compilation for Jetson](#5-qt-cross-compilation-for-jetson)
-6. [LVGL (Lightweight Graphics Library)](#6-lvgl-lightweight-graphics-library)
-7. [Web-Based UI](#7-web-based-ui)
-8. [Touch Screen Setup and Calibration](#8-touch-screen-setup-and-calibration)
-9. [Projects](#9-projects)
-10. [Resources](#10-resources)
-
----
 
 ## 1. Display setup on Jetson
 

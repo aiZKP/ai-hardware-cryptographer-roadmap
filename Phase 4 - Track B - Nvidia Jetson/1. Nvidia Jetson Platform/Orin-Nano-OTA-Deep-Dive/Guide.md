@@ -6,32 +6,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Why OTA Is Hard on Jetson](#1-why-ota-is-hard-on-jetson)
-2. [OTA Architecture Overview](#2-ota-architecture-overview)
-3. [NVIDIA nv_update_engine Internals](#3-nvidia-nv_update_engine-internals)
-4. [Tegra Bootloader Update Chain](#4-tegra-bootloader-update-chain)
-5. [A/B Slot Orchestration for OTA](#5-ab-slot-orchestration-for-ota)
-6. [Payload Generation and Packaging](#6-payload-generation-and-packaging)
-7. [Cryptographic Signing and Verification](#7-cryptographic-signing-and-verification)
-8. [Rootfs Image-Based OTA](#8-rootfs-image-based-ota)
-9. [Bootloader + Firmware OTA](#9-bootloader--firmware-ota)
-10. [Kernel and DTB OTA](#10-kernel-and-dtb-ota)
-11. [Container-Based Application OTA](#11-container-based-application-ota)
-12. [Delta Updates — Engineering for Bandwidth](#12-delta-updates--engineering-for-bandwidth)
-13. [OTA Frameworks — SWUpdate, Mender, RAUC](#13-ota-frameworks--swupdate-mender-rauc)
-14. [NVIDIA L4T OTA via Debian Packages](#14-nvidia-l4t-ota-via-debian-packages)
-15. [Fleet-Scale OTA Deployment](#15-fleet-scale-ota-deployment)
-16. [Rollback Mechanisms and Failure Recovery](#16-rollback-mechanisms-and-failure-recovery)
-17. [OTA Security Threat Model](#17-ota-security-threat-model)
-18. [Power-Fail Safe OTA Design](#18-power-fail-safe-ota-design)
-19. [OTA Testing and Validation](#19-ota-testing-and-validation)
-20. [Production OTA Monitoring and Telemetry](#20-production-ota-monitoring-and-telemetry)
-21. [Field Failure Case Studies](#21-field-failure-case-studies)
-22. [References](#22-references)
-
----
 
 ## 1. Why OTA Is Hard on Jetson
 

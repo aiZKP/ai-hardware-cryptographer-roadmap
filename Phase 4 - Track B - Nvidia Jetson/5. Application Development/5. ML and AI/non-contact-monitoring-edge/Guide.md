@@ -10,18 +10,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Device and Sensors](#1-device-and-sensors)
-2. [Key Technical Challenges](#2-key-technical-challenges)
-3. [Phase 1: Offline Pipeline](#3-phase-1-offline-pipeline)
-4. [Phase 2: Live and IoT Integration](#4-phase-2-live-and-iot-integration)
-5. [Why It’s Advanced](#5-why-its-advanced)
-6. [Main Application](#6-main-application)
-7. [Other Possible Applications](#7-other-possible-applications)
-8. [Resources](#8-resources)
-
----
 
 ## 1. Device and Sensors
 

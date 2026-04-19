@@ -7,29 +7,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Introduction](#1-introduction)
-2. [Yocto and OpenEmbedded Fundamentals](#2-yocto-and-openembedded-fundamentals)
-3. [meta-tegra Layer](#3-meta-tegra-layer)
-4. [Setting Up a Yocto Build for Jetson](#4-setting-up-a-yocto-build-for-jetson)
-5. [BSP Development](#5-bsp-development)
-6. [Custom Yocto Layers](#6-custom-yocto-layers)
-7. [Root Filesystem Customization](#7-root-filesystem-customization)
-8. [Cross-Compilation and SDK](#8-cross-compilation-and-sdk)
-9. [Kernel Configuration and Driver Integration](#9-kernel-configuration-and-driver-integration)
-10. [Bootloader and Secure Boot Integration](#10-bootloader-and-secure-boot-integration)
-11. [Build System Optimization](#11-build-system-optimization)
-12. [CI/CD for Embedded Linux](#12-cicd-for-embedded-linux)
-13. [OTA Update System](#13-ota-update-system)
-14. [System Bring-Up for New Hardware](#14-system-bring-up-for-new-hardware)
-15. [Boot Performance Optimization](#15-boot-performance-optimization)
-16. [Licensing Compliance](#16-licensing-compliance)
-17. [Quality and Release Engineering](#17-quality-and-release-engineering)
-18. [Production Deployment at Scale](#18-production-deployment-at-scale)
-19. [Common Issues and Debugging](#19-common-issues-and-debugging)
-
----
 
 ## 1. Introduction
 

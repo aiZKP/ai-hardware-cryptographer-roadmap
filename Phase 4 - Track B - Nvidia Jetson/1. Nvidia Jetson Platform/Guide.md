@@ -10,27 +10,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Orin Nano 8GB — Hardware & Boot Chain Internals](#1-orin-nano-8gb--hardware--boot-chain-internals)
-2. [Jetson Hardware Overview](#2-jetson-hardware-overview)
-3. [Installing JetPack — Step by Step](#3-installing-jetpack--step-by-step)
-4. [Upgrading JetPack on Orin Nano 8GB](#4-upgrading-jetpack-on-orin-nano-8gb)
-5. [Benefits of Higher JetPack Versions](#5-benefits-of-higher-jetpack-versions)
-6. [Porting AI Models to Jetson](#6-porting-ai-models-to-jetson)
-7. [ROS2 Integration](#7-ros2-integration)
-8. [Optimizing AI Inference](#8-optimizing-ai-inference)
-9. [End-to-End AI Pipeline: Sensors → Inference → Control](#9-end-to-end-ai-pipeline-sensors--inference--control)
-10. [LiDAR, Camera, IMU — Practical Integration](#10-lidar-camera-imu--practical-integration)
-11. [Device Tree Configuration](#11-device-tree-configuration)
-12. [Power and Thermal Management in Practice](#12-power-and-thermal-management-in-practice)
-13. [OTA Update Best Practices](#13-ota-update-best-practices)
-14. [Security Hardening](#14-security-hardening)
-15. [Projects](#15-projects)
-16. [Jetson Containers — Cloud-Native ML Deployment](#16-jetson-containers--cloud-native-ml-deployment)
-17. [Resources](#17-resources)
-
----
 
 ## 1. Orin Nano 8GB — Hardware & Boot Chain Internals
 

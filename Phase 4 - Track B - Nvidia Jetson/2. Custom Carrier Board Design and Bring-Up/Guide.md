@@ -10,26 +10,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Why a Custom Carrier Board](#1-why-a-custom-carrier-board)
-2. [NVIDIA Reference Design (P3768) Study](#2-nvidia-reference-design-p3768-study)
-3. [Schematic Capture — From Reference to Custom](#3-schematic-capture--from-reference-to-custom)
-4. [Connector and Interface Selection](#4-connector-and-interface-selection)
-5. [Power Tree Design](#5-power-tree-design)
-6. [PCB Layout and Stackup](#6-pcb-layout-and-stackup)
-7. [High-Speed Signal Integrity](#7-high-speed-signal-integrity)
-8. [Thermal Design for Custom Enclosures](#8-thermal-design-for-custom-enclosures)
-9. [Design-for-Test and Debug Headers](#9-design-for-test-and-debug-headers)
-10. [BOM Management and Component Selection](#10-bom-management-and-component-selection)
-11. [Board Bring-Up Procedure](#11-board-bring-up-procedure)
-12. [Pinmux Configuration and Validation](#12-pinmux-configuration-and-validation)
-13. [Peripheral Validation Checklist](#13-peripheral-validation-checklist)
-14. [Common Bring-Up Failures and Debug](#14-common-bring-up-failures-and-debug)
-15. [Projects](#15-projects)
-16. [Resources](#16-resources)
-
----
 
 ## 1. Why a custom carrier board
 

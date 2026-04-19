@@ -8,25 +8,6 @@
 
 ---
 
-## Table of Contents
-
-1. [GPIO (Linux)](#1-gpio-linux)
-2. [GPIO Naming — Alphanumeric to Numeric Assignment](#2-gpio-naming--alphanumeric-to-numeric-assignment)
-3. [PWM (Linux)](#3-pwm-linux)
-4. [ADC (Linux)](#4-adc-linux)
-5. [UART (Linux)](#5-uart-linux)
-6. [SPI (Linux)](#6-spi-linux)
-7. [I2C (Linux)](#7-i2c-linux)
-8. [CAN (Linux)](#8-can-linux)
-9. [USB Host Mode (Linux)](#9-usb-host-mode-linux)
-10. [USB Device Mode (Linux)](#10-usb-device-mode-linux)
-11. [NVMe / PCIe Storage (Linux)](#11-nvme--pcie-storage-linux)
-12. [SD/MMC Card (Linux)](#12-sdmmc-card-linux)
-13. [Backlight (Linux)](#13-backlight-linux)
-14. [Projects](#14-projects)
-15. [Resources](#15-resources)
-
----
 
 ## 1. GPIO (Linux)
 

@@ -4,18 +4,6 @@
 
 ---
 
-## Table of Contents
-
-1. [What Are Tensor Cores?](#1-what-are-tensor-cores)
-2. [Tensor Cores vs CUDA Cores](#2-tensor-cores-vs-cuda-cores)
-3. [Ampere Tensor Core Architecture (Orin Nano)](#3-ampere-tensor-core-architecture-orin-nano)
-4. [How Tensor Cores Work: Matrix Multiply-Accumulate](#4-how-tensor-cores-work-matrix-multiply-accumulate)
-5. [Precision Support: FP16, BF16, INT8, TF32](#5-precision-support-fp16-bf16-int8-tf32)
-6. [How Software Uses Tensor Cores (TensorRT, cuDNN)](#6-how-software-uses-tensor-cores-tensorrt-cudnn)
-7. [Why This Matters for Edge Inference](#7-why-this-matters-for-edge-inference)
-8. [Resources](#8-resources)
-
----
 
 ## 1. What Are Tensor Cores?
 

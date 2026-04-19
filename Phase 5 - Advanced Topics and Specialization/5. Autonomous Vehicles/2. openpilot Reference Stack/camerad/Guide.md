@@ -4,21 +4,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Overview](#1-overview)
-2. [Architecture](#2-architecture)
-3. [Camera Configuration](#3-camera-configuration)
-4. [Hardware Stack](#4-hardware-stack)
-5. [ISP Pipeline](#5-isp-pipeline)
-6. [Auto Exposure (AE)](#6-auto-exposure-ae)
-7. [VisionIpc](#7-visionipc)
-8. [Data Flow](#8-data-flow)
-9. [Source Map](#9-source-map)
-10. [Code Walkthrough — Every Piece](#10-code-walkthrough--every-piece)
-11. [Key Concepts](#11-key-concepts)
-
----
 
 ## 1. Overview
 

@@ -8,20 +8,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Audio (Linux)](#1-audio-linux)
-2. [Bluetooth Audio Profiles](#2-bluetooth-audio-profiles)
-3. [GStreamer — Audio/Video Pipelines](#3-gstreamer--audiovideo-pipelines)
-4. [Video Encoding and Playback (GStreamer)](#4-video-encoding-and-playback-gstreamer)
-5. [USB Cameras / Webcams (UVC)](#5-usb-cameras--webcams-uvc)
-6. [CSI Cameras (MIPI)](#6-csi-cameras-mipi)
-7. [Display Output and Resolution](#7-display-output-and-resolution)
-8. [Framebuffer and DRM/KMS](#8-framebuffer-and-drmkms)
-9. [Projects](#9-projects)
-10. [Resources](#10-resources)
-
----
 
 ## 1. Audio (Linux)
 

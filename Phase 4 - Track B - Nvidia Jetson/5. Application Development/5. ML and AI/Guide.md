@@ -8,25 +8,7 @@
 
 ---
 
-## Table of Contents
-
-1. [Why Optimize? — The Edge Constraints](#1-why-optimize--the-edge-constraints)
-2. [Quantization — From First Principles](#2-quantization--from-first-principles)
-3. [Quantization in tinygrad](#3-quantization-in-tinygrad)
-4. [Post-Training Quantization (PTQ) with TensorRT](#4-post-training-quantization-ptq-with-tensorrt)
-5. [Quantization-Aware Training (QAT) with tinygrad](#5-quantization-aware-training-qat-with-tinygrad)
-6. [Pruning — Structured and Unstructured](#6-pruning--structured-and-unstructured)
-7. [Knowledge Distillation](#7-knowledge-distillation)
-8. [Full Model Porting Pipeline](#8-full-model-porting-pipeline)
-9. [TensorRT Engine Optimization — Jetson Deep Dive](#9-tensorrt-engine-optimization--jetson-deep-dive)
-10. [DLA (Deep Learning Accelerator) on Orin Nano](#10-dla-deep-learning-accelerator-on-orin-nano)
-11. [tinygrad on Jetson — CUDA Backend](#11-tinygrad-on-jetson--cuda-backend)
-12. [Profiling and Benchmarking on Jetson](#12-profiling-and-benchmarking-on-jetson)
-13. [DeepStream for Video Pipelines](#13-deepstream-for-video-pipelines)
-14. [Projects](#14-projects)
-15. [Resources](#15-resources)
-
-### Deep Dive Subfolders
+## Deep Dive Subfolders
 
 | Subfolder | Description |
 |-----------|-------------|

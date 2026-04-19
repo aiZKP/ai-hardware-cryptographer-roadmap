@@ -28,22 +28,6 @@ Teaches:                   Teaches:                   Teaches:
 
 ---
 
-## Table of Contents
-
-1. [micrograd — Autograd from 150 Lines](#1-micrograd--autograd-from-150-lines)
-2. [Building a Neural Net on micrograd](#2-building-a-neural-net-on-micrograd)
-3. [PyTorch Module 1 — Tensors](#3-pytorch-module-1--tensors)
-4. [PyTorch Module 2 — Autograd](#4-pytorch-module-2--autograd)
-5. [PyTorch Module 4 — Deep Learning Fundamentals](#5-pytorch-module-4--deep-learning-fundamentals)
-6. [PyTorch Module 5 — CNNs](#6-pytorch-module-5--cnns)
-7. [PyTorch Module 7 — Transfer Learning](#7-pytorch-module-7--transfer-learning)
-8. [PyTorch Module 9 — Object Detection](#8-pytorch-module-9--object-detection)
-9. [Side-by-Side: micrograd vs PyTorch vs tinygrad](#9-side-by-side-micrograd-vs-pytorch-vs-tinygrad)
-10. [What PyTorch Hides — and tinygrad Exposes](#10-what-pytorch-hides--and-tinygrad-exposes)
-11. [Exercises](#11-exercises)
-12. [Resources](#12-resources)
-
----
 
 ## 1. micrograd — Autograd from 150 Lines
 
