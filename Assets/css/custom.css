@@ -1,5 +1,10 @@
 /* AI Hardware Engineer Roadmap — MkDocs Material Custom Theme */
 
+:root {
+  --md-text-font-family: Helvetica, Arial, sans-serif;
+  --md-code-font-family: "JetBrains Mono", "Cascadia Code", "Fira Code", monospace;
+}
+
 /* ── Layout ───────────────────────────────────── */
 .md-grid {
   max-width: 1320px;
