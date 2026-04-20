@@ -513,7 +513,6 @@
 }
 
 .md-search__input {
-  background: var(--md-default-bg-color) !important;
   border-radius: 8px;
   color: var(--md-default-fg-color);
   font-size: 0.78rem;
@@ -625,7 +624,6 @@
 }
 
 [data-md-color-scheme="slate"] .md-search__input {
-  background: #111827 !important;
   color: rgba(255, 255, 255, 0.92);
 }
 
