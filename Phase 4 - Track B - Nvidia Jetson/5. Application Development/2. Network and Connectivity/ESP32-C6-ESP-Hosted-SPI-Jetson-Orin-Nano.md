@@ -79,15 +79,15 @@ NetworkManager / nmcli / wpa_supplicant / hostapd / ip / iw
 
 Espressif's SPI setup guide documents the signal roles for ESP32-C6 on a Raspberry Pi host. On Jetson, keep the same signal roles and remap them onto the Orin Nano's SPI1 header and spare GPIOs.
 
-| Function | Jetson pin | Jetson signal | ESP32-C6 pin | Direction |
+| Function | Jetson pin | Jetson J12 label | ESP32-C6 pin | Direction |
 |----------|------------|---------------|--------------|-----------|
-| MOSI | 19 | `SPI1_MOSI` | `IO7` | Jetson -> ESP |
-| MISO | 21 | `SPI1_MISO` | `IO2` | ESP -> Jetson |
-| SCLK | 23 | `SPI1_SCLK` | `IO6` | Jetson -> ESP |
-| CS0 | 24 | `SPI1_CS0` | `IO10` | Jetson -> ESP |
-| Handshake | 22 | legacy global GPIO `471` | `IO3` | ESP -> Jetson |
-| Data Ready | 15 | legacy global GPIO `433` | `IO4` | ESP -> Jetson |
-| Reset | 18 | legacy global GPIO `473` | `RST` or `EN` | Jetson -> ESP |
+| MOSI | 19 | `SPI0_MOSI` | `IO7` | Jetson -> ESP |
+| MISO | 21 | `SPI0_MISO` | `IO2` | ESP -> Jetson |
+| SCLK | 23 | `SPI0_SCK` | `IO6` | Jetson -> ESP |
+| CS0 | 24 | `SPI0_CS0` | `IO10` | Jetson -> ESP |
+| Handshake | 22 | `SPI1_MISO` / legacy global GPIO `471` | `IO3` | ESP -> Jetson |
+| Data Ready | 15 | `GPIO12` / legacy global GPIO `433` | `IO4` | ESP -> Jetson |
+| Reset | 18 | `SPI1_CS0` / legacy global GPIO `473` | `RST` or `EN` | Jetson -> ESP |
 | Ground | 20 or 25 | `GND` | `GND` | common reference |
 
 ### Official reference images
@@ -125,6 +125,33 @@ For the three non-SPI control lines in this project, the Jetson host fork uses *
 - pin `15` -> `gpio433` for **Data Ready**
 - pin `18` -> `gpio473` for **Reset**
 - pin `22` -> `gpio471` for **Handshake**
+
+### Useful J12 pinout excerpt
+
+The Jetson Orin Nano / Nano Super expansion header is **J12**. In the common Jetson pinout references, I2C and UART pins are assigned by default. Most other non-power pins default to GPIO, and labels such as `SPI0_MOSI` or `SPI1_MISO` are suggested functions for those header positions.
+
+For this project, these J12 lines are the useful cross-check:
+
+| J12 pin | J12 label | Linux global GPIO | Use in this project |
+|----------|-----------|-------------------|---------------------|
+| 13 | `SPI1_SCK` | `gpio470` | not used here, but easy to confuse with pin `23` |
+| 15 | `GPIO12` | `gpio433` | `Data Ready` |
+| 16 | `SPI1_CS1` | `gpio474` | not used |
+| 18 | `SPI1_CS0` | `gpio473` | optional `Reset` |
+| 19 | `SPI0_MOSI` | `gpio483` | `MOSI` |
+| 21 | `SPI0_MISO` | `gpio482` | `MISO` |
+| 22 | `SPI1_MISO` | `gpio471` | `Handshake` |
+| 23 | `SPI0_SCK` | `gpio481` | `SCLK` |
+| 24 | `SPI0_CS0` | `gpio484` | `CS0` |
+| 26 | `SPI0_CS1` | `gpio485` | unused in this project |
+| 37 | `SPI1_MOSI` | `gpio472` | not used here, but easy to confuse with pin `19` |
+
+This is the naming mismatch you should keep in your head:
+
+- Jetson-IO preset name: `SPI1`
+- live overlay mux names: `spi1_*`
+- J12 labels on pins `19/21/23/24/26`: `SPI0_*`
+- Linux device node on the validated dev kit flow: `spidev0.0`
 
 On a real Jetson, you can verify those numbers directly with:
 
@@ -550,7 +577,7 @@ If the ESP board is already wired to the Jetson 40-pin header, the safest flashi
 1. Keep the ESP board connected to the host PC over USB.
 2. Disconnect the Jetson `Reset` wire from ESP `RST` or `EN`, or unload the Jetson host driver first.
 3. Flash the ESP firmware from the PC.
-4. Reconnect the Jetson `Reset` wire after the flash completes.
+4. For the proven Jetson bring-up flow in this guide, leave the reset wire disconnected and use `resetpin=-1` on the Jetson side.
 5. Only then load the Jetson ESP-Hosted host driver.
 
 If you are using the Jetson port described later in this guide, unloading the host driver looks like this:
@@ -604,19 +631,20 @@ On Jetson, do **not** use `rpi_init.sh` as your main bring-up path. It is Raspbe
 
 That path already captures the validated Jetson settings in this guide:
 
-- `resetpin=473`
+- `resetpin=-1`
 - `spi_handshake_gpio=471`
 - `spi_dataready_gpio=433`
 - `spi_bus_num=0`
 - `spi_chip_select=0`
 - `spi_mode=2`
+- `clockspeed=10`
 
 ### 7.2 Jetson-specific porting work
 
 Port these pieces to Jetson:
 
 1. **Reset GPIO**
-   Use Jetson header pin `18` and map it to the legacy global GPIO number used by the driver: `473`.
+   Jetson header pin `18` maps to legacy global GPIO `473`, but on the validated bring-up in this guide the host keeps that path disabled with `resetpin=-1`. That avoids the Jetson holding the ESP in reset or interfering with USB flashing. Only opt in to `resetpin=473` after you have separately proven that your reset wiring is stable.
 
 2. **Handshake and Data Ready GPIOs**
    Update the host SPI definitions so they match your chosen Jetson GPIO header pins:
@@ -669,8 +697,15 @@ On a real Jetson Orin Nano dev kit, that helper has already been validated to:
 - build `esp32_spi.ko`
 - unbind `spi0.0` from generic `spidev` for the current boot
 - insert the ESP-Hosted SPI host module cleanly
+- keep the runtime SPI clock capped at `10 MHz` even when the ESP boot-up event requests `26 MHz`
+- bring up `wlan0` after a manual ESP reset with `resetpin=-1`
 
-That proves the **Jetson host driver build/load path** is working. It does **not** by itself prove that Wi-Fi transport is fully alive yet. You still need the ESP side flashed correctly, the wiring correct, and the first init event visible in `dmesg`.
+That proves the **Jetson host driver build/load path** and the **working SPI/Wi-Fi transport path** are both real on this hardware. The validated sequence is:
+
+1. load the Jetson module with `resetpin=-1`
+2. keep `sudo dmesg -w` open
+3. manually press the ESP reset button
+4. wait for the ESP boot-up event, chipset detection, clock clamp, and `wlan0`
 
 ### 7.3 Good bring-up order
 
@@ -681,9 +716,11 @@ Use this order. It reduces ambiguity.
 3. Confirm Jetson GPIO choices physically match your wiring
 4. Flash the ESP32-C6 with SPI-enabled ESP-Hosted firmware
 5. Port the host-side GPIO mapping and bus selection
-6. Start at low SPI frequency
-7. Watch `dmesg` for the first init event from ESP to host
-8. Only then move to Wi-Fi association and throughput tests
+6. Start with `resetpin=-1` and `clockspeed=10`
+7. Load the host module, then manually press the ESP reset button
+8. Watch `dmesg` for the ESP boot-up event, chipset detection, and the 26 MHz request being clamped to 10 MHz
+9. Confirm `wlan0` appears
+10. Only then move to Wi-Fi association and throughput tests
 
 ---
 
@@ -698,8 +735,9 @@ sudo dmesg -w
 You want to see:
 
 - the Jetson-side driver loads cleanly
-- the ESP reset sequence completes
-- the host receives the first event from the ESP side
+- the host receives the first event from the ESP side after you manually reset the ESP
+- chipset detection succeeds
+- the ESP request for `26 MHz` is clamped to the configured host limit of `10 MHz`
 
 ### 8.2 Interface-level validation
 
@@ -713,6 +751,8 @@ Expected result:
 
 - a new wireless interface such as `wlan0` or `wlan1`
 - scan results visible through NetworkManager
+
+On the validated Jetson Orin Nano plus ESP32-C6 flow in this guide, the real expected interface is `wlan0`.
 
 ### 8.3 Join a network
 
@@ -751,6 +791,7 @@ Do not optimize too early. First prove:
 
 Usually one of these:
 
+- you loaded the host with `resetpin=-1` but did not manually reset the ESP yet
 - reset GPIO is wrong
 - handshake or data-ready GPIO is mapped incorrectly
 - SPI mode or clock is too aggressive
@@ -766,6 +807,9 @@ Common causes:
 - GPIO edge polarity is wrong
 - jumper wires are too long or noisy
 - the host driver and ESP firmware are from inconsistent revisions
+- the host jumped to a higher SPI clock than the wiring can support
+
+On the validated Jetson fork flow in this guide, keep `clockspeed=10`. The host clamps the ESP's requested `26 MHz` runtime reconfigure back down to `10 MHz`.
 
 ### Bus exists, but the ESP-Hosted driver cannot claim it
 
