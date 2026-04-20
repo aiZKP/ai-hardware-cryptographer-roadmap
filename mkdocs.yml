@@ -89,7 +89,17 @@ extra_css:
   - Assets/css/custom.css
 
 nav:
-  - Home: README.md
+  - Home:
+    - Overview: README.md
+    - Roles & Market: Roles and Market Analysis.md
+    - Phase 1 — Digital Foundations: Phase 1 - Foundational Knowledge/Guide.md
+    - Phase 2 — Embedded Systems: Phase 2 - Embedded Systems/Guide.md
+    - Phase 3 — AI: Phase 3 - Artificial Intelligence/Guide.md
+    - Phase 4 — Deployment:
+      - Track A — Xilinx FPGA: Phase 4 - Track A - Xilinx FPGA/1. Xilinx FPGA Development/Guide.md
+      - Track B — NVIDIA Jetson: Phase 4 - Track B - Nvidia Jetson/1. Nvidia Jetson Platform/Guide.md
+      - Track C — ML Compiler: Phase 4 - Track C - ML Compiler and Graph Optimization/Guide.md
+    - Phase 5 — Specialization: Phase 5 - Advanced Topics and Specialization/Guide.md
   - Roles & Market: Roles and Market Analysis.md
 
   # ── Phase 1 ─────────────────────────────────────────────────
