@@ -44,6 +44,24 @@ That tells you:
 
 This is a direct improvement over hardcoded board assumptions.
 
+You can see that policy-to-transport bridge right at the top of `spi/esp_spi.c`:
+
+```c
+static ushort spi_bus_num = DEFAULT_SPI_BUS_NUM;
+static ushort spi_chip_select = DEFAULT_SPI_CHIP_SELECT;
+static int spi_handshake_gpio = DEFAULT_HANDSHAKE_PIN;
+static int spi_dataready_gpio = DEFAULT_SPI_DATA_READY_PIN;
+static uint spi_mode = DEFAULT_SPI_MODE;
+
+module_param(spi_bus_num, ushort, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+module_param(spi_chip_select, ushort, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+module_param(spi_handshake_gpio, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+module_param(spi_dataready_gpio, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+module_param(spi_mode, uint, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+```
+
+This is where “Jetson pin choices” stop being shell-script text and become transport state consumed by the driver.
+
 ---
 
 ## 3. Find `spi_dev_init(...)`
@@ -64,6 +82,38 @@ That is an important Embedded Linux mental shift:
 
 - device tree and sysfs prove presence
 - transport init proves usability
+
+The critical part of `spi_dev_init(...)` is worth reading literally:
+
+```c
+esp_info("Config - SPI GPIOs: Handshake[%d] Dataready[%d]\n",
+	spi_context.handshake_gpio, spi_context.dataready_gpio);
+
+esp_info("Config - SPI clock[%dMHz] bus[%d] cs[%d] mode[%d]\n",
+	spi_context.spi_clk_mhz, esp_board.bus_num,
+	esp_board.chip_select, esp_board.mode);
+
+status = gpio_request(spi_context.handshake_gpio, "SPI_HANDSHAKE_PIN");
+...
+spi_context.handshake_irq = gpio_to_irq(spi_context.handshake_gpio);
+status = request_irq(spi_context.handshake_irq, spi_interrupt_handler,
+		IRQF_SHARED | IRQF_TRIGGER_RISING,
+		"ESP_SPI", spi_context.esp_spi_dev);
+...
+status = gpio_request(spi_context.dataready_gpio, "SPI_DATA_READY_PIN");
+...
+spi_context.dataready_irq = gpio_to_irq(spi_context.dataready_gpio);
+status = request_irq(spi_context.dataready_irq, spi_data_ready_interrupt_handler,
+		IRQF_SHARED | IRQF_TRIGGER_RISING,
+		"ESP_SPI_DATA_READY", spi_context.esp_spi_dev);
+```
+
+That snippet is the transport bring-up story in one place:
+
+- log the configuration
+- request the GPIOs
+- convert them to IRQs
+- bind the IRQ handlers that make the transport live
 
 ---
 
@@ -110,6 +160,22 @@ Embedded Linux lesson:
 
 - respect the kernel’s device model when it already describes the hardware correctly
 
+The reuse behavior is explicit:
+
+```c
+existing_dev = spi_find_device(esp_board.bus_num, esp_board.chip_select);
+if (existing_dev) {
+	...
+	spi_context.esp_spi_dev = existing_dev;
+	esp_info("Reusing existing SPI device spi%u.%u\n",
+		esp_board.bus_num, esp_board.chip_select);
+} else {
+	master = spi_busnum_to_master(esp_board.bus_num);
+	...
+	spi_context.esp_spi_dev = spi_new_device(master, &esp_board);
+}
+```
+
 The shell script unbinds `spidev`, but the transport code is written to cooperate with the existing SPI device path.
 
 ---
@@ -137,6 +203,27 @@ That is a very real Embedded Linux engineering pattern:
 
 - make the code reflect the validated board limit
 - then widen later only with measurement
+
+The actual clamp logic is concise:
+
+```c
+static void adjust_spi_clock(u8 spi_clk_mhz)
+{
+	u8 target_spi_clk = spi_clk_mhz;
+
+	if (spi_context.spi_clk_cap_mhz && target_spi_clk > spi_context.spi_clk_cap_mhz) {
+		esp_info("ESP requested SPI CLK %u MHz, clamping to host limit %u MHz\n",
+			 target_spi_clk, spi_context.spi_clk_cap_mhz);
+		target_spi_clk = spi_context.spi_clk_cap_mhz;
+	}
+
+	if (target_spi_clk != spi_context.spi_clk_mhz) {
+		esp_info("ESP Reconfigure SPI CLK to %u MHz\n", target_spi_clk);
+		spi_context.spi_clk_mhz = target_spi_clk;
+		spi_context.esp_spi_dev->max_speed_hz = target_spi_clk * NUMBER_1M;
+	}
+}
+```
 
 ---
 

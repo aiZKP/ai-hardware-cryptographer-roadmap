@@ -61,6 +61,62 @@ That is the first Embedded Linux lesson:
 
 If you blur those together, driver reading becomes confusing fast.
 
+### Code anchor: one boot event creates two Linux personalities
+
+The cleanest place to see the split is in `main.c`. A single ESP boot-up event eventually fans out into:
+
+- Wi-Fi registration through `esp_add_card(...)`
+- Bluetooth registration through `init_bt(...)`
+
+```c
+static void init_bt(struct esp_adapter *adapter)
+{
+	if ((adapter->capabilities & ESP_BT_SPI_SUPPORT) ||
+		(adapter->capabilities & ESP_BT_SDIO_SUPPORT)) {
+		msleep(200);
+		esp_info("ESP Bluetooth init\n");
+		esp_init_bt(adapter);
+	}
+}
+
+static int process_event_esp_bootup(struct esp_adapter *adapter, u8 *evt_buf, u8 len)
+{
+	...
+	if (esp_add_card(adapter)) {
+		esp_err("network interface init failed\n");
+		return -1;
+	}
+	init_bt(adapter);
+	...
+	print_capabilities(adapter->capabilities);
+}
+```
+
+And the Wi-Fi side is explicitly created as a normal Linux station interface:
+
+```c
+static int esp_add_network_ifaces(struct esp_adapter *adapter)
+{
+	struct wireless_dev *wdev = NULL;
+
+	rtnl_lock();
+	wdev = esp_cfg80211_add_iface(adapter->wiphy, "wlan%d", 1,
+				      NL80211_IFTYPE_STATION, NULL);
+	rtnl_unlock();
+
+	if (wdev)
+		return 0;
+
+	return -1;
+}
+```
+
+That is the whole course in miniature:
+
+- one remote chip
+- one transport
+- two different Linux subsystem identities
+
 ---
 
 ## 3. The file-reading order that actually works

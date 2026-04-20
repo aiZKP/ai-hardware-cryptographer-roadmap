@@ -49,6 +49,34 @@ That is why the validated Jetson logs and tools showed:
 
 This is not cosmetic. It means Linux Bluetooth tooling now sees a standard controller interface.
 
+The key block in `esp_bt.c` is short and very literal:
+
+```c
+int esp_init_bt(struct esp_adapter *adapter)
+{
+	...
+	hdev = hci_alloc_dev();
+	...
+	adapter->hcidev = hdev;
+	hci_set_drvdata(hdev, adapter);
+
+	hdev->bus = INVALID_HDEV_BUS;
+	...
+	else if (adapter->if_type == ESP_IF_TYPE_SPI)
+		hdev->bus = HCI_SPI;
+
+	hdev->open  = esp_bt_open;
+	hdev->close = esp_bt_close;
+	hdev->flush = esp_bt_flush;
+	hdev->send  = esp_bt_send_frame;
+	...
+	ret = hci_register_dev(hdev);
+	...
+}
+```
+
+That is the precise moment when “Bluetooth packets from a remote ESP” become “a normal Linux HCI controller.”
+
 ---
 
 ## 3. How incoming BLE data reaches Linux
@@ -72,6 +100,26 @@ This is the crucial handoff:
 
 That is exactly how a custom hardware path gets translated into a standard subsystem view.
 
+The handoff in `main.c` is direct:
+
+```c
+} else if (payload_header->if_type == ESP_HCI_IF) {
+	if (hdev) {
+		type = skb->data;
+		hci_skb_pkt_type(skb) = *type;
+		skb_pull(skb, 1);
+
+		if (hci_recv_frame(hdev, skb)) {
+			hdev->stat.err_rx++;
+		} else {
+			esp_hci_update_rx_counter(hdev, *type, skb->len);
+		}
+	}
+}
+```
+
+The transport does not expose a custom user API for BLE. It converts remote packets into the standard HCI receive path that BlueZ already understands.
+
 ---
 
 ## 4. What the capability logs are telling you
@@ -90,6 +138,22 @@ That last point matters for **ESP32-C6**:
 - do not expect classic Bluetooth audio profiles from this configuration
 
 That is a practical product constraint, not just a code detail.
+
+The capability reporting comes from `main.c` and is worth scanning once in real code:
+
+```c
+if (cap & ESP_BT_SPI_SUPPORT)
+	esp_info("\t   - HCI over SPI\n");
+
+if ((cap & ESP_BLE_ONLY_SUPPORT) && (cap & ESP_BR_EDR_ONLY_SUPPORT))
+	esp_info("\t   - BT/BLE dual mode\n");
+else if (cap & ESP_BLE_ONLY_SUPPORT)
+	esp_info("\t   - BLE only\n");
+else if (cap & ESP_BR_EDR_ONLY_SUPPORT)
+	esp_info("\t   - BR EDR only\n");
+```
+
+Those log lines are not decoration. They are the driver telling you how the remote firmware wants Linux to treat the radio.
 
 ---
 

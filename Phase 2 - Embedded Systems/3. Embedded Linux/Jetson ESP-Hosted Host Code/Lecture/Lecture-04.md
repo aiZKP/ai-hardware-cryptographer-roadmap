@@ -43,6 +43,46 @@ The logic is:
 
 This is what turns “working protocol” into “working Linux network interface.”
 
+Here is the exact orchestration in `main.c`:
+
+```c
+static int process_event_esp_bootup(struct esp_adapter *adapter, u8 *evt_buf, u8 len)
+{
+	...
+	while (len_left > 0) {
+		switch (*pos) {
+		case ESP_BOOTUP_CAPABILITY:
+			adapter->capabilities = *(pos + 2);
+			break;
+		case ESP_BOOTUP_FIRMWARE_CHIP_ID:
+			ret = esp_validate_chipset(adapter, *(pos + 2));
+			break;
+		case ESP_BOOTUP_FW_DATA:
+			fw_p = (struct fw_data *)(pos + 2);
+			ret = process_fw_data(fw_p, tag_len);
+			break;
+		case ESP_BOOTUP_SPI_CLK_MHZ:
+			ret = esp_adjust_spi_clock(adapter, *(pos + 2));
+			break;
+		}
+		...
+	}
+
+	if (esp_add_card(adapter)) {
+		esp_err("network interface init failed\n");
+		return -1;
+	}
+	init_bt(adapter);
+	...
+}
+```
+
+This is the major control-plane jump in the codebase:
+
+- raw boot event comes in over SPI
+- driver learns what the remote chip is
+- Linux-facing interfaces get built on top of that knowledge
+
 ---
 
 ## 3. The exact place where `wlan0` is created
@@ -59,6 +99,25 @@ That one call is a great Embedded Linux lesson:
 - the driver translates the remote radio into a standard Linux interface model
 
 That is why `nmcli`, `iw`, and other tools can work.
+
+The call site is small enough to memorize:
+
+```c
+static int esp_add_network_ifaces(struct esp_adapter *adapter)
+{
+	struct wireless_dev *wdev = NULL;
+
+	rtnl_lock();
+	wdev = esp_cfg80211_add_iface(adapter->wiphy, "wlan%d", 1,
+				      NL80211_IFTYPE_STATION, NULL);
+	rtnl_unlock();
+
+	if (wdev)
+		return 0;
+
+	return -1;
+}
+```
 
 ---
 
@@ -89,6 +148,61 @@ The major ideas are:
 - allocate and register the interface objects Linux expects
 
 That is standard subsystem integration work. The ESP is remote, but Linux still wants the usual `cfg80211` contract.
+
+Two short excerpts show the division of labor well.
+
+First, `esp_add_wiphy(...)` creates and advertises the wireless capabilities Linux expects:
+
+```c
+int esp_add_wiphy(struct esp_adapter *adapter)
+{
+	struct wiphy *wiphy;
+	...
+	wiphy = wiphy_new(&esp_cfg80211_ops, sizeof(struct esp_device));
+	...
+	wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION);
+	wiphy->bands[NL80211_BAND_2GHZ] = &esp_wifi_bands_2ghz;
+	...
+	wiphy->max_scan_ssids = 10;
+	wiphy->signal_type = CFG80211_SIGNAL_TYPE_MBM;
+	wiphy->reg_notifier = esp_reg_notifier;
+	...
+	ret = wiphy_register(wiphy);
+	return ret;
+}
+```
+
+Then `esp_cfg80211_add_iface(...)` allocates the netdev and asks the ESP firmware to initialize the remote interface:
+
+```c
+struct wireless_dev *esp_cfg80211_add_iface(struct wiphy *wiphy,
+		const char *name, unsigned char name_assign_type,
+		enum nl80211_iftype type, struct vif_params *params)
+{
+	...
+	ndev = ALLOC_NETDEV(sizeof(struct esp_wifi_device), name,
+			    name_assign_type, ether_setup);
+	...
+	esp_wdev->wdev.iftype = type;
+	...
+	if (cmd_init_interface(esp_wdev))
+		goto free_and_return;
+
+	if (cmd_get_mac(esp_wdev))
+		goto free_and_return;
+
+	ETH_HW_ADDR_SET(ndev, esp_wdev->mac_address);
+	...
+	if (register_netdevice(ndev))
+		goto free_and_return;
+}
+```
+
+That is the Embedded Linux pattern worth learning:
+
+- build a standard subsystem object locally
+- synchronize it with the remote device through command messages
+- only then register it with the kernel networking stack
 
 ---
 

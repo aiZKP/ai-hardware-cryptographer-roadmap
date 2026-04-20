@@ -29,6 +29,27 @@ Embedded Linux takeaway:
 - upstream code often assumes one board
 - production bring-up usually needs a board-specific wrapper or policy layer
 
+The defaults are stated directly in the helper:
+
+```bash
+IF_TYPE="spi"
+MODULE_NAME="esp32_spi.ko"
+RESETPIN=-1
+HANDSHAKEPIN=471
+DATAREADYPIN=433
+SPI_BUS_NUM=0
+SPI_CHIP_SELECT=0
+SPI_MODE=2
+CLOCKSPEED=10
+```
+
+That small block captures most of the Jetson-specific policy:
+
+- SPI transport, not SDIO
+- bus `0`, chip-select `0`
+- legacy global GPIOs `471` and `433`
+- reset disabled by default because board behavior mattered more than theoretical convenience
+
 ---
 
 ## 2. Why `resetpin=-1` is a serious engineering choice
@@ -88,6 +109,31 @@ That split is exactly what you want to see in a portable Embedded Linux driver:
 - one transport-specific module slice
 - one mostly transport-agnostic Linux integration layer
 
+The `Makefile` says that very directly:
+
+```make
+target ?= sdio
+MODULE_NAME := esp32_$(target)
+
+ifeq ($(target), spi)
+    ccflags-y += -I$(src)/spi -I$(CURDIR)/spi
+    EXTRA_CFLAGS += -I$(M)/spi
+    module_objects += spi/esp_spi.o
+endif
+
+module_objects += esp_bt.o main.o esp_cmd.o esp_utils.o \
+                  esp_cfg80211.o esp_stats.o esp_debugfs.o esp_log.o
+
+obj-m := $(MODULE_NAME).o
+$(MODULE_NAME)-y := $(module_objects)
+```
+
+That tells you:
+
+- `target=spi` chooses the transport glue
+- the Wi-Fi, Bluetooth, and lifecycle files are shared
+- the final kernel object is assembled as `esp32_spi.ko`
+
 ---
 
 ## 4. Why the script unbinds `spidev`
@@ -108,6 +154,18 @@ This is a classic Embedded Linux pattern:
 - then you disable the generic owner so the real subsystem driver can claim it
 
 That is the difference between “bus visible” and “system integrated.”
+
+The exact unbind step is short and very revealing:
+
+```bash
+if [ "$driver_name" = "spidev" ]; then
+	echo "Unbinding ${spi_dev} from spidev for this boot..."
+	echo "$spi_dev" | sudo tee /sys/bus/spi/drivers/spidev/unbind > /dev/null
+	return
+fi
+```
+
+This is a nice Embedded Linux lesson because the shell script is not “doing driver work.” It is clearing a device-model conflict so the real subsystem driver can reuse `spi0.0`.
 
 ---
 
@@ -166,6 +224,25 @@ Instead, the driver consumes:
 - Linux legacy global GPIO numbers
 
 That is exactly the level the kernel expects.
+
+The helper constructs the final `insmod` arguments explicitly:
+
+```bash
+insmod_args=(
+	resetpin="$RESETPIN"
+	clockspeed="$CLOCKSPEED"
+	raw_tp_mode="$RAW_TP_MODE"
+	spi_bus_num="$SPI_BUS_NUM"
+	spi_chip_select="$SPI_CHIP_SELECT"
+	spi_handshake_gpio="$HANDSHAKEPIN"
+	spi_dataready_gpio="$DATAREADYPIN"
+	spi_mode="$SPI_MODE"
+)
+
+sudo insmod "$MODULE_NAME" "${insmod_args[@]}"
+```
+
+That is the practical handoff from board policy into the kernel module.
 
 ---
 
