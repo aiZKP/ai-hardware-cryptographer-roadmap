@@ -151,12 +151,49 @@ Official source: [OT Daemon](https://openthread.io/platforms/co-processor/ot-dae
 
 ## 9. Security and Reliability
 
-Thread is designed for real deployments, not one-off lab links. OpenThread's public description emphasizes reliable, secure, low-power device-to-device communication, and the Thread stack includes MAC security plus commissioning and border-router support.  
+Thread is designed for real deployments, not one-off lab links. OpenThread's public description emphasizes reliable, secure, low-power device-to-device communication, and the stack includes IEEE 802.15.4 MAC security, secure commissioning, and border-router support.  
 Official source: [OpenThread overview](https://openthread.io/)
 
-From an embedded-software perspective, the interesting part is that security is not "added later in the cloud." Device identity, network admission, credential storage, and persistent settings are part of the firmware design from the beginning. That is why the PAL includes non-volatile settings and entropy sources as first-class platform requirements.
+The important thing to understand is that OpenThread security is **layered**, not a single checkbox. Different protections apply at different points in the system:
+
+* **Link-layer protection:** IEEE 802.15.4 frames are protected with MAC security.
+* **Commissioning protection:** a new device must be authorized before it joins the mesh.
+* **Application / end-to-end protection:** application traffic can use higher secure protocols such as DTLS-backed Secure CoAP.
+
+### Link-layer security: AES-CCM
+
+OpenThread's porting guide explicitly states that OpenThread Security uses **AES-CCM** cryptography to encrypt and decrypt IEEE 802.15.4 or MLE messages and validate their integrity. In practice, that means packets are not just hidden from casual inspection; they are also authenticated so modified packets can be detected instead of silently trusted.  
+Official source: [OpenThread advanced porting features](https://openthread.io/guides/porting/implement-advanced-features)
+
+This matters for embedded developers because the crypto is not abstract "cloud security." It depends on the local platform port doing the right thing with entropy, nonces, and key handling. If your entropy source is weak or your PAL implementation is careless, the security model weakens even if the high-level Thread code is correct.
+
+### Secure commissioning: who is allowed onto the mesh
+
+Thread does not let random devices join just because they are in radio range. OpenThread's Border Agent API documentation states that commissioner candidates establish **secure DTLS sessions** with the Border Agent using **PSKc**, and only then can a connected commissioner petition to become a full commissioner.  
+Official source: [OpenThread Border Agent API](https://openthread.io/reference/group/api-border-agent)
+
+On the device side, OpenThread Commissioner APIs and OTBR tools use **PSKd** or Joiner credentials to authorize specific joining devices. The practical lesson is simple: joining the network is a controlled admission process, not a broadcast "pair with anything nearby" flow. That is one of the main reasons Thread is suitable for real smart-home and industrial products instead of hobby-only mesh links.  
+Official sources: [Commissioner API](https://openthread.io/reference/group/api-commissioner), [OTBR PSKc tools](https://openthread.io/guides/border-router/tools)
+
+### End-to-end security above the mesh
+
+Thread's built-in mesh protections do not remove the need for application-level security. OpenThread's Secure CoAP documentation shows that **Secure CoAP uses DTLS** to establish secure end-to-end connections between peers.  
+Official source: [Secure CoAP CLI concepts](https://openthread.io/reference/cli/concepts/coaps)
+
+That distinction is important. Link-layer security protects the radio hop and the mesh transport, while protocols such as Secure CoAP protect the application conversation itself. In other words, OpenThread gives you secure networking, but strong product design still requires secure application protocols on top.
+
+### Key material, entropy, and storage
+
+From an embedded-software perspective, the interesting part is that security is not "added later in the cloud." Device identity, network admission, credential storage, and persistent settings are part of the firmware design from the beginning. That is why the OpenThread PAL includes **entropy** and **non-volatile storage** as first-class platform requirements.  
+Official source: [OpenThread PAL guide](https://openthread.io/guides/porting/implement-platform-abstraction-layer-apis)
+
+The PAL guide explicitly calls out the entropy API as maintaining security assets for the network, including AES-CCM nonces and other random values. This is why many production platforms pair OpenThread with hardware random generators, secure storage blocks, or cryptographic accelerators: not because the stack requires vendor lock-in, but because those features improve the security quality of the port.
+
+### Reliability and self-healing behavior
 
 Reliability comes from the mesh behavior itself. A Thread network can survive node loss, promote eligible devices into routing roles, and keep sleepy endpoints attached through parents, which is very different from a simple point-to-point radio link.
+
+That does not make the network invulnerable. A real deployment still has to think about denial-of-service conditions, bad radio environments, reset behavior, and credential handling during manufacturing and updates. But OpenThread starts from a much stronger foundation than ad hoc plaintext radio protocols because security, commissioning, and network repair are already part of the architecture.
 
 ---
 
