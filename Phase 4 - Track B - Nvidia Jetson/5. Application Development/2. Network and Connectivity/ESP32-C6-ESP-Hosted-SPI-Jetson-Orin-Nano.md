@@ -677,7 +677,7 @@ Port these pieces to Jetson:
 
 A Jetson-oriented fork now exists at:
 
-- `https://github.com/ai-hpc/esp-hosted`
+- `https://github.com/ai-hpc/jetson-esp-hosted`
 
 It adds:
 
@@ -897,7 +897,7 @@ That is normal early on. Once the path is stable:
 - [ESP32-C6-DevKitC-1 user guide](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32c6/esp32-c6-devkitc-1/user_guide.html)
 - [ESP32-C6 establish serial connection](https://docs.espressif.com/projects/esp-idf/en/stable/esp32c6/get-started/establish-serial-connection.html)
 - [ESP32-C6 USB Serial/JTAG console](https://docs.espressif.com/projects/esp-idf/en/stable/esp32c6/api-guides/usb-serial-jtag-console.html)
-- [AI-HPC Jetson-oriented esp-hosted fork](https://github.com/ai-hpc/esp-hosted)
+- [AI-HPC Jetson-oriented jetson-esp-hosted fork](https://github.com/ai-hpc/jetson-esp-hosted)
 
 ### Local roadmap references
 
