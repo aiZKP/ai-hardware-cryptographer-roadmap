@@ -553,7 +553,7 @@
 }
 
 .md-search-result__title {
-  font-size: 0.72rem;
+  font-size: 0.5rem;
   font-weight: 700;
   line-height: 1.35;
   letter-spacing: normal;
@@ -571,6 +571,31 @@
   color: inherit;
   border-radius: 4px;
   padding: 0 0.14em;
+}
+
+.md-search-result__more {
+  padding: 0.55rem 0.9rem 0.45rem;
+}
+
+.md-search-result__teaser:empty {
+  display: none;
+}
+
+.md-search__scrollwrap {
+  margin: 0;
+}
+
+.md-search-result__list:empty + .md-search-result__meta,
+.md-search-result__meta:empty {
+  display: none;
+}
+
+.md-search-result {
+  padding-bottom: 0;
+}
+
+.md-search__suggest {
+  padding-bottom: 0.35rem;
 }
 
 [data-md-color-scheme="slate"] .md-search__output {
