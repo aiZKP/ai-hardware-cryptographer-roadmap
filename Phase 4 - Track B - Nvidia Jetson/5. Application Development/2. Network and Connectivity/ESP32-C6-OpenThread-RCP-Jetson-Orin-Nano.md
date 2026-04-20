@@ -139,6 +139,14 @@ On Jetson, that means:
 
 OpenThread's own coprocessor docs describe this as an **RCP design**, and OT Daemon is explicitly documented as the POSIX-side component for RCP setups.
 
+For the backbone / infrastructure side, you have multiple valid choices on Jetson:
+
+- `l4tbr0` if you want to use the Jetson USB device networking path to a host PC
+- `wlan0` if the Jetson reaches the network through your first ESP32-C6 and ESP-Hosted
+- `enP8p1s0` if you later use Ethernet as the OTBR backbone
+
+On your current setup, **`l4tbr0` is the right choice for USB networking**, not `usb0` or `usb1`, because those interfaces are members of the `l4tbr0` bridge.
+
 ---
 
 ## 6. Build and flash the ESP32-C6 RCP firmware
@@ -220,8 +228,8 @@ The Jetson Orin Nano 40-pin header exposes **UART1** as:
 
 | Function | Jetson pin | Linux device | Direction |
 |---|---:|---|---|
-| UART1_TXD | `8` | `/dev/ttyTHS0` | Jetson -> ESP |
-| UART1_RXD | `10` | `/dev/ttyTHS0` | ESP -> Jetson |
+| UART1_TXD | `8` | `/dev/ttyTHS1` on your current image | Jetson -> ESP |
+| UART1_RXD | `10` | `/dev/ttyTHS1` on your current image | ESP -> Jetson |
 | Ground | `6` or `9` or `14` | -- | common reference |
 
 For the ESP32-C6 RCP side in this guide:
@@ -242,12 +250,12 @@ Jetson GND                -> ESP32-C6 GND
 
 ### Jetson UART prerequisites
 
-On Jetson, the main thing that usually blocks use of the header UART is `nvgetty`, which can claim `/dev/ttyTHS0`.
+On Jetson, the main thing that usually blocks use of the header UART is `nvgetty`, which can claim the user UART device.
 
 Check the device first:
 
 ```bash
-ls -l /dev/ttyTHS0
+ls -l /dev/ttyTHS1
 ```
 
 Then disable the serial getty if it is active:
@@ -268,7 +276,7 @@ systemctl status nvgetty
 Configure the port to the baud rate you intend to use with the RCP host link:
 
 ```bash
-sudo stty -F /dev/ttyTHS0 460800 cs8 -cstopb -parenb raw -echo
+sudo stty -F /dev/ttyTHS1 460800 cs8 -cstopb -parenb raw -echo
 ```
 
 This guide uses `460800` because that is a common `ot_rcp` / OTBR pairing on Espressif examples. If you later choose a different baud in your OpenThread configuration, keep the Jetson and ESP sides aligned.
@@ -293,8 +301,8 @@ Before involving the ESP board, you can do a Jetson loopback test:
 2. run:
 
 ```bash
-sudo cat /dev/ttyTHS0 &
-echo "JETSON_UART_OK" | sudo tee /dev/ttyTHS0
+sudo cat /dev/ttyTHS1 &
+echo "JETSON_UART_OK" | sudo tee /dev/ttyTHS1
 ```
 
 If the text echoes back, the Jetson side UART path is alive.
@@ -313,14 +321,19 @@ git clone --depth=1 https://github.com/openthread/ot-br-posix
 cd ot-br-posix
 
 ./script/bootstrap
-INFRA_IF_NAME=wlan0 ./script/setup
+INFRA_IF_NAME=l4tbr0 ./script/setup
 ```
 
-Why `INFRA_IF_NAME=wlan0`:
+Why `INFRA_IF_NAME=l4tbr0` on your current Jetson:
 
 - OTBR needs a **backbone / infrastructure interface**
-- in your setup that backbone is the Jetson's existing **`wlan0`**
-- `wlan0` is already provided by the first ESP32-C6 through ESP-Hosted
+- your Jetson currently exposes the USB networking path as the bridge **`l4tbr0`**
+- `usb0` and `usb1` are members of that bridge, so `l4tbr0` is the real backbone interface
+
+If you later want the backbone to be:
+
+- ESP-Hosted Wi-Fi, use `INFRA_IF_NAME=wlan0`
+- Ethernet, use `INFRA_IF_NAME=enP8p1s0` once that link is active
 
 After installation:
 
@@ -334,7 +347,7 @@ The official OTBR native install guide shows the agent running like this at a hi
 /usr/sbin/otbr-agent -I wpan0 -B wlan0 spinel+hdlc+uart:///dev/ttyACM0
 ```
 
-For your setup, the **`-B wlan0`** part is the important design choice.
+For your setup, the important part is the **`-B <backbone>`** choice. On your current Jetson USB networking path, that backbone should be **`l4tbr0`**.
 
 ---
 
@@ -351,10 +364,12 @@ sudoedit /etc/default/otbr-agent
 Set the RCP path and baud rate. For the **direct Jetson header UART** path in this guide:
 
 ```bash
-OTBR_AGENT_OPTS="-I wpan0 -B wlan0 spinel+hdlc+uart:///dev/ttyTHS0?uart-baudrate=460800"
+OTBR_AGENT_OPTS="-I wpan0 -B l4tbr0 spinel+hdlc+uart:///dev/ttyTHS1?uart-baudrate=460800"
 ```
 
-If you intentionally choose a USB-serial path instead, replace `/dev/ttyTHS0` with the real USB serial device such as `/dev/ttyUSB0` or `/dev/ttyACM0`.
+If you intentionally choose a USB-serial path instead, replace `/dev/ttyTHS1` with the real USB serial device such as `/dev/ttyUSB0` or `/dev/ttyACM0`.
+
+If you later move the OTBR backbone to Wi-Fi, change `-B l4tbr0` to `-B wlan0`.
 
 Then restart the service:
 
@@ -379,7 +394,7 @@ Before forming a Thread network, prove that the Jetson can talk to the RCP relia
 Check that the expected Jetson UART device exists:
 
 ```bash
-ls -l /dev/ttyTHS0
+ls -l /dev/ttyTHS1
 ```
 
 Check OTBR service health:
