@@ -512,6 +512,15 @@
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
+.md-search__icon::before,
+.md-search__icon::after,
+.md-search__suggest::before,
+.md-search__suggest::after,
+.md-search-result__icon::before,
+.md-search-result__icon::after {
+  box-sizing: inherit !important;
+}
+
 .md-search__input {
   border-radius: 8px;
   color: var(--md-default-fg-color);
