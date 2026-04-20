@@ -609,6 +609,7 @@
 }
 
 .md-search__suggest {
+  display: none !important;
   padding-bottom: 0.35rem;
 }
 
