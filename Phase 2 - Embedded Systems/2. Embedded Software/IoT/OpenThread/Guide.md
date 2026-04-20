@@ -346,6 +346,91 @@ Official source: [Display and Manage Datasets with OT CLI](https://openthread.io
 
 That is a useful distinction for learners. CLI dataset commands are excellent for understanding the protocol and forming a lab network, but real products should not treat every field device like an unrestricted network-admin shell.
 
+### Reading a real `ot-ctl` and OTBR state snapshot
+
+Once you move from a standalone `ot_cli` node to a Linux host plus RCP design, the most useful skill is learning how to read a mixed snapshot made from:
+
+* `ot-ctl` output
+* Thread IPv6 addresses
+* OTBR log lines
+
+For example, a real Jetson plus ESP32-C6 RCP session may show:
+
+```text
+extaddr: fac5eb4acbada19e
+rloc16: a400
+ipaddr:
+  fd3f:d825:5faf:9782:0:ff:fe00:a400
+  fd3f:d825:5faf:9782:8b89:772a:39cd:737a
+  fe80::f8c5:eb4a:cbad:a19e
+state: detached
+```
+
+This kind of output already tells you a lot:
+
+* `extaddr` is the 64-bit IEEE 802.15.4 identity of the radio.
+* `rloc16` is the compact 16-bit mesh locator used inside the Thread network.
+* the first `fd...ff:fe00:a400` address is the **RLOC IPv6 address**, built from the mesh-local prefix plus the router locator.
+* the second `fd...8b89:...` address is the **Mesh-Local EID**, the node's more stable IPv6 identity inside the mesh.
+* the `fe80::...` address is the normal IPv6 link-local address.
+
+The subtle point is that seeing valid Thread addresses does **not** automatically mean the node is fully attached. A node can have a dataset, mesh-local addresses, and Linux interface state while still reporting `detached`.
+
+That is why the state machine matters:
+
+* `disabled` means the Thread stack is present but not started.
+* `detached` means the stack has been started and is trying to attach or form a partition, but it is not yet in an attached role such as `leader`, `router`, or `child`.
+* `leader` means the node is attached and currently managing its own partition.
+
+Now look at the matching OTBR log style:
+
+```text
+Mle-----------: Send Link Request (ff02::2)
+MeshForwarder-: Sent IPv6 UDP msg ... dst:[ff02::2]:19788
+Settings------: Read NetworkInfo {rloc:0xa400, extaddr:..., role:leader, ...}
+BorderAgent---: Registering service OpenThread BorderRouter #A19E _meshcop._udp
+```
+
+These lines map directly back to the OpenThread concepts from earlier sections:
+
+* `Mle-----------` is the **Mesh Link Establishment** control plane trying to discover or attach to routers.
+* `MeshForwarder-` shows that the radio path is actually transmitting Thread control traffic.
+* `Settings------` means OpenThread is reading or writing persisted network state from non-volatile storage.
+* `BorderAgent--- ... _meshcop._udp` means the commissioning-facing Border Agent service is being registered.
+
+One log line often confuses people:
+
+```text
+Settings------: Read NetworkInfo { ... role:leader, ... }
+```
+
+That line describes **persisted state**, not guaranteed current live state. A node can read back old information saying it was previously a leader and still report `detached` right now because the live attach procedure has not completed.
+
+Another family of lines worth understanding is:
+
+```text
+P-Daemon------: Session socket is ready
+P-Daemon------: Daemon read: Connection reset by peer
+```
+
+In a normal lab workflow, that often just means a client such as `ot-ctl` connected to the UNIX control socket and then exited. It is not automatically evidence of a radio problem.
+
+The engineering lesson is simple: a healthy OpenThread system is not diagnosed from one line. You read:
+
+* CLI state such as `disabled`, `detached`, or `leader`
+* address state such as `extaddr`, `rloc16`, and `ipaddr`
+* control-plane log lines such as `Mle-----------`
+* persistence lines such as `Settings------`
+
+Together, these tell you whether you are debugging:
+
+* a dead radio or transport link
+* a dataset / startup problem
+* a live-but-detached attach problem
+* or a fully formed partition
+
+This same reading method becomes especially important in the Jetson RCP path, where Linux, OTBR, Spinel, and the radio coprocessor each contribute part of the visible system state.
+
 ---
 
 ## 9. Security and Reliability

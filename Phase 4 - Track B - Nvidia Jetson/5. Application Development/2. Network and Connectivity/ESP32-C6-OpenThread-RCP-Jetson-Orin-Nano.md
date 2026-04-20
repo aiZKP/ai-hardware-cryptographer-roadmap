@@ -111,7 +111,7 @@ Although ESP-IDF says RCP can use **SPI or UART**, this guide uses the Jetson's 
 Why:
 
 - less risk of colliding with the SPI bus already used by ESP-Hosted
-- it gives you a stable Jetson device path: **`/dev/ttyTHS0`**
+- it gives you a stable Jetson device path on this validated setup: **`/dev/ttyTHS1`**
 - it reflects the real host/RCP wiring model instead of hiding it behind a USB-UART bridge
 
 You can still use the ESP board's USB connection for:
@@ -444,6 +444,152 @@ sudo ot-ctl netdata show
 
 At this point, the Jetson is no longer just “connected to an RCP.” It is actively running the OpenThread host stack.
 
+### How to read the real OTBR and `ot-ctl` output
+
+The most useful habit in this project is to read the host-side state in layers instead of looking for one magic success line.
+
+For this validated Jetson setup, the first important line is:
+
+```text
+Radio Co-processor version: openthread-esp32/... esp32c6
+```
+
+That line means the Linux host successfully talked to the ESP32-C6 over:
+
+* `spinel+hdlc+uart`
+* `/dev/ttyTHS1`
+* `460800` baud
+
+If that line is missing and `wpan0` never appears, the problem is still in the transport layer: wrong UART device, wrong baud, wrong wiring, bad RCP image, or an RCP reset.
+
+Once the link is healthy, the next useful snapshot is usually:
+
+```bash
+sudo ot-ctl extaddr
+sudo ot-ctl rloc16
+sudo ot-ctl ipaddr
+sudo ot-ctl state
+```
+
+For example, a real session may show:
+
+```text
+extaddr: fac5eb4acbada19e
+rloc16: a400
+ipaddr:
+  fd3f:d825:5faf:9782:0:ff:fe00:a400
+  fd3f:d825:5faf:9782:8b89:772a:39cd:737a
+  fe80::f8c5:eb4a:cbad:a19e
+state: detached
+```
+
+Read that output like this:
+
+* `extaddr` is the 64-bit IEEE 802.15.4 radio identity.
+* `rloc16` is the Thread mesh locator assigned inside the partition logic.
+* `fd...ff:fe00:a400` is the RLOC IPv6 address derived from the mesh-local prefix and `rloc16`.
+* `fd...8b89:...` is the Mesh-Local EID, a more stable mesh-local identity.
+* `fe80::...` is the normal IPv6 link-local address.
+
+This is the key nuance: **you can have valid Thread addresses and still be `detached`**. That means the dataset is present and the host/RCP stack is alive, but the node has not yet completed attachment to a partition.
+
+### What the common OTBR log lines mean
+
+These log lines are the most important ones to recognize:
+
+```text
+Mle-----------: Send Link Request (ff02::2)
+MeshForwarder-: Sent IPv6 UDP msg ... dst:[ff02::2]:19788
+Settings------: Read NetworkInfo {rloc:0xa400, extaddr:..., role:leader, ...}
+BorderAgent---: Registering service OpenThread BorderRouter #A19E _meshcop._udp
+```
+
+How to interpret them:
+
+* `Mle-----------` means the Thread control plane is actively trying to discover or attach.
+* `MeshForwarder-` proves the radio path is transmitting real Thread traffic.
+* `Settings------` shows persisted OpenThread state being read or written.
+* `BorderAgent--- ... _meshcop._udp` shows the commissioning-facing Border Agent service being registered by OTBR.
+
+One subtle line confuses many people:
+
+```text
+Settings------: Read NetworkInfo { ... role:leader, ... }
+```
+
+This does **not** prove the node is currently leader. It only means the stack read previously saved network state that remembered a leader role. The live role still comes from `sudo ot-ctl state`.
+
+### Why `detached` can still be a healthy intermediate state
+
+In a fresh lab setup, the expected state progression is:
+
+* `disabled`
+* `detached`
+* `leader` for a one-node partition, or `router` / `child` when joining an existing mesh
+
+So `detached` is not the same as "the UART is broken." In your actual logs, it appeared together with:
+
+* a real `Radio Co-processor version` line
+* `wpan0` creation
+* valid `extaddr`, `rloc16`, and `ipaddr` output
+* MLE attach attempts in the logs
+
+That combination means the host/RCP link is already working. The remaining work is in **Thread attachment and partition formation**, not low-level serial bring-up.
+
+### How to read the attach-attempt logs
+
+Lines like these:
+
+```text
+Attach attempt 8, AnyPartition
+Send Parent Request to routers
+Send Parent Request to routers and REEDs
+Attach attempt 8 unsuccessful, will try again in 32.128 seconds
+```
+
+mean the node is alive and behaving like a Thread node, but it has not yet completed the attach process. This is a protocol-state problem, not automatically a transport problem.
+
+If you instead see:
+
+```text
+Wait for response timeout
+no response from RCP during initialization
+```
+
+that points back to the host/RCP path and you should debug the UART, baud, RCP image, or board stability first.
+
+### Session-socket and restart messages
+
+Two more lines are easy to over-interpret:
+
+```text
+P-Daemon------: Session socket is ready
+P-Daemon------: Daemon read: Connection reset by peer
+```
+
+In normal use, those often just mean that `ot-ctl` connected to OTBR's control socket and then exited. They are not automatically a radio failure.
+
+Similarly, after restarting `otbr-agent`, it is normal to see:
+
+* `wpan0` exist but still be `state DOWN`
+* `sudo ot-ctl state` return `disabled`
+
+until you run:
+
+```bash
+sudo ot-ctl dataset init new
+sudo ot-ctl dataset commit active
+sudo ot-ctl ifconfig up
+sudo ot-ctl thread start
+```
+
+For this Jetson project, the known-good host-side baseline is:
+
+* RCP transport: `spinel+hdlc+uart`
+* serial device: `/dev/ttyTHS1`
+* baud: `460800`
+* OTBR backbone: `l4tbr0`
+
 ---
 
 ## 12. Optional lighter path: OT Daemon instead of OTBR
@@ -469,7 +615,7 @@ Run it against the real RCP:
 
 ```bash
 ./build/posix/src/posix/ot-daemon \
-  'spinel+hdlc+uart:///dev/ttyTHS0?uart-baudrate=460800'
+  'spinel+hdlc+uart:///dev/ttyTHS1?uart-baudrate=460800'
 ```
 
 In another terminal:
@@ -497,7 +643,7 @@ Usually means:
 - wrong serial device
 - wrong baud rate
 - RCP firmware is not actually `ot_rcp`
-- `nvgetty` is still owning `/dev/ttyTHS0`
+- `nvgetty` is still owning the user UART device
 
 Check:
 
@@ -520,7 +666,7 @@ Espressif's FAQ shows this family of symptom as:
 Wait for response timeout
 ```
 
-### `ttyTHS0` exists, but OTBR still cannot talk to the RCP
+### `/dev/ttyTHS1` exists, but OTBR still cannot talk to the RCP
 
 Usually means one of:
 
