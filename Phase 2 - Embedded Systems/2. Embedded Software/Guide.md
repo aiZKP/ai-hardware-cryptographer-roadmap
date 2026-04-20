@@ -239,6 +239,27 @@
 
 ---
 
+## 9. IoT Networking and OpenThread
+
+### Why This Belongs in Embedded Software
+
+Once a firmware engineer moves beyond a single board and a single peripheral, the next real problem is not just "read a sensor" but "keep a secure, low-power network alive for months." IoT protocols sit directly on top of your timers, UART/SPI links, radio drivers, storage, and power states, which is why they belong in the embedded-software track instead of being treated as a separate cloud topic.
+
+OpenThread is a strong first protocol here because it combines **embedded constraints** with **real networking structure**. You have to understand 802.15.4 radios, low-power timing, packet formats, IPv6, commissioning, host-controller links, and border routers as one coherent system.
+
+### OpenThread as the First IoT Protocol
+
+Thread is an IPv6-based, low-power mesh network built on IEEE 802.15.4. OpenThread is the open-source implementation that makes this concrete on real hardware, including SoC-style MCU designs and Linux-host-plus-radio-co-processor designs.
+
+This makes OpenThread especially relevant to the rest of the roadmap. The same concepts show up later when you build a Thread RCP on an ESP32-C6, attach it to a Jetson over UART, and let Linux run the higher-level OpenThread stack while the small radio chip handles 802.15.4.
+
+Start here:
+
+* [**IoT Networking and Device Connectivity**](IoT/Guide.md)
+* [**OpenThread**](IoT/OpenThread/Guide.md)
+
+---
+
 ## AI Hardware Connection
 
 | Topic | Connection to AI Hardware Engineering |
@@ -249,6 +270,7 @@
 | CAN / J1939 | Vehicle bus protocol — how openpilot reads and writes actuator commands on real cars |
 | Power management | Battery-powered edge AI devices: every µA counts when running inference at the edge |
 | OTA updates | Production edge AI deployment — pushing new model weights and firmware to deployed devices |
+| OpenThread / IoT networking | Connect low-power sensor nodes, gateways, and Linux hosts in real products instead of isolated lab setups |
 
 ---
 
@@ -258,6 +280,7 @@
 |---------|-----------|
 | CMSIS-NN keyword spotting on Cortex-M7 | ARM architecture, CMSIS-NN, TinyML deployment |
 | FreeRTOS producer-consumer sensor pipeline | Task design, queues, ISR-to-task hand-off |
+| OpenThread RCP + Linux host | IoT networking, UART/SPI host links, border-router architecture |
 | DMA circular buffer UART receiver | DMA, circular buffers, idle-line detection |
 | SPI IMU at maximum ODR | SPI DMA, interrupt-driven data-ready |
 | I2C multi-sensor hub | I2C bus management, multi-task polling |

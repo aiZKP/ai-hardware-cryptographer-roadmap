@@ -1,0 +1,36 @@
+# IoT Networking and Device Connectivity
+
+*Builds on [**Embedded Software**](../Guide.md) once you are comfortable with MCU buses, interrupts, and RTOS basics. This sub-layer shifts from board-local communication like SPI/UART/I2C/CAN to **networked embedded systems** that must join, secure, and maintain real deployments.*
+
+---
+
+## Why This Sub-Layer Exists
+
+Point-to-point buses teach you how one MCU talks to one peripheral. IoT protocols teach you how many devices form a network, recover from node loss, conserve power, and still present a clean IP-facing software model to gateways and cloud services.
+
+This matters because modern embedded products rarely stop at "sensor attached to MCU." A production device usually needs secure onboarding, field updates, a mesh or star network, and a way to bridge low-power radios to Linux hosts, mobile apps, or cloud APIs.
+
+---
+
+## What You Study Here
+
+### OpenThread
+
+OpenThread is the best first protocol in this sub-layer because it forces you to connect **real embedded constraints** with **real networking ideas**. You need to understand IEEE 802.15.4 radios, low-power scheduling, IPv6, packet compression, host/MCU splits, and border routers all at once.
+
+It also creates a direct bridge to later roadmap work:
+
+* **MCU / RTOS path:** run the Thread stack directly on an SoC and reason about tasks, timers, radio drivers, and power states.
+* **Linux / host path:** use a radio co-processor (RCP) over UART or SPI and let a Linux host run the higher Thread stack and border-router logic.
+
+Start here:
+
+* [**OpenThread**](OpenThread/Guide.md)
+
+---
+
+## Why IoT Protocols Matter for AI Hardware Engineers
+
+AI systems at the edge are rarely isolated. They live inside products with commissioning flows, low-power sensor networks, battery constraints, gateways, and secure remote management.
+
+If you can reason about Thread, RCP/NCP splits, border routers, and low-power IPv6 networking, you are much better prepared to build systems where MCUs, Linux hosts, accelerators, and cloud services all cooperate instead of existing as disconnected demos.
