@@ -80,6 +80,15 @@ That is incomplete.
 
 Zigbee is also a **device-behavior model**. It does not only help packets move. It helps devices describe themselves and agree on what actions and state values mean.
 
+![Zigbee architecture showing PHY, MAC, NWK, and application-layer pieces](../../../../../Assets/images/zigbee-architecture-overview.png)
+
+This architecture picture is helpful for two reasons:
+
+- it reminds you that **PHY** and **MAC** come from IEEE 802.15.4
+- it shows that Zigbee's application side is not one monolithic block, but includes pieces like **Zigbee Device Object** and **Application Support Sublayer**
+
+Source: [Electrical Technology ZigBee Architecture diagram](https://www.electricaltechnology.org/wp-content/uploads/2017/07/ZigBee-Architecture.png)
+
 ---
 
 ## A simple mental model

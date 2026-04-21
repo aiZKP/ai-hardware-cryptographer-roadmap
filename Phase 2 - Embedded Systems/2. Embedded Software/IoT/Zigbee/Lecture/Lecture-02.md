@@ -64,6 +64,16 @@ That means real deployments often look **hybrid**, not like one pure textbook di
 
 Official reference: [Silicon Labs Zigbee mesh networking](https://docs.silabs.com/zigbee/8.2.1/zigbee-fundamentals/02-zigbee-mesh-networking)
 
+![Simple Zigbee network with coordinator, routers, and end devices](../../../../../Assets/images/zigbee-emcu-stack.png)
+
+This picture is useful because it shows the role split visually:
+
+- one **Coordinator** at the center
+- several **Routers** extending the network
+- several leaf **Devices** hanging from routing infrastructure
+
+Source: [eMcU Home Automation Zigbee topology image](https://www.emcu-homeautomation.org/wp-content/uploads/2021/06/immagine-111.png)
+
 In practice:
 
 - a small deployment may behave almost like a star
