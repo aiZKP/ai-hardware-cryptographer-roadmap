@@ -431,6 +431,56 @@ Together, these tell you whether you are debugging:
 
 This same reading method becomes especially important in the Jetson RCP path, where Linux, OTBR, Spinel, and the radio coprocessor each contribute part of the visible system state.
 
+### Current validated Jetson RCP case: Thread succeeded, full OTBR did not
+
+One very useful real-world lesson from the Jetson plus ESP32-C6 RCP path is that **Thread success and full OTBR success are not the same milestone**.
+
+In the validated Jetson lab run for this roadmap, the sequence eventually became:
+
+```text
+Role detached -> leader
+Allocate router id 41
+Partition ID 0x1a1d09c0
+Route table ... me - leader
+```
+
+Those lines are extremely important. They mean:
+
+* the host talked successfully to the RCP over Spinel
+* MLE attach logic completed
+* the node formed its own partition
+* the node became **leader** of a one-node Thread network
+
+From the OpenThread protocol point of view, that is a real success. The control plane worked, leader election worked, the dataset was usable, and the node transitioned out of `detached` into an attached role.
+
+But immediately after that, the Linux-host side tried to bring up more advanced Border Router behavior and hit:
+
+```text
+InitMulticastRouterSock() ... Protocol not available
+```
+
+That failure is not a Thread-state failure. It is a **Linux kernel capability failure**. In this case, the Jetson kernel did not have multicast-routing support enabled:
+
+```text
+# CONFIG_IP_MROUTE is not set
+# CONFIG_IPV6_MROUTE is not set
+```
+
+This distinction matters a lot for learners:
+
+* OpenThread itself was functioning.
+* The ESP32-C6 RCP path was functioning.
+* Leader formation and partition creation were functioning.
+* Full OTBR border-routing features were blocked by host-kernel configuration.
+
+That is exactly why host-plus-RCP debugging must be read in layers. A system can be:
+
+* healthy as a Thread node
+* healthy as an RCP host link
+* but still blocked as a full Border Router product
+
+Practically, this means a Linux host may still be perfectly usable with **`ot-daemon`** or for protocol learning even when full OTBR border-routing features are unavailable on the current kernel image. The network stack and the border-router product stack overlap, but they are not identical.
+
 ---
 
 ## 9. Security and Reliability

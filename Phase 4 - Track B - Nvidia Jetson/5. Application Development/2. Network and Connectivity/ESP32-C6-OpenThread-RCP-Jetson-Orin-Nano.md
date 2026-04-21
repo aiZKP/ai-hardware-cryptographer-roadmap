@@ -590,6 +590,56 @@ For this Jetson project, the known-good host-side baseline is:
 * baud: `460800`
 * OTBR backbone: `l4tbr0`
 
+### Current validated status on this Jetson image
+
+At this point, the current validated status of the project is:
+
+* the ESP32-C6 **`ot_rcp`** image is working
+* Jetson can talk to the RCP over **Spinel + UART**
+* the validated host path is:
+  * `/dev/ttyTHS1`
+  * `460800`
+  * `l4tbr0`
+* OTBR creates `wpan0`
+* `ot-ctl` can manage the Thread dataset and interface
+* the node can progress from `disabled` to `detached`
+* in a foreground OTBR run, the node eventually becomes **`leader`**
+
+The most important leader-formation lines from the real run were:
+
+```text
+Allocate router id 41
+RLOC16 fffe -> a400
+Role detached -> leader
+Partition ID 0x1a1d09c0
+Route table ... me - leader
+```
+
+Those lines prove that the Thread stack itself is functioning correctly on this hardware split. In other words, the RCP link, dataset handling, MLE attach logic, and one-node partition formation all work on the current system.
+
+However, the same foreground run later hit:
+
+```text
+InitMulticastRouterSock() at multicast_routing.cpp:227: Protocol not available
+```
+
+That is the key current limitation. It means OTBR was able to bring up the Thread node and even reach `leader`, but then failed while enabling Linux-side border-routing / multicast-routing features.
+
+The kernel check confirmed the reason:
+
+```text
+# CONFIG_IP_MROUTE is not set
+# CONFIG_IPV6_MROUTE is not set
+```
+
+So the correct current conclusion is:
+
+* **Thread-over-RCP on Jetson is working**
+* **full OTBR border-router functionality is blocked on this Jetson image**
+* the blocker is **missing kernel multicast-routing support**, not UART, not Spinel, and not the ESP32-C6 RCP firmware
+
+This is exactly the kind of mixed-software boundary problem that this project is meant to teach: a system can be successful as a Thread node and still be incomplete as a full border-router product because the Linux kernel is missing one feature OTBR expects.
+
 ---
 
 ## 12. Optional lighter path: OT Daemon instead of OTBR
@@ -629,6 +679,13 @@ Use this path if:
 - you want to validate host/RCP behavior first
 - you do not yet need a full Thread Border Router
 - you want a smaller debugging surface than OTBR
+
+On your current Jetson image, this path is especially useful because the kernel currently lacks:
+
+* `CONFIG_IP_MROUTE`
+* `CONFIG_IPV6_MROUTE`
+
+That means `ot-daemon` is the cleaner current host path for Thread/RCP work while you defer a JetPack or kernel rebuild for full OTBR border-routing support.
 
 If you choose the USB-serial path instead of Jetson header UART, substitute the real USB device path.
 
@@ -693,7 +750,39 @@ Do not flash `ot_rcp` onto the board currently providing `wlan0`.
 
 ### OTBR installs correctly but routing does not work
 
-Make sure the backbone interface is right:
+If OTBR can talk to the RCP, forms `wpan0`, and even reaches `leader`, but then exits with a message like:
+
+```text
+InitMulticastRouterSock() ... Protocol not available
+```
+
+the problem is no longer the ESP32-C6 or the UART link. It is usually a host-kernel limitation.
+
+On the validated Jetson run for this project, the exact cause was:
+
+```text
+# CONFIG_IP_MROUTE is not set
+# CONFIG_IPV6_MROUTE is not set
+```
+
+Check on the Jetson with:
+
+```bash
+zcat /proc/config.gz | grep -E 'CONFIG_IPV6_MROUTE|CONFIG_IP_MROUTE'
+```
+
+or, if `/proc/config.gz` is unavailable:
+
+```bash
+grep -E 'CONFIG_IPV6_MROUTE|CONFIG_IP_MROUTE' /boot/config-$(uname -r)
+```
+
+If those options are missing, the practical choices are:
+
+* use **`ot-daemon`** for current Thread/RCP work
+* rebuild or replace the kernel / JetPack image later with multicast-routing support enabled
+
+Also make sure the backbone interface is right:
 
 - `wlan0` if Jetson reaches the network through ESP-Hosted
 - `eth0` only if you intentionally use Ethernet as the Thread BR backbone
@@ -702,6 +791,8 @@ Make sure the backbone interface is right:
 
 ## 14. Good next steps after first bring-up
 
+- keep this current image for RCP and Thread learning, using `ot-daemon` when you do not need full OTBR border routing
+- rebuild JetPack or the Jetson kernel later with `CONFIG_IP_MROUTE` and `CONFIG_IPV6_MROUTE` enabled
 - add a second Thread device and have it join the network
 - validate `ipaddr`, `ping`, and service discovery over Thread
 - keep the RCP on UART first, then evaluate SPI later only if needed
