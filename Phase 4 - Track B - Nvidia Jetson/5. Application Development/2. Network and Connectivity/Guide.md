@@ -56,6 +56,8 @@ If you want a more embedded integration path, you can also attach an **ESP32-C6*
 
 If you also want **Thread / 802.15.4** on the same Jetson, the cleaner architecture is to keep that first ESP32-C6 for Wi-Fi/BLE and add a **second ESP32-C6** as an **OpenThread RCP**. See [ESP32-C6 OpenThread RCP on Jetson Orin Nano](ESP32-C6-OpenThread-RCP-Jetson-Orin-Nano.md).
 
+If your current Jetson image is missing the kernel support needed for full OTBR routing, a second ESP32-C6 can also be used as a **Zigbee coprocessor** instead. That path stays in the same 802.15.4 family but shifts from OTBR's IPv6 border-router model to a host-controlled Zigbee coprocessor model. See [ESP32-C6 Zigbee NCP on Jetson Orin Nano](ESP32-C6-Zigbee-NCP-Jetson-Orin-Nano.md).
+
 ### Connect with NetworkManager
 
 ```bash
@@ -302,6 +304,7 @@ app.run(host='0.0.0.0', port=8080)
 
 - **Headless Wi-Fi setup:** Build a provisioning flow where the Jetson starts as a Wi-Fi AP, serves a web page for entering Wi-Fi credentials, then switches to client mode.
 - **[ESP32-C6 ESP-Hosted over SPI on Jetson Orin Nano](ESP32-C6-ESP-Hosted-SPI-Jetson-Orin-Nano.md):** Bring up an external Wi-Fi coprocessor on SPI1 with handshake, data-ready, and reset GPIOs.
+- **[ESP32-C6 Zigbee NCP on Jetson Orin Nano](ESP32-C6-Zigbee-NCP-Jetson-Orin-Nano.md):** Use a second ESP32-C6 as a Zigbee coprocessor and treat Jetson as the higher-level Zigbee host or gateway controller.
 - **BLE sensor gateway:** Read BLE sensor data (temperature, humidity) and publish to MQTT over Ethernet.
 - **VPN fleet:** Set up WireGuard between 3 Jetson devices and a cloud server. Verify SSH access to all devices from the server.
 - **Device management API:** Build a Flask REST API that exposes device status (temperature, disk, uptime, firmware version) and accepts OTA trigger commands.

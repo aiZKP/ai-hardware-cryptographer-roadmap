@@ -300,6 +300,7 @@ nav:
           - Guide: Phase 4 - Track B - Nvidia Jetson/5. Application Development/2. Network and Connectivity/Guide.md
           - ESP32-C6 ESP-Hosted over SPI: Phase 4 - Track B - Nvidia Jetson/5. Application Development/2. Network and Connectivity/ESP32-C6-ESP-Hosted-SPI-Jetson-Orin-Nano.md
           - ESP32-C6 OpenThread RCP: Phase 4 - Track B - Nvidia Jetson/5. Application Development/2. Network and Connectivity/ESP32-C6-OpenThread-RCP-Jetson-Orin-Nano.md
+          - ESP32-C6 Zigbee NCP: Phase 4 - Track B - Nvidia Jetson/5. Application Development/2. Network and Connectivity/ESP32-C6-Zigbee-NCP-Jetson-Orin-Nano.md
         - GUI: Phase 4 - Track B - Nvidia Jetson/5. Application Development/3. GUI/Guide.md
         - Multimedia: Phase 4 - Track B - Nvidia Jetson/5. Application Development/4. Multimedia/Guide.md
         - ML & AI:
