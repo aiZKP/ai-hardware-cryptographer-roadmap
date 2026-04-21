@@ -74,7 +74,35 @@ That small block captures most of the Jetson-specific policy:
 
 ---
 
-## 2. Why `resetpin=-1` is a serious engineering choice
+## 2. Map the Jetson header before you trust the GPIO numbers
+
+The ESP-Hosted helper uses Linux GPIO numbers like `471` and `433`, but those are **not** the same thing as the Jetson's physical 40-pin header labels.
+
+Use this NVIDIA carrier-board pin reference first:
+
+![Jetson Orin Nano 40-pin header pinout](../../../../Assets/images/jetson-orin-nano-40-pin-header.png)
+
+Source: [NVIDIA Jetson Orin Nano carrier-board pin header diagram](https://developer.download.nvidia.com/embedded/images/jetsonOrinNano/user_guide/images/jonano_cbspec_figure_3-1_white-bg.png#only-light)
+
+For ESP-Hosted over SPI, the header pins you care about most are:
+
+- SPI1 MOSI: pin `19`
+- SPI1 MISO: pin `21`
+- SPI1 SCK: pin `23`
+- SPI1 CS0: pin `24`
+- SPI1 CS1: pin `26`
+- Ground: pins `6`, `9`, `14`, `20`, `25`, `30`, `34`, `39`
+
+This picture is useful because it keeps two different numbering systems separate:
+
+- **header pin numbers** like `19` and `24`, which are physical connector locations
+- **Linux GPIO numbers** like `471` and `433`, which are kernel-visible IDs used by the driver helper
+
+That distinction matters in real bring-up. You wire by **header pin**, but you debug the helper script and module parameters with **Linux GPIO numbers**.
+
+---
+
+## 3. Why `resetpin=-1` is a serious engineering choice
 
 The validated Jetson flow intentionally used:
 
@@ -97,7 +125,7 @@ You can still design a later automation path, but stable bring-up comes first.
 
 ---
 
-## 3. Understand the module build path
+## 4. Understand the module build path
 
 Read:
 
@@ -158,7 +186,7 @@ That tells you:
 
 ---
 
-## 4. Why the script unbinds `spidev`
+## 5. Why the script unbinds `spidev`
 
 In the Jetson path, the helper script can unbind:
 
@@ -191,7 +219,7 @@ This is a nice Embedded Linux lesson because the shell script is not “doing dr
 
 ---
 
-## 5. Module parameters: board-specific without recompiling
+## 6. Module parameters: board-specific without recompiling
 
 Read:
 
@@ -218,7 +246,7 @@ That is exactly how Embedded Linux code should evolve when it leaves a single-bo
 
 ---
 
-## 6. The real meaning of the validated load command
+## 7. The real meaning of the validated load command
 
 The working Jetson load path was logically equivalent to:
 
