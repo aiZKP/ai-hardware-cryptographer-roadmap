@@ -4,6 +4,18 @@
       <stop stop-color="#0B1220"/>
       <stop offset="1" stop-color="#13203B"/>
     </linearGradient>
+    <radialGradient id="journeyGlowA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(936 258) rotate(90) scale(228 258)">
+      <stop stop-color="#214EBC" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#214EBC" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="journeyGlowB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1002 208) rotate(90) scale(148 148)">
+      <stop stop-color="#14B8A6" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#14B8A6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="journeyGlowC" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(860 396) rotate(90) scale(138 138)">
+      <stop stop-color="#F59E0B" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#F59E0B" stop-opacity="0"/>
+    </radialGradient>
     <linearGradient id="phaseA" x1="0" y1="0" x2="1" y2="1">
       <stop stop-color="#375DFB"/>
       <stop offset="1" stop-color="#1FB6FF"/>
@@ -46,46 +58,57 @@
   <rect x="358" y="452" width="182" height="42" rx="21" fill="#3B2720"/>
   <text x="449" y="478" text-anchor="middle" fill="#FFE4C4" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">role-shaped tracks</text>
 
-  <rect x="604" y="86" width="520" height="456" rx="28" fill="#0D172B" stroke="#2A406A"/>
-  <text x="640" y="132" fill="#8FB3FF" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.08em">THE CHIP STACK</text>
+  <g>
+    <circle cx="936" cy="258" r="228" fill="url(#journeyGlowA)"/>
+    <circle cx="1002" cy="208" r="148" fill="url(#journeyGlowB)"/>
+    <circle cx="860" cy="396" r="138" fill="url(#journeyGlowC)"/>
 
-  <rect x="640" y="164" width="448" height="38" rx="13" fill="#2E90FA"/>
-  <text x="660" y="188" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800">L1  AI APPS AND FRAMEWORKS</text>
-  <text x="1070" y="188" text-anchor="end" fill="#EAF2FF" font-family="Inter, Arial, sans-serif" font-size="13.5">PyTorch, TensorRT</text>
+    <text x="642" y="132" fill="#8FB3FF" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.08em">THE LEARNING JOURNEY</text>
+    <path d="M738 208C812 156 905 154 984 198C1048 233 1058 299 1022 350C983 406 909 432 842 432C787 432 747 416 718 388" stroke="#3E69C8" stroke-opacity="0.34" stroke-width="18" stroke-linecap="round"/>
+    <path d="M738 208C812 156 905 154 984 198C1048 233 1058 299 1022 350C983 406 909 432 842 432C787 432 747 416 718 388" stroke="#9BC3FF" stroke-opacity="0.9" stroke-width="4" stroke-linecap="round"/>
 
-  <rect x="640" y="208" width="448" height="38" rx="13" fill="#3B82F6"/>
-  <text x="660" y="232" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800">L2  ML COMPILER</text>
-  <text x="1070" y="232" text-anchor="end" fill="#EAF2FF" font-family="Inter, Arial, sans-serif" font-size="13.5">MLIR, TVM, LLVM</text>
+    <circle cx="742" cy="206" r="10" fill="#EAF2FF"/>
+    <circle cx="842" cy="168" r="10" fill="#EAF2FF"/>
+    <circle cx="968" cy="206" r="10" fill="#EAF2FF"/>
+    <circle cx="993" cy="334" r="10" fill="#EAF2FF"/>
+    <circle cx="840" cy="432" r="10" fill="#EAF2FF"/>
 
-  <rect x="640" y="252" width="448" height="38" rx="13" fill="#2563EB"/>
-  <text x="660" y="276" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800">L3  RUNTIME AND DRIVER</text>
-  <text x="1070" y="276" text-anchor="end" fill="#EAF2FF" font-family="Inter, Arial, sans-serif" font-size="13.5">CUDA runtime, kernel APIs</text>
+    <g>
+      <rect x="760" y="183" width="132" height="34" rx="17" fill="#15284D" stroke="#446AA9"/>
+      <text x="826" y="205" text-anchor="middle" fill="#EAF2FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Foundations</text>
+    </g>
 
-  <rect x="640" y="296" width="448" height="38" rx="13" fill="#16A34A"/>
-  <text x="660" y="320" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800">L4  FIRMWARE AND OS</text>
-  <text x="1070" y="320" text-anchor="end" fill="#EAF2FF" font-family="Inter, Arial, sans-serif" font-size="13.5">RTOS, BSP, boot flow</text>
+    <g>
+      <rect x="860" y="145" width="126" height="34" rx="17" fill="#143046" stroke="#2A857B"/>
+      <text x="923" y="167" text-anchor="middle" fill="#DFFAF7" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Embedded</text>
+    </g>
 
-  <rect x="640" y="340" width="448" height="38" rx="13" fill="#059669"/>
-  <text x="660" y="364" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800">L5  HARDWARE ARCHITECTURE</text>
-  <text x="1070" y="364" text-anchor="end" fill="#EAF2FF" font-family="Inter, Arial, sans-serif" font-size="13.5">dataflow, memory</text>
+    <g>
+      <rect x="988" y="182" width="134" height="34" rx="17" fill="#1E293B" stroke="#3F7CD8"/>
+      <text x="1055" y="204" text-anchor="middle" fill="#F1F7FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">AI Workloads</text>
+    </g>
 
-  <rect x="640" y="384" width="448" height="38" rx="13" fill="#CA8A04"/>
-  <text x="660" y="408" fill="#111827" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800">L6  RTL AND LOGIC DESIGN</text>
-  <text x="1070" y="408" text-anchor="end" fill="#1F2937" font-family="Inter, Arial, sans-serif" font-size="13.5">Verilog, FPGA, verification</text>
+    <g>
+      <rect x="1002" y="310" width="108" height="34" rx="17" fill="#3B2720" stroke="#E27B3B"/>
+      <text x="1056" y="332" text-anchor="middle" fill="#FFF0E4" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Deploy</text>
+    </g>
 
-  <rect x="640" y="428" width="448" height="38" rx="13" fill="#F97316"/>
-  <text x="660" y="452" fill="#FFF7ED" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800">L7  PHYSICAL IMPLEMENTATION</text>
-  <text x="1070" y="452" text-anchor="end" fill="#FFF1E8" font-family="Inter, Arial, sans-serif" font-size="13.5">place and route</text>
+    <g>
+      <rect x="858" y="409" width="130" height="34" rx="17" fill="#111827" stroke="#52637F"/>
+      <text x="923" y="431" text-anchor="middle" fill="#E8EEF9" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Specialize</text>
+    </g>
 
-  <rect x="640" y="472" width="448" height="38" rx="13" fill="#EF4444"/>
-  <text x="660" y="496" fill="#FFF5F5" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800">L8  FAB AND PACKAGING</text>
-  <text x="1070" y="496" text-anchor="end" fill="#FFF1F2" font-family="Inter, Arial, sans-serif" font-size="13.5">foundry, package, yield</text>
-
-  <rect x="664" y="518" width="186" height="28" rx="14" fill="#12213C" stroke="#28436F"/>
-  <text x="757" y="537" text-anchor="middle" fill="#CFE0FF" font-family="Inter, Arial, sans-serif" font-size="12.5" font-weight="700">L1-L6 HANDS-ON</text>
-
-  <rect x="862" y="518" width="202" height="28" rx="14" fill="#181E2C" stroke="#3E4A66"/>
-  <text x="963" y="537" text-anchor="middle" fill="#D5DCEE" font-family="Inter, Arial, sans-serif" font-size="12.5" font-weight="700">L7-L8 GUIDED LABS</text>
+    <g opacity="0.85">
+      <circle cx="740" cy="285" r="3" fill="#8FB3FF"/>
+      <circle cx="782" cy="312" r="3" fill="#2DD4BF"/>
+      <circle cx="1082" cy="258" r="3" fill="#8FB3FF"/>
+      <circle cx="940" cy="470" r="3" fill="#F59E0B"/>
+      <circle cx="1034" cy="396" r="3" fill="#E5ECF9"/>
+      <path d="M760 280H832" stroke="#35507D" stroke-opacity="0.65" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M1012 258H1076" stroke="#35507D" stroke-opacity="0.65" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M958 468H1038" stroke="#35507D" stroke-opacity="0.65" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+  </g>
 
   <rect x="76" y="582" width="186" height="80" rx="20" fill="url(#phaseA)"/>
   <text x="169" y="615" text-anchor="middle" fill="#F8FBFF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="0.06em">PHASE 1</text>
