@@ -6,455 +6,463 @@
 
 ---
 
-## Why this lecture matters
+## Why this lecture feels hard
 
-This is the lecture where Zigbee usually starts to feel confusing.
+This is the lecture where Zigbee often stops feeling simple.
 
-Many people understand:
+Up to now, the story is easy:
 
-- Zigbee uses IEEE 802.15.4
-- devices can join a mesh
-- there are Coordinators, Routers, and End Devices
+- devices join a network
+- some devices route
+- some devices sleep
 
-But then they hit terms like:
+Then Zigbee starts throwing around words like:
 
-- **ZDO**
-- **APS**
-- **endpoint**
-- **cluster**
-- **ZCL**
+- `NWK`
+- `APS`
+- `ZDO`
+- `ZCL`
+- endpoint
+- cluster
 
-and the stack suddenly feels abstract.
+and everything starts to sound like spec language.
 
-The fix is to stop reading those as isolated acronyms and instead follow one simple story.
+So this lecture uses one simple analogy all the way through.
 
 Official reference: [Silicon Labs The Zigbee Stack](https://docs.silabs.com/zigbee/8.2.1/zigbee-fundamentals/05-the-zigbee-stack)
 
 ---
 
-## Start with one story
+## Imagine a huge house party
 
-Imagine a small apartment with three Zigbee devices:
+Imagine you are throwing a huge house party.
 
-- a **hub** that formed the Zigbee network
-- a **wall switch**
-- a **smart bulb**
+Your house is full.
 
-Now imagine the user presses the wall switch and the bulb turns on.
+Your friends are spread across:
 
-That tiny event is enough to explain most of Zigbee's upper layers.
+- your house
+- the yard
+- the garage
+- your neighbor's house
 
-To make that event work, the system has to answer three different questions:
+Some people help pass messages around.
+Some people just show up, listen, and leave.
+Some people are in charge of the whole event.
 
-1. **Who is that device?**
-2. **Where inside that device should the message go?**
+That is a good mental model for Zigbee.
+
+Now imagine you want one thing to happen:
+
+- you press the wall switch
+- the smart bulb turns on
+
+To make that happen, the system has to answer four questions:
+
+1. **How do we get the message there?**
+2. **Who exactly should receive it?**
 3. **What does the message mean?**
+4. **Who is in charge, and who is who?**
 
-Those three questions map almost perfectly to:
+Those four questions map to:
 
-- **ZDO** = who is that device?
-- **APS** = where inside that device should the message go?
-- **ZCL** = what does the message mean?
+- `NWK` = how do we get there?
+- `APS` = who exactly should receive it?
+- `ZCL` = what does the message mean?
+- `ZDO` = who are you, and what are the rules?
 
-If you remember only one thing from this lecture, remember that mapping.
+If you remember only that mapping, the rest of Zigbee becomes much easier to read.
 
 ---
 
-## The stack in plain language
+## The stack in one picture
 
 At a high level:
 
 - **PHY / MAC** come from IEEE 802.15.4
-- **NWK** handles Zigbee network formation and routing
-- **APS** carries application messages to the correct destination endpoint
-- **ZDO** handles discovery, identity, descriptors, and management
-- **ZCL** defines standard device behavior through clusters
-
-The most common beginner mistake is treating Zigbee as only:
-
-- radio
-- routing
-- packets
-
-That is incomplete.
-
-Zigbee is also a **device-behavior model**. It does not only help packets move. It helps devices describe themselves and agree on what actions and state values mean.
+- **NWK** handles network behavior and routing
+- **APS** handles application-oriented delivery
+- **ZDO** handles device identity, discovery, and management
+- **ZCL** defines common application behavior
 
 ![Zigbee architecture showing PHY, MAC, NWK, and application-layer pieces](../../../../../Assets/images/zigbee-architecture-overview.png)
 
-This architecture picture is helpful for two reasons:
+This picture is useful because it shows two important facts:
 
-- it reminds you that **PHY** and **MAC** come from IEEE 802.15.4
-- it shows that Zigbee's application side is not one monolithic block, but includes pieces like **Zigbee Device Object** and **Application Support Sublayer**
+- `PHY` and `MAC` are the radio foundation from IEEE 802.15.4
+- Zigbee adds higher-level pieces that make devices understandable, not just reachable
 
 Source: [Electrical Technology ZigBee Architecture diagram](https://www.electricaltechnology.org/wp-content/uploads/2017/07/ZigBee-Architecture.png)
 
 ---
 
-## A simple mental model
+## Meet the Zigbee party crew
 
-Think of Zigbee as a small city:
+### 1. `NWK` - the neighborhood map and hall monitors
 
-- **NWK** is the road system
-- **APS** is the postal service
-- **ZDO** is city hall
-- **ZCL** is the shared rulebook and language
+`NWK` means **Network Layer**.
 
-That gives you a simple way to read logs and examples:
+At the party, this is:
 
-- if the problem is routing through the mesh, think **NWK**
-- if the problem is identity or discovery, think **ZDO**
-- if the problem is message delivery to the right application target, think **APS**
-- if the problem is command meaning or device behavior, think **ZCL**
+- the people who know the map
+- the people who know which houses connect to which
+- the people who pass notes through the best route
 
----
+Their job is:
 
-## ZDO: "Who are you?"
+- know which device is reachable through which router
+- forward the message hop by hop
+- recover if one route stops working
 
-The **Zigbee Device Object (ZDO)** is the management side of a Zigbee node.
+So if a message has to travel like this:
 
-ZDO is responsible for questions like:
+- Switch -> Router A -> Router B -> Bulb
 
-- are you a **Coordinator**, **Router**, or **End Device**?
-- what is your network address?
-- what endpoints do you expose?
-- what kind of device do you claim to be?
-- what descriptors should other nodes read so they know how to interact with you?
+that is `NWK` doing its job.
 
-So ZDO is not about:
+Simple version:
 
-- turning on a lamp
-- dimming a bulb
-- reading temperature
-
-ZDO is about:
-
-- identity
-- discovery
-- descriptors
-- device and network management
-
-In the apartment story:
-
-- the switch first needs to know the bulb exists
-- it needs to learn what kind of device the bulb is
-- it needs to learn what endpoints and supported functions the bulb exposes
-
-That is ZDO territory.
-
-Another simple rule:
-
-- if the message is asking **who are you and what do you support?**, it is usually close to **ZDO**
-- if the message is asking **do this device action**, it is usually **ZCL** carried over **APS**
+- `NWK` answers: **how do we get there?**
 
 ---
 
-## Endpoints: "Which part of the device?"
+### 2. `APS` - the mailroom and the address book
 
-An **endpoint** is a logical application instance inside one physical Zigbee node.
+`APS` means **Application Support Sublayer**.
 
-This is an important concept because one physical product can do more than one job.
+At the party, this is:
 
-For example, one device might expose:
+- the mailroom staff
+- the people holding the address book
+- the people who make sure the note goes to the right person in the right room
 
-- endpoint `1` for a light function
-- endpoint `2` for a temperature sensor
+This matters because reaching the right house is not enough.
 
-So:
+You also need to reach:
 
-- the **node** is the physical box
-- the **endpoint** is the logical application inside that box
+- the right device
+- the right function inside that device
 
-This is why Zigbee feels more structured than a generic radio link. It does not just send data to a device. It often sends data to a specific application instance on that device.
+That is why `APS` works closely with:
 
-In the apartment story:
+- endpoints
+- binding
+- delivery behavior
 
-- the bulb is one physical node
-- the "light control" function may live on endpoint `1`
+Simple version:
 
-If the switch sends the message to the wrong endpoint, the bulb may receive the packet but still not do the intended thing.
-
----
-
-## APS: "Deliver this to the right place"
-
-The **Application Support Sublayer (APS)** sits above networking and below the application behavior defined by clusters.
-
-APS is the part that makes this sentence meaningful:
-
-- send this application message to **that node**, to **that endpoint**, and do it with the expected delivery behavior
-
-Its job includes:
-
-- application-oriented delivery
-- endpoint-aware addressing
-- acknowledgments and reliable delivery behavior
-- supporting **binding**
-
-If NWK gets the message to the right house, APS gets it to the right room in that house.
-
-That is why APS matters so much.
-
-Without APS, your mental model becomes too vague:
-
-- "the network delivered the message"
-
-But Zigbee needs a stricter statement:
-
-- "the message reached the right application endpoint"
-
-In the apartment story:
-
-- NWK gets the packet to the smart bulb node
-- APS makes sure the packet is handed to the bulb's light-control endpoint
-
-That is a more precise and much more useful way to think.
+- `APS` answers: **who exactly should receive this?**
 
 ---
 
-## ZCL: "What does this command mean?"
+### 3. `ZCL` - the shared party slang
 
-The **Zigbee Cluster Library (ZCL)** is the shared device language of Zigbee.
+`ZCL` means **Zigbee Cluster Library**.
 
-Without ZCL, two Zigbee devices could both be on the network and still not understand each other at the application level.
+At the party, this is:
 
-ZCL solves that by defining standard **clusters** such as:
+- the shared slang everybody understands
 
-- **On/Off**
-- **Level Control**
-- **Temperature Measurement**
-- **Identify**
+You do not want every brand of bulb and switch speaking a different private language.
 
-This is what makes interoperability possible at the behavior level.
+You want a common language like:
 
-A switch from one vendor can control a bulb from another vendor because both sides understand the same standard cluster behavior.
+- `On`
+- `Off`
+- `Toggle`
+- `Move to Level`
 
-So ZCL is not the radio and not the routing.
+That is what `ZCL` gives you.
 
-ZCL is the answer to:
+It defines common behavior so different vendors can still cooperate.
 
-- what does `On` mean?
-- what does a brightness level mean?
-- where is the temperature value stored?
+Simple version:
+
+- `ZCL` answers: **what does this message mean?**
 
 ---
 
-## Clusters: reusable feature blocks
+### 4. `ZDO` - the host and the principal
 
-A **cluster** is a structured group of related capabilities.
+`ZDO` means **Zigbee Device Object**.
+
+At the party, this is:
+
+- the host
+- the principal
+- the person checking the guest list
+- the person introducing people
+- the person deciding who plays which role
+
+`ZDO` handles questions like:
+
+- who are you?
+- are you a Coordinator, Router, or End Device?
+- what endpoints do you have?
+- what kind of device are you?
+- what can you do?
+
+This is management and discovery, not normal user commands.
+
+Simple version:
+
+- `ZDO` answers: **who are you, and what are the rules?**
+
+---
+
+## The most important support words
+
+Before the full story, you need three more terms.
+
+### Node
+
+A **node** is the physical device.
 
 Examples:
 
-- **On/Off cluster** for turning a device on or off
-- **Level Control cluster** for dimming
-- **Temperature Measurement cluster** for sensor readings
+- one bulb
+- one wall switch
+- one sensor
 
-Clusters are the building blocks of Zigbee device behavior.
+### Endpoint
 
-This is why Zigbee engineers often think in terms of:
+An **endpoint** is a logical application instance inside the device.
 
-- endpoints
-- clusters
-- attributes
-- commands
+One physical node can expose:
 
-rather than only:
+- one endpoint for lighting
+- another endpoint for sensing
 
-- sockets
-- packets
-- addresses
+So:
+
+- node = the whole person at the party
+- endpoint = the specific role that person is playing
+
+### Cluster
+
+A **cluster** is a reusable feature block.
+
+Examples:
+
+- `On/Off`
+- `Level Control`
+- `Temperature Measurement`
+
+So:
+
+- endpoint = which application instance
+- cluster = which feature
 
 ---
 
 ## Attributes and commands
 
-Clusters usually contain two important kinds of things:
+Inside a cluster, you usually care about two things:
 
 - **attributes** = state values
 - **commands** = actions
 
 Examples:
 
-- in an **On/Off** cluster, a command might be `On`, `Off`, or `Toggle`
-- in a **Temperature Measurement** cluster, an attribute might be the measured temperature value
+- an `On/Off` cluster may support commands like `On`, `Off`, and `Toggle`
+- a temperature cluster may expose an attribute like `Measured Value`
 
-This gives you Zigbee's everyday application model:
+This is the daily Zigbee model:
 
 - read an attribute
 - write an attribute
 - send a command
 
-That is a much better working model than simply saying:
+That is more useful than thinking only:
 
-- send some Zigbee packet
-
-If Thread trains you to think:
-
-- IPv6
-- transport
-- sockets
-
-Zigbee trains you to think:
-
-- endpoint
-- cluster
-- attribute
-- command
+- send packet
+- receive packet
 
 ---
 
-## The full picture in one table
+## The full party flow
 
-When you read a Zigbee interaction, ask these questions:
+Now let us walk through one simple event:
 
-| Question | Main Zigbee concept |
-|---|---|
-| Who is this device? What does it expose? | `ZDO` |
-| Which application instance should receive the message? | `APS` + endpoint |
-| What function is being used? | `ZCL` cluster |
-| Is this state data or an action? | attribute or command |
+- you press a Zigbee wall switch
+- a Zigbee bulb turns on
 
-That table is a good cheat sheet for the whole lecture.
+### Step 1: the devices are already at the party
 
----
+The network already exists.
 
-## Full story walkthrough: switch turns on the light
+The Coordinator formed it earlier.
 
-Now go back to the apartment story and read the whole flow slowly.
+The switch joined.
 
-### Step 1: devices join the network
+The bulb joined.
 
-The hub forms the Zigbee network.
+So now everyone is "in the party."
 
-The switch and bulb join it.
+### Step 2: `ZDO` helps everyone understand who is who
 
-At this stage, the network exists, but meaningful device interaction is not fully understood yet.
+Before useful control happens, devices need identity and discovery information.
 
-### Step 2: the devices are discovered
+The system needs to learn things like:
 
-Other devices need to learn:
+- this is the bulb
+- this is the switch
+- the bulb exposes a lighting endpoint
+- the bulb supports the `On/Off` cluster
 
-- the bulb exists
-- the bulb has certain endpoints
-- the bulb supports certain clusters
+This is `ZDO` territory.
 
-This is where **ZDO** matters.
+It is not saying:
 
-The question here is not:
+- turn on the light
 
-- turn on the lamp
+It is saying:
 
-The question is:
+- who are you and what do you support?
 
-- what kind of device is this and how should I talk to it?
+### Step 3: the target endpoint is known
 
-### Step 3: the useful endpoint is identified
+Suppose the bulb exposes:
 
-Suppose the bulb exposes endpoint `1` for light control.
+- endpoint `1` for lighting
 
-Now the system knows not just:
+Now the system knows not only:
 
-- who the bulb is
+- which node is the bulb
 
 but also:
 
-- where the light-control application lives on that bulb
+- which application instance inside the bulb should receive the lighting message
 
-### Step 4: the useful cluster is known
+### Step 4: the correct cluster is known
 
-The bulb supports the **On/Off** cluster on endpoint `1`.
+The bulb's endpoint `1` supports:
+
+- `On/Off`
 
 Now the system knows:
 
-- which endpoint to target
-- which cluster defines the feature
+- the right node
+- the right endpoint
+- the right cluster
 
-### Step 5: the switch creates an application command
+### Step 5: the switch creates a `ZCL` command
 
 The user presses the switch.
 
-The switch creates a **ZCL On command**.
+The switch creates the standard application command:
 
-This is the application meaning of the event.
+- `On`
 
-### Step 6: APS delivers it
+That is a `ZCL` meaning.
 
-**APS** carries that command to:
+It is not just raw bytes.
 
-- the bulb node
-- the bulb's correct endpoint
+It is a standard command with shared meaning.
 
-This is why APS is not optional in your mental model. It is what makes "send the light-control message to the correct application target" concrete.
+### Step 6: `APS` addresses it properly
 
-### Step 7: the bulb interprets the command
+Now `APS` takes over.
 
-The bulb receives the command.
+`APS` makes sure the command is directed to:
 
-Its application logic sees:
+- the correct destination node
+- the correct destination endpoint
+- the correct application target
 
-- cluster = **On/Off**
-- command = **On**
+This is the part that turns:
+
+- "send this somewhere"
+
+into:
+
+- "send this lighting command to the bulb's light-control endpoint"
+
+### Step 7: `NWK` routes it through the mesh
+
+If the bulb is not directly reachable, `NWK` finds the path.
+
+For example:
+
+- Switch -> Router A -> Router B -> Bulb
+
+That is the routing story.
+
+`NWK` does not decide what `On` means.
+
+It only makes sure the message travels across the network.
+
+### Step 8: the bulb understands the command
+
+The bulb receives the message.
+
+Its application side sees:
+
+- endpoint = `1`
+- cluster = `On/Off`
+- command = `On`
 
 Now the bulb turns on.
 
-That one event shows the entire layered story:
+That whole flow shows the layer split very clearly:
 
-- **ZDO** helped devices understand each other
-- **APS** delivered the message correctly
-- **ZCL** gave the command meaning
-
----
-
-## Binding: "Remember this relationship"
-
-**Binding** creates an application-level relationship between devices or endpoints.
-
-Instead of manually specifying every destination each time, Zigbee can remember:
-
-- this switch controls that bulb
-
-That matters because it reduces dependence on a central controller for every tiny interaction.
-
-In the apartment story, binding can mean:
-
-- the switch endpoint is bound to the bulb endpoint for the On/Off cluster
-
-So pressing the switch can naturally direct the command to the right target.
+- `ZDO` helped identify devices and capabilities
+- `APS` made sure the message reached the right application target
+- `NWK` got the message there through the mesh
+- `ZCL` gave the command meaning
 
 ---
 
-## Groups: "One command, many devices"
+## Binding: the saved relationship
 
-**Groups** let multiple devices respond to one logical target.
+**Binding** is like keeping a saved relationship in the party address book.
 
-This is useful for:
+Instead of asking every time:
 
-- all lights in the living room
-- all bulbs in a scene
-- coordinated room-level actions
+- which bulb should this switch control?
 
-So instead of thinking:
+the system can remember:
 
-- send one command to bulb A
-- send one command to bulb B
-- send one command to bulb C
+- this switch endpoint is bound to that bulb endpoint
 
-you can think:
+That makes control cleaner and reduces repeated lookup work.
 
-- send one group command to the lighting group
+Simple version:
 
-That is one reason Zigbee has been popular in lighting ecosystems.
+- binding = **remember who talks to whom**
+
+---
+
+## Groups: one message for many devices
+
+**Groups** are like a party group chat.
+
+Instead of sending:
+
+- one command to bulb A
+- one command to bulb B
+- one command to bulb C
+
+you can send:
+
+- one command to the "living room lights" group
+
+Then all bulbs in that group respond.
+
+Simple version:
+
+- group = **one message for many devices**
 
 ---
 
 ## Common confusion to avoid
 
-### Mistake 1: mixing up ZDO and ZCL
+### Confusion 1: `ZDO` and `ZCL` sound similar
 
-They are not the same.
+They are not doing the same job.
 
-- **ZDO** = identity, discovery, descriptors, management
-- **ZCL** = device behavior, commands, attributes, clusters
+- `ZDO` = identity, discovery, management
+- `ZCL` = commands, attributes, application meaning
 
 One asks:
 
@@ -464,25 +472,36 @@ The other says:
 
 - turn on
 
-### Mistake 2: skipping APS entirely
+### Confusion 2: people skip `APS`
 
-Many beginners think:
+Beginners often think:
 
-- the network sends the packet
-- the application receives the packet
+- the network sends the message
+- the application receives it
 
 But Zigbee is more structured than that.
 
-**APS matters** because delivery to the correct endpoint is part of the architecture.
+`APS` is important because it handles delivery to the correct application target.
 
-### Mistake 3: thinking a node and an endpoint are the same
+### Confusion 3: node and endpoint are not the same
 
-They are not.
+- node = physical device
+- endpoint = logical application inside the device
 
-- the **node** is the physical device
-- the **endpoint** is the logical application inside it
+One physical device can have multiple endpoints.
 
-One box can contain multiple application personalities.
+---
+
+## In one nutshell
+
+For Zigbee:
+
+- `NWK` = **how do we get there?**
+- `APS` = **who exactly should receive this?**
+- `ZCL` = **what does the message mean?**
+- `ZDO` = **who are you, and what are the rules?**
+
+That is the whole lecture in one summary.
 
 ---
 
@@ -496,44 +515,19 @@ In firmware, Zigbee is not just:
 
 It is more like:
 
-- choose endpoints
-- choose clusters
+- define endpoints
+- pick clusters
 - expose attributes
 - support commands
-- decide how device state maps to standard cluster behavior
+- manage relationships between devices
 
-That is why Zigbee firmware often feels like building a structured device model, not just a transport path.
-
-This is also why Zigbee feels different from Thread:
-
-- Thread is more networking-first and IP-first
-- Zigbee is more device-model-first and cluster-first
-
-Both use low-power wireless networking.
-
-But they teach different engineering habits.
-
----
-
-## Quick recap
-
-If you forget the details later, come back to this:
-
-- **ZDO** = who is this device and what does it expose?
-- **APS** = deliver this message to the right application endpoint
-- **ZCL** = define what the message means
-- **endpoint** = logical application instance
-- **cluster** = reusable functional block
-- **attribute** = state value
-- **command** = action
-
-That is the core Zigbee application model.
+That is why Zigbee feels more like building a structured device model than just pushing bits through a transport.
 
 ---
 
 ## Lab
 
-Use the same story format for one device:
+Use the party analogy on one device:
 
 - smart bulb
 - wall switch
@@ -542,23 +536,14 @@ Use the same story format for one device:
 Write down:
 
 1. what the physical node is
-2. what endpoint or endpoints it likely exposes
-3. which cluster or clusters matter most
-4. one attribute or command it would likely support
-5. one **ZDO** question another device might ask about it
-6. one place where **APS** matters in the delivery path
+2. what endpoint or endpoints it likely has
+3. which cluster matters most
+4. one attribute or command it likely supports
+5. one thing `ZDO` would help discover about it
+6. one place where `APS` matters
+7. one place where `NWK` matters
 
-If you can explain your example using the words:
-
-- node
-- endpoint
-- cluster
-- attribute
-- command
-- ZDO
-- APS
-
-then you are starting to think in Zigbee's native model instead of only in packets.
+If you can explain your device using those seven steps, then the Zigbee stack is starting to become practical instead of abstract.
 
 ---
 
