@@ -165,6 +165,15 @@ nav:
       - IoT:
         - Guide: Phase 2 - Embedded Systems/2. Embedded Software/IoT/Guide.md
         - OpenThread: Phase 2 - Embedded Systems/2. Embedded Software/IoT/OpenThread/Guide.md
+        - Zigbee:
+          - Guide: Phase 2 - Embedded Systems/2. Embedded Software/IoT/Zigbee/Guide.md
+          - Lectures:
+            - Overview: Phase 2 - Embedded Systems/2. Embedded Software/IoT/Zigbee/Lecture/README.md
+            - "01": Phase 2 - Embedded Systems/2. Embedded Software/IoT/Zigbee/Lecture/Lecture-01.md
+            - "02": Phase 2 - Embedded Systems/2. Embedded Software/IoT/Zigbee/Lecture/Lecture-02.md
+            - "03": Phase 2 - Embedded Systems/2. Embedded Software/IoT/Zigbee/Lecture/Lecture-03.md
+            - "04": Phase 2 - Embedded Systems/2. Embedded Software/IoT/Zigbee/Lecture/Lecture-04.md
+            - "05": Phase 2 - Embedded Systems/2. Embedded Software/IoT/Zigbee/Lecture/Lecture-05.md
     - Embedded Linux:
       - Guide: Phase 2 - Embedded Systems/3. Embedded Linux/Guide.md
       - Jetson ESP-Hosted Host Code:

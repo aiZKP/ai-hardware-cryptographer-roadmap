@@ -27,6 +27,19 @@ Start here:
 
 * [**OpenThread**](OpenThread/Guide.md)
 
+### Zigbee
+
+Zigbee is the next useful protocol after OpenThread because it teaches a different embedded networking philosophy on top of the same low-power radio family. Instead of being IP-first, Zigbee is much more **device-model-first**: endpoints, clusters, bindings, trust-center behavior, and role selection shape the firmware architecture.
+
+It also creates a direct bridge to later roadmap work:
+
+* **MCU / RTOS path:** build coordinator, router, or end-device firmware directly on an SoC such as ESP32-C6.
+* **Linux / host path:** use a Zigbee Network Co-Processor (NCP) or gateway-style design and let a stronger host manage control logic.
+
+Then study:
+
+* [**Zigbee**](Zigbee/Guide.md)
+
 ---
 
 ## Why IoT Protocols Matter for AI Hardware Engineers
